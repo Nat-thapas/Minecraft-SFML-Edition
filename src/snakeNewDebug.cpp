@@ -11,21 +11,22 @@
 #include "debugInfo.hpp"
 
 int main() {
-    sf::RenderWindow window(sf::VideoMode(1600U, 900U), "SNAKE! SFML Edition", sf::Style::Titlebar | sf::Style::Close);
+    sf::RenderWindow window(sf::VideoMode(1600, 900), "SNAKE! SFML Edition", sf::Style::Titlebar | sf::Style::Close);
     window.setVerticalSyncEnabled(true);
     window.setKeyRepeatEnabled(false);
-    window.setFramerateLimit(3U);
+    window.setFramerateLimit(6);
 
     sf::Font robotoRegular;
     if (!robotoRegular.loadFromFile("resources/fonts/Roboto-Regular.ttf")) {
         std::cout << "Font failed to load" << std::endl;
+        exit(1);
     }
 
-    DebugInfo debugInfo(sf::Vector2f(5.f, 5.f), robotoRegular, 24, 1.f, sf::Color::White, sf::Color::Black);
+    mc::DebugInfo debugInfo(sf::Vector2f(5.f, 5.f), robotoRegular, 24, sf::Color::White, sf::Color::Black, 1.f);
 
     sf::Text scoreDisplay;
     scoreDisplay.setFont(robotoRegular);
-    scoreDisplay.setCharacterSize(48U);
+    scoreDisplay.setCharacterSize(48);
     scoreDisplay.setFillColor(sf::Color::White);
     scoreDisplay.setOutlineThickness(1.f);
     scoreDisplay.setOutlineColor(sf::Color::Black);
@@ -33,7 +34,7 @@ int main() {
 
     sf::Text gameOverText;
     gameOverText.setFont(robotoRegular);
-    gameOverText.setCharacterSize(112U);
+    gameOverText.setCharacterSize(112);
     gameOverText.setFillColor(sf::Color::Red);
     gameOverText.setOutlineThickness(5.f);
     gameOverText.setOutlineColor(sf::Color::Black);
@@ -71,13 +72,15 @@ int main() {
     grid[headPos.x][headPos.y] = 'S';
 
     bool gameEnded = false;
+    bool renderDebugInfo = false;
+
+    sf::Event event;
 
     // Game loop
     while (window.isOpen()) {
-        debugInfo.startCpuTime();
+        debugInfo.startFrame();
 
         // Event loop
-        sf::Event event;
         while (window.pollEvent(event)) {
             switch (event.type) {
                 case sf::Event::Closed:
@@ -97,6 +100,9 @@ int main() {
                         case sf::Keyboard::D:
                             direction = 1;
                             break;
+                        case sf::Keyboard::F3:
+                            renderDebugInfo ^= 1;
+                            break;
                         default:
                             break;
                     }
@@ -105,6 +111,8 @@ int main() {
                     break;
             }
         }
+
+        debugInfo.endEventLoop();
 
         // Processing
         switch (direction) {
@@ -121,6 +129,9 @@ int main() {
                 headPos.x--;
                 break;
         }
+
+        debugInfo.endPlayerInputProcessing();
+        debugInfo.endRandomTick();
 
         if (!gameEnded) {
             headPos.x = cmod(headPos.x, 32);
@@ -147,12 +158,13 @@ int main() {
             snakeLen++;
         }
 
+        debugInfo.endChunksUpdate();
+
         #ifndef __INTELLISENSE__
             scoreDisplay.setString(std::format("SCORE: {:06d}", snakeLen-1));
         #endif
 
-        debugInfo.endCpuTime();
-        debugInfo.startGpuTime();
+        debugInfo.endEntitiesProcessing();
 
         // Rendering
         window.clear(sf::Color::Black);
@@ -161,20 +173,29 @@ int main() {
             snakeBlockRenderer.setPosition(sf::Vector2f(pos.x*50, pos.y*50));
             window.draw(snakeBlockRenderer);
         }
+
+        debugInfo.endChunksRendering();
+
         // Apple rendering
         appleBlockRenderer.setPosition(sf::Vector2f(applePos.x*50, applePos.y*50));
         window.draw(appleBlockRenderer);
 
+        debugInfo.endEntitiesRendering();
+        debugInfo.endParticlesRendering();
+
         // Draw overlays
-        window.draw(debugInfo);
         window.draw(scoreDisplay);
         if (gameEnded) {
             window.draw(gameOverText);
         }
+        if (renderDebugInfo) {
+            window.draw(debugInfo);
+        }
+        debugInfo.endOverlaysRendering();
 
         window.display();
         
-        debugInfo.endGpuTime();
+        debugInfo.updateLabels();
         debugInfo.endFrame();
     }
 

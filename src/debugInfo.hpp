@@ -3,33 +3,65 @@
 
 #include <SFML/Graphics.hpp>
 
+namespace mc {
+
 class DebugInfo : public sf::Drawable {
     sf::Clock frameTimeClock;
-    sf::Clock cpuTimeClock;
-    sf::Clock gpuTimeClock;
-    long long frameTime;
-    long long cpuTime;
-    long long gpuTime;
+    sf::Clock clock;
     sf::Font font;
-    sf::Text fpsLabel;
-    sf::Text cpuTimeLabel;
-    sf::Text gpuTimeLabel;
     sf::Vector2f position;
-    unsigned int characterSize;
-    float outlineThickness;
+    unsigned characterSize;
     sf::Color fillColor;
     sf::Color outlineColor;
+    float outlineThickness;
+    float lineHeightMultiplier;
+    long long frameTime;
+    long long eventLoopTime;
+    long long playerInputProcessingTime;
+    long long randomTickTime;
+    long long chunksUpdateTime;
+    long long entitiesProcessingTime;
+    long long chunksRenderingTime;
+    long long entitiesRenderingTime;
+    long long particlesRenderingTime;
+    long long overlaysRenderingTime;
+    sf::Text fpsLabel;
+    sf::Text eventLoopTimeLabel;
+    sf::Text playerInputProcessingTimeLabel;
+    sf::Text randomTickTimeLabel;
+    sf::Text chucksUpdateTimeLabel;
+    sf::Text entitiesProcessingTimeLabel;
+    sf::Text chunksRenderingTimeLabel;
+    sf::Text entitiesRenderingTimeLabel;
+    sf::Text particlesRenderingTimeLabel;
+    sf::Text overlaysRenderingTimeLabel;
 
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
-    DebugInfo(sf::Vector2f position, sf::Font font, unsigned int characterSize, float outlineThickness, sf::Color fillColor, sf::Color outlineColor);
-    void startCpuTime();
-    void endCpuTime();
-    void startGpuTime();
-    void endGpuTime();
+    void setPosition(sf::Vector2f&);
+    void setFont(sf::Font&);
+    void setCharacterSize(unsigned);
+    void setFillColor(sf::Color&);
+    void setOutlineColor(sf::Color&);
+    void setOutlineThickness(float);
+    void setLineHeightMultiplier(float);
+    void updateSettings();
+    DebugInfo(sf::Vector2f position, sf::Font font, unsigned characterSize, sf::Color fillColor, sf::Color outlineColor, float outlineThickness, float lineHeightMultiplier = 1.2f);
+    void startFrame();
+    void endEventLoop();
+    void endPlayerInputProcessing();
+    void endRandomTick();
+    void endChunksUpdate();
+    void endEntitiesProcessing();
+    void endChunksRendering();
+    void endEntitiesRendering();
+    void endParticlesRendering();
+    void endOverlaysRendering();
     void endFrame();
-    void update();
+    void updateLabels();
 };
 
-#endif // DEBUGINFO_HPP
+}  // End namespace mc
+
+#endif  // DEBUGINFO_HPP

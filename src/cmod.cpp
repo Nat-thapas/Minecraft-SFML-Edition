@@ -1,5 +1,6 @@
-#include <cmath>
 #include "cmod.hpp"
+
+#include <cmath>
 
 int cmod(int a, int b) {
     int r = a % b;
