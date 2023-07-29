@@ -1,5 +1,5 @@
-#ifndef CMOD_HPP
-#define CMOD_HPP
+#ifndef MOD_HPP
+#define MOD_HPP
 
 int cmod(int, int);
 float cmod(float, int);
@@ -12,4 +12,4 @@ double cmod(double, long long);
 double cmod(long long, double);
 double cmod(double, double);
 
-#endif // CMOD_HPP
+#endif // MOD_HPP

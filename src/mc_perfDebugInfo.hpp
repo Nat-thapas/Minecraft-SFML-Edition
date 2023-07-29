@@ -1,5 +1,5 @@
-#ifndef PERFDEBUGINFO_HPP
-#define PERFDEBUGINFO_HPP
+#ifndef MC_PERFDEBUGINFO_HPP
+#define MC_PERFDEBUGINFO_HPP
 
 #include <SFML/Graphics.hpp>
 
@@ -62,6 +62,6 @@ class DebugInfo : public sf::Drawable {
     void updateLabels();
 };
 
-}  // End namespace mc
+}  // namespace mc
 
-#endif  // PERFDEBUGINFO_HPP
+#endif  // MC_PERFDEBUGINFO_HPP
