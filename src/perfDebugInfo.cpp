@@ -1,4 +1,4 @@
-#include "debugInfo.hpp"
+#include "perfDebugInfo.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <format>

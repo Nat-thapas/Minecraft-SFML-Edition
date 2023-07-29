@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "cmod.hpp"
-#include "debugInfo.hpp"
+#include "perfDebugInfo.hpp"
 
 int main() {
     sf::RenderWindow window(sf::VideoMode(1600, 900), "SNAKE! SFML Edition", sf::Style::Titlebar | sf::Style::Close);
