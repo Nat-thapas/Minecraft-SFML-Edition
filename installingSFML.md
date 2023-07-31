@@ -19,6 +19,12 @@
 2. Extract the archive.
 3. Copy the extracted folder to your project folder.
 4. Go into the SFML folder and copy all dlls in the bin directory to our bin folder in the project folder.
+## Example Folder Structure
+Here is an example of what your project folder should looks like once you finish this guide. Don't worry if your doesn't match exactly, this is just to give you an idea of what we're aiming for and to help you put things in the right places.
+
+ ![Example folder structure image](https://raw.githubusercontent.com/Nat-thapas/Minecraft-SFML-Edition/master/exampleFolderStructure.png) 
+
+The dll files are in the pink bin folder along with `test.exe`, they're just hidden.
 ## Configuring VS Code
 1. In the .vscode folder, create a file named `launch.json` and configure how the debugger will be launched. Here is an example that should work if you installed mingw and MSYS2 via the instructions above.
 ```
