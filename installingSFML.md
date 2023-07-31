@@ -6,7 +6,7 @@
 ## Installing C/C++ extension for VS Code
 > This is only for users who don't have the extension installed already.
 1. Open VS Code and install the C/C++ extension via the extensions panel.
-2. If prompted to select a compiler, choose g++ which will be located at msys64/mingw64/bin/g++.exe
+2. If prompted to select a compiler, choose g++ which will be located at `msys64/mingw64/bin/g++.exe`
 ## Creating project folder
 1. Navigate to a folder of your choice (the path to that folder should not contain any non-ascii characters).
 2. Create a folder for your project.
@@ -172,6 +172,7 @@ int main()
 4. Click the launch button (the play button on the top left of VS Code). If everything works you should see a green circle on your screen.
 5. To add resources such as textures or fonts to your game, copy it to the bin folder and load it with relative path from your code. For example if you have `zombie.png` texture in the bin folder, to load it you simply do `texture.loadFromFile('zombie.png')`
 6. If something doesn't work then try reading the error message and figure out what's wrong, if that doesn't work then ask someone to figure it out for you. If that still doesn't work then either ask someone else or give up.
+7. If intellisense is not working properly then follows step 1 under Extra configurations below to configure compiler paths
 ## Extra configurations
 1. For convenient, you can create a file named `c_cpp_properties.json` in the .vscode folder and add the following to switch C++ standard to C++20, which allows you to use std::format
 ```
