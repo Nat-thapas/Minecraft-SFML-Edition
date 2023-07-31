@@ -1,15 +1,15 @@
 #ifndef MOD_HPP
 #define MOD_HPP
 
-int cmod(int, int);
-float cmod(float, int);
-float cmod(int, float);
-float cmod(float, float);
-long long cmod(long long, long long);
-double cmod(double, int);
-double cmod(int, double);
-double cmod(double, long long);
-double cmod(long long, double);
-double cmod(double, double);
+int mod(int, int);
+float mod(float, int);
+float mod(int, float);
+float mod(float, float);
+long long mod(long long, long long);
+double mod(double, int);
+double mod(int, double);
+double mod(double, long long);
+double mod(long long, double);
+double mod(double, double);
 
 #endif // MOD_HPP

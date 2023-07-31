@@ -2,52 +2,42 @@
 
 #include <cmath>
 
-int mod(int a, int b) {
-    int r = a % b;
-    return r < 0 ? r + b : r;
+inline int mod(int a, int b) {
+    return ((a % b) + b) % b;
 }
 
-float mod(float a, int b) {
-    float r = fmod(a, b);
-    return r < 0 ? r + b : r;
+inline float mod(float a, int b) {
+    return fmod((fmod(a, b) + b), b);
 }
 
-float mod(int a, float b) {
-    float r = fmod(a, b);
-    return r < 0 ? r + b : r;
+inline float mod(int a, float b) {
+    return fmod((fmod(a, b) + b), b);
 }
 
-float mod(float a, float b) {
-    float r = fmod(a, b);
-    return r < 0 ? r + b : r;
+inline float mod(float a, float b) {
+    return fmod((fmod(a, b) + b), b);
 }
 
-long long mod(long long a, long long b) {
-    long long r = a % b;
-    return r < 0 ? r + b : r;
+inline long long mod(long long a, long long b) {
+    return ((a % b) + b) % b;
 }
 
-double mod(double a, int b) {
-    double r = fmod(a, b);
-    return r < 0 ? r + b : r;
+inline double mod(double a, int b) {
+    return fmod((fmod(a, b) + b), b);
 }
 
-double mod(int a, double b) {
-    double r = fmod(a, b);
-    return r < 0 ? r + b : r;
+inline double mod(int a, double b) {
+    return fmod((fmod(a, b) + b), b);
 }
 
-double mod(double a, long long b) {
-    double r = fmod(a, b);
-    return r < 0 ? r + b : r;
+inline double mod(double a, long long b) {
+    return fmod((fmod(a, b) + b), b);
 }
 
-double mod(long long a, double b) {
-    double r = fmod(a, b);
-    return r < 0 ? r + b : r;
+inline double mod(long long a, double b) {
+    return fmod((fmod(a, b) + b), b);
 }
 
-double mod(double a, double b) {
-    double r = fmod(a, b);
-    return r < 0 ? r + b : r;
+inline double mod(double a, double b) {
+    return fmod((fmod(a, b) + b), b);
 }
