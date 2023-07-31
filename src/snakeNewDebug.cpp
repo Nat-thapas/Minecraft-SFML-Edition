@@ -7,8 +7,8 @@
 #include <string>
 #include <vector>
 
-#include "cmod.hpp"
-#include "perfDebugInfo.hpp"
+#include "mod.hpp"
+#include "mc_PerfDebugInfo.hpp"
 
 int main() {
     sf::RenderWindow window(sf::VideoMode(1600, 900), "SNAKE! SFML Edition", sf::Style::Titlebar | sf::Style::Close);
@@ -22,7 +22,7 @@ int main() {
         exit(1);
     }
 
-    mc::DebugInfo debugInfo(sf::Vector2f(5.f, 5.f), robotoRegular, 24, sf::Color::White, sf::Color::Black, 1.f);
+    mc::PerfDebugInfo debugInfo(sf::Vector2f(5.f, 5.f), robotoRegular, 24, sf::Color::White, sf::Color::Black, 1.f);
 
     sf::Text scoreDisplay;
     scoreDisplay.setFont(robotoRegular);

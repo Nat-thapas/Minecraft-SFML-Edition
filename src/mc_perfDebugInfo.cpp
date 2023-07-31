@@ -1,11 +1,11 @@
-#include "mc_perfDebugInfo.hpp"
+#include "mc_PerfDebugInfo.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <format>
 
 namespace mc {
 
-void DebugInfo::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+void PerfDebugInfo::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     target.draw(this->fpsLabel, states);
     target.draw(this->eventLoopTimeLabel, states);
     target.draw(this->playerInputProcessingTimeLabel, states);
@@ -18,42 +18,42 @@ void DebugInfo::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     target.draw(this->overlaysRenderingTimeLabel, states);
 }
 
-void DebugInfo::setPosition(sf::Vector2f& position) {
+void PerfDebugInfo::setPosition(sf::Vector2f& position) {
     this->position = position;
     this->updateSettings();
 }
 
-void DebugInfo::setFont(sf::Font& font) {
+void PerfDebugInfo::setFont(sf::Font& font) {
     this->font = font;
     this->updateSettings();
 }
 
-void DebugInfo::setCharacterSize(unsigned characterSize) {
+void PerfDebugInfo::setCharacterSize(unsigned characterSize) {
     this->characterSize = characterSize;
     this->updateSettings();
 }
 
-void DebugInfo::setFillColor(sf::Color& fillColor) {
+void PerfDebugInfo::setFillColor(sf::Color& fillColor) {
     this->fillColor = fillColor;
     this->updateSettings();
 }
 
-void DebugInfo::setOutlineColor(sf::Color& outlineColor) {
+void PerfDebugInfo::setOutlineColor(sf::Color& outlineColor) {
     this->outlineColor = outlineColor;
     this->updateSettings();
 }
 
-void DebugInfo::setOutlineThickness(float outlineThickness) {
+void PerfDebugInfo::setOutlineThickness(float outlineThickness) {
     this->outlineThickness = outlineThickness;
     this->updateSettings();
 }
 
-void DebugInfo::setLineHeightMultiplier(float lineHeightMultiplier) {
+void PerfDebugInfo::setLineHeightMultiplier(float lineHeightMultiplier) {
     this->lineHeightMultiplier = lineHeightMultiplier;
     this->updateSettings();
 }
 
-void DebugInfo::updateSettings() {
+void PerfDebugInfo::updateSettings() {
     sf::Vector2f calulatedPosition(this->position);
     this->fpsLabel.setPosition(calulatedPosition);
     calulatedPosition.y += this->characterSize * this->lineHeightMultiplier;
@@ -126,7 +126,7 @@ void DebugInfo::updateSettings() {
     this->overlaysRenderingTimeLabel.setOutlineThickness(this->outlineThickness);
 }
 
-DebugInfo::DebugInfo(sf::Vector2f position, sf::Font font, unsigned characterSize, sf::Color fillColor, sf::Color outlineColor, float outlineThickness, float lineHeightMultiplier) {
+PerfDebugInfo::PerfDebugInfo(sf::Vector2f position, sf::Font font, unsigned characterSize, sf::Color fillColor, sf::Color outlineColor, float outlineThickness, float lineHeightMultiplier) {
     this->position = position;
     this->font = font;
     this->characterSize = characterSize;
@@ -147,51 +147,51 @@ DebugInfo::DebugInfo(sf::Vector2f position, sf::Font font, unsigned characterSiz
     this->overlaysRenderingTime = 0 ;
 }
 
-void DebugInfo::startFrame() {
+void PerfDebugInfo::startFrame() {
     this->clock.restart();
 }
 
-void DebugInfo::endEventLoop() {
+void PerfDebugInfo::endEventLoop() {
     this->eventLoopTime = this->clock.restart().asMicroseconds();
 }
 
-void DebugInfo::endPlayerInputProcessing() {
+void PerfDebugInfo::endPlayerInputProcessing() {
     this->playerInputProcessingTime = this->clock.restart().asMicroseconds();
 }
 
-void DebugInfo::endRandomTick() {
+void PerfDebugInfo::endRandomTick() {
     this->randomTickTime = this->clock.restart().asMicroseconds();
 }
 
-void DebugInfo::endChunksUpdate() {
+void PerfDebugInfo::endChunksUpdate() {
     this->chunksUpdateTime = this->clock.restart().asMicroseconds();
 }
 
-void DebugInfo::endEntitiesProcessing() {
+void PerfDebugInfo::endEntitiesProcessing() {
     this->entitiesProcessingTime = this->clock.restart().asMicroseconds();
 }
 
-void DebugInfo::endChunksRendering() {
+void PerfDebugInfo::endChunksRendering() {
     this->chunksRenderingTime = this->clock.restart().asMicroseconds();
 }
 
-void DebugInfo::endEntitiesRendering() {
+void PerfDebugInfo::endEntitiesRendering() {
     this->entitiesRenderingTime = this->clock.restart().asMicroseconds();
 }
 
-void DebugInfo::endParticlesRendering() {
+void PerfDebugInfo::endParticlesRendering() {
     this->particlesRenderingTime = this->clock.restart().asMicroseconds();
 }
 
-void DebugInfo::endOverlaysRendering() {
+void PerfDebugInfo::endOverlaysRendering() {
     this->overlaysRenderingTime = this->clock.restart().asMicroseconds();
 }
 
-void DebugInfo::endFrame() {
+void PerfDebugInfo::endFrame() {
     this->frameTime = this->frameTimeClock.restart().asMicroseconds();
 }
 
-void DebugInfo::updateLabels() {
+void PerfDebugInfo::updateLabels() {
     this->fpsLabel.setString(std::format("FPS: {:.2f} ({:.2f} ms.)", 1000000.f / this->frameTime, this->frameTime/1000.f));
     this->eventLoopTimeLabel.setString(std::format("Event Loop: {:.2f} ms.", this->eventLoopTime / 1000.f));
     this->playerInputProcessingTimeLabel.setString(std::format("Input Processing: {:.2f}", this->playerInputProcessingTime / 1000.f));
