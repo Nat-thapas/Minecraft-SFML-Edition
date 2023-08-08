@@ -134,8 +134,8 @@ int main() {
         debugInfo.endRandomTick();
 
         if (!gameEnded) {
-            headPos.x = cmod(headPos.x, 32);
-            headPos.y = cmod(headPos.y, 18);
+            headPos.x = mod(headPos.x, 32);
+            headPos.y = mod(headPos.y, 18);
             snakeCoords.push_front(headPos);
             if (grid[headPos.x][headPos.y] == 'S' && direction != -1) {
                 gameEnded = true;
