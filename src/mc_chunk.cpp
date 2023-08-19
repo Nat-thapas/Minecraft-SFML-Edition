@@ -5,9 +5,9 @@
 #include <string>
 #include <vector>
 
-#include <include/json.hpp>
 #include <SFML/Graphics.hpp>
 
+#include "../include/json.hpp"
 #include "mod.hpp"
 #include "idiv.hpp"
 
@@ -21,13 +21,16 @@ void Chunk::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     target.draw(this->vertexArray, states);
 }
 
-Chunk::Chunk(std::vector<int> blocks, std::string textureAtlasFileName, std::string atlasDataFileName) {
+Chunk::Chunk(int blocks[4096], std::string textureAtlasFileName, std::string atlasDataFileName) {
     std::ifstream atlasDataFile(atlasDataFileName);
     this->atlasData = json::parse(atlasDataFile);
     this->textureAtlas.loadFromFile(textureAtlasFileName);
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
-    this->blocks = blocks;
+    for (int i = 0; i < 4096; i++) {
+        this->blocks[i] = blocks[i];
+    }
+    this->updateVertexArray();
 }
 
 void Chunk::updateVertexArray() {
@@ -38,8 +41,8 @@ void Chunk::updateVertexArray() {
     blockRect.width = 64;
     blockRect.height = 64;
 
-    for (int i = 0; i < this->blocks.size(); i++) {
-        blockID = this->blocks.at(i);
+    for (int i = 0; i < 4096; i++) {
+        blockID = blocks[i];
         textureRect.left = this->atlasData[std::format("{:03d}", blockID)]["x"];
         textureRect.top = this->atlasData[std::format("{:03d}", blockID)]["y"];
         textureRect.width = this->atlasData[std::format("{:03d}", blockID)]["w"];
@@ -70,11 +73,12 @@ void Chunk::updateVertexArray() {
 }
 
 int Chunk::getBlock(int x, int y) {
-    return this->blocks.at(x + y * 16);
+    return this->blocks[x + y * 16];
 }
 
 void Chunk::setBlock(int x, int y, int blockID) {
-    this->blocks.at(x + y * 16) = blockID;
+    this->blocks[x + y * 16] = blockID;
+    this->updateVertexArray();
 }
 
 }  // namespace mc

@@ -6,9 +6,9 @@
 #include <string>
 #include <vector>
 
-#include <include/json.hpp>
 #include <SFML/Graphics.hpp>
 
+#include "../include/json.hpp"
 #include "mod.hpp"
 #include "idiv.hpp"
 
@@ -19,14 +19,14 @@ namespace mc {
 class Chunk : public sf::Drawable, public sf::Transformable {
     sf::Texture textureAtlas;
     sf::VertexArray vertexArray;
-    std::vector<int> blocks;
+    int blocks[4096];
     json atlasData;
 
+    void updateVertexArray();
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
-    Chunk(std::vector<int> blocks, std::string textureAtlasFileName, std::string atlasDataFileName);
-    void updateVertexArray();
+    Chunk(int blocks[4096], std::string textureAtlasFileName, std::string atlasDataFileName);
     int getBlock(int x, int y);
     void setBlock(int x, int y, int blockID);
 };
