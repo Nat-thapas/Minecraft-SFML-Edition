@@ -55,7 +55,13 @@
         "stdexcept": "cpp",
         "streambuf": "cpp",
         "typeinfo": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "any": "cpp",
+        "codecvt": "cpp",
+        "forward_list": "cpp",
+        "ratio": "cpp",
+        "ranges": "cpp",
+        "valarray": "cpp"
     },
     "search.exclude": {
         "**/SFML-2.6.0": true

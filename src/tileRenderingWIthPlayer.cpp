@@ -6,7 +6,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "cmod.hpp"
+
+#include "mod.hpp"
 
 const float cameraMoveSpeedMultiplier = 4.f;
 
@@ -236,10 +237,10 @@ int main() {
         // Processing
         cameraPos += cameraMoveSpeed * (cameraMoveSpeedMultiplier * frameTimeMicrosecond / 10000);
         mousePos = sf::Mouse::getPosition(window);
-        mousePos.x -= cmod(cameraPos.x, 64);
-        mousePos.y -= cmod(cameraPos.y, 64);
+        mousePos.x -= mod(cameraPos.x, 64);
+        mousePos.y -= mod(cameraPos.y, 64);
         mousePos /= 64;
-        highlighter.setPosition(mousePos.x*64.f+cmod(cameraPos.x, 64), mousePos.y*64.f+cmod(cameraPos.y, 64));
+        highlighter.setPosition(mousePos.x*64.f+mod(cameraPos.x, 64), mousePos.y*64.f+mod(cameraPos.y, 64));
 
         if (cameraMoveSpeed.x > 0) {
             player.setTexture(playerLeft);
