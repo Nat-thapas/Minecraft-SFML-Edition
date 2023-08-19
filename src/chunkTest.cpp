@@ -199,10 +199,10 @@ int main() {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-        3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-        3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-        3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+        11, 13, 63, 2, 2, 2, 2, 2, 2, 2, 2, 12, 12, 12, 38, 38,
+        3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 12, 12, 12, 14, 14,
+        3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 12, 12, 12, 14, 14,
+        3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 12, 12, 12, 14, 14,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -275,6 +275,9 @@ int main() {
     float frameTime;
 
     sf::Clock clock;
+    sf::Clock elapsedClock;
+
+    int lastTick = 0;
     while (window.isOpen())
     {
         frameTime = clock.restart().asSeconds();
@@ -287,9 +290,16 @@ int main() {
                 window.close();
         }
 
-        chunk.setPosition(sf::Vector2f(x, -12288.f));
-        chunk.setBlock(5, 192, a);
-        chunk2.setPosition(sf::Vector2f(x + 1024.f, -12288.f));
+        if (elapsedClock.getElapsedTime().asMilliseconds() - lastTick > 50) {
+            lastTick += 50;
+            chunk.tickAnimation();
+            chunk2.tickAnimation();
+            chunk.updateVertexArray(true);
+            chunk2.updateVertexArray(true);
+        }
+
+        // chunk.setPosition(sf::Vector2f(x, -12288.f));
+        // chunk2.setPosition(sf::Vector2f(x + 1024.f, -12288.f));
 
         // draw the map
         window.clear();
@@ -303,7 +313,7 @@ int main() {
         a++;
         a = mod(a, 71);
 
-        std::cout << 1/frameTime << "FPS." << std::endl;
+        std::cout << 1/frameTime << " FPS." << std::endl;
     }
 
     return 0;

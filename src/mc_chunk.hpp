@@ -20,15 +20,17 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     sf::Texture textureAtlas;
     sf::VertexArray vertexArray;
     int blocks[4096];
+    int animationIndex;
     json atlasData;
 
-    void updateVertexArray();
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
     Chunk(int blocks[4096], std::string textureAtlasFileName, std::string atlasDataFileName);
     int getBlock(int x, int y);
     void setBlock(int x, int y, int blockID);
+    void tickAnimation();
+    void updateVertexArray(bool onlyUpdateAnimated);
 };
 
 }  // namespace mc

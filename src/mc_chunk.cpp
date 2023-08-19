@@ -30,10 +30,11 @@ Chunk::Chunk(int blocks[4096], std::string textureAtlasFileName, std::string atl
     for (int i = 0; i < 4096; i++) {
         this->blocks[i] = blocks[i];
     }
-    this->updateVertexArray();
+    this->animationIndex = 0;
+    this->updateVertexArray(false);
 }
 
-void Chunk::updateVertexArray() {
+void Chunk::updateVertexArray(bool onlyUpdateAnimated) {
     int blockID;
     sf::IntRect blockRect;
     sf::IntRect textureRect;
@@ -41,12 +42,38 @@ void Chunk::updateVertexArray() {
     blockRect.width = 64;
     blockRect.height = 64;
 
+    int textureAnimationIndex;
+    int animationLength;
+
     for (int i = 0; i < 4096; i++) {
         blockID = blocks[i];
+        if (onlyUpdateAnimated && !(11 <= blockID && blockID <= 14) && blockID != 38 && blockID != 63) {
+            continue;
+        }
         textureRect.left = this->atlasData[std::format("{:03d}", blockID)]["x"];
         textureRect.top = this->atlasData[std::format("{:03d}", blockID)]["y"];
-        textureRect.width = this->atlasData[std::format("{:03d}", blockID)]["w"];
-        textureRect.height = this->atlasData[std::format("{:03d}", blockID)]["h"];
+        if (blockID == 13) {
+            textureRect.width = 16;
+            textureRect.height = 16;
+            animationLength = idiv((int)this->atlasData[std::format("{:03d}", blockID)]["h"], 16);
+            textureAnimationIndex = mod((this->animationIndex), animationLength * 2 - 1);
+            if (textureAnimationIndex >= animationLength) {
+                textureAnimationIndex = animationLength * 2 - textureAnimationIndex - 1;
+            }
+            textureRect.top += textureAnimationIndex * 16;
+        } else if (blockID == 11 || blockID == 63) {
+            textureRect.width = 16;
+            textureRect.height = 16;
+            textureRect.top += mod((16 * this->animationIndex), (int)this->atlasData[std::format("{:03d}", blockID)]["h"]);
+        } else if (blockID == 12 || blockID == 14 || blockID == 38) {
+            textureRect.width = 16;
+            textureRect.height = 16;
+            textureRect.top += mod((16 * this->animationIndex), (int)this->atlasData[std::format("{:03d}", blockID)]["h"]);
+            textureRect.left += mod(i, 2) * 16;
+        } else {
+            textureRect.width = this->atlasData[std::format("{:03d}", blockID)]["w"];
+            textureRect.height = this->atlasData[std::format("{:03d}", blockID)]["h"];
+        }
 
         blockRect.left = mod(i, 16) * blockRect.width;
         blockRect.top = idiv(i, 16) * blockRect.height;
@@ -78,7 +105,11 @@ int Chunk::getBlock(int x, int y) {
 
 void Chunk::setBlock(int x, int y, int blockID) {
     this->blocks[x + y * 16] = blockID;
-    this->updateVertexArray();
+    this->updateVertexArray(false);
+}
+
+void Chunk::tickAnimation() {
+    this->animationIndex++;
 }
 
 }  // namespace mc
