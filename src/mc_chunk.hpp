@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <queue>
 
 #include <SFML/Graphics.hpp>
 
@@ -19,10 +20,15 @@ namespace mc {
 class Chunk : public sf::Drawable, public sf::Transformable {
     sf::Texture textureAtlas;
     sf::VertexArray vertexArray;
+    std::queue<int> vertexUpdateQueue;
     int blocks[4096];
     int animationIndex;
     json atlasData;
 
+    void initializeVertexArray();
+    void updateAnimatedVertexArray();
+    void updateAllVertexArray();
+    void updateVertexArray();
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
@@ -30,7 +36,6 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     int getBlock(int x, int y);
     void setBlock(int x, int y, int blockID);
     void tickAnimation();
-    void updateVertexArray(bool onlyUpdateAnimated);
 };
 
 }  // namespace mc

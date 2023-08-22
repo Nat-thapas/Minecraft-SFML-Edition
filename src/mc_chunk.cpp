@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <queue>
 
 #include <SFML/Graphics.hpp>
 
@@ -31,23 +32,43 @@ Chunk::Chunk(int blocks[4096], std::string textureAtlasFileName, std::string atl
         this->blocks[i] = blocks[i];
     }
     this->animationIndex = 0;
-    this->updateVertexArray(false);
+    this->initializeVertexArray();
+    this->updateAllVertexArray();
 }
 
-void Chunk::updateVertexArray(bool onlyUpdateAnimated) {
-    int blockID;
+void Chunk::initializeVertexArray() {
     sf::IntRect blockRect;
-    sf::IntRect textureRect;
 
     blockRect.width = 64;
     blockRect.height = 64;
+
+    for (int i = 0; i < 4096; i++) {
+        blockRect.left = mod(i, 16) * blockRect.width;
+        blockRect.top = idiv(i, 16) * blockRect.height;
+        
+        // get a pointer to the triangles' vertices of the current tile
+        sf::Vertex* triangles = &this->vertexArray[i * 6];
+
+        // define the 6 corners of the two triangles
+        triangles[0].position = sf::Vector2f(blockRect.left, blockRect.top);
+        triangles[1].position = sf::Vector2f(blockRect.left + blockRect.width, blockRect.top);
+        triangles[2].position = sf::Vector2f(blockRect.left, blockRect.top + blockRect.height);
+        triangles[3].position = sf::Vector2f(blockRect.left, blockRect.top + blockRect.height);
+        triangles[4].position = sf::Vector2f(blockRect.left + blockRect.width, blockRect.top);
+        triangles[5].position = sf::Vector2f(blockRect.left + blockRect.width, blockRect.top + blockRect.height);
+    }
+}
+
+void Chunk::updateAnimatedVertexArray() {
+    int blockID;
+    sf::IntRect textureRect;
 
     int textureAnimationIndex;
     int animationLength;
 
     for (int i = 0; i < 4096; i++) {
-        blockID = blocks[i];
-        if (onlyUpdateAnimated && !(11 <= blockID && blockID <= 14) && blockID != 38 && blockID != 63) {
+        blockID = this->blocks[i];
+        if (!(11 <= blockID && blockID <= 14) && blockID != 38 && blockID != 63) {
             continue;
         }
         textureRect.left = this->atlasData[std::format("{:03d}", blockID)]["x"];
@@ -75,19 +96,106 @@ void Chunk::updateVertexArray(bool onlyUpdateAnimated) {
             textureRect.height = this->atlasData[std::format("{:03d}", blockID)]["h"];
         }
 
-        blockRect.left = mod(i, 16) * blockRect.width;
-        blockRect.top = idiv(i, 16) * blockRect.height;
-        
         // get a pointer to the triangles' vertices of the current tile
         sf::Vertex* triangles = &this->vertexArray[i * 6];
 
-        // define the 6 corners of the two triangles
-        triangles[0].position = sf::Vector2f(blockRect.left, blockRect.top);
-        triangles[1].position = sf::Vector2f(blockRect.left + blockRect.width, blockRect.top);
-        triangles[2].position = sf::Vector2f(blockRect.left, blockRect.top + blockRect.height);
-        triangles[3].position = sf::Vector2f(blockRect.left, blockRect.top + blockRect.height);
-        triangles[4].position = sf::Vector2f(blockRect.left + blockRect.width, blockRect.top);
-        triangles[5].position = sf::Vector2f(blockRect.left + blockRect.width, blockRect.top + blockRect.height);
+        // define the 6 matching texture coordinates
+        triangles[0].texCoords = sf::Vector2f(textureRect.left, textureRect.top);
+        triangles[1].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
+        triangles[2].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
+        triangles[3].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
+        triangles[4].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
+        triangles[5].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top + textureRect.height);
+    }
+}
+
+void Chunk::updateAllVertexArray() {
+    int blockID;
+    sf::IntRect textureRect;
+
+    int textureAnimationIndex;
+    int animationLength;
+
+    for (int i = 0; i < 4096; i++) {
+        blockID = this->blocks[i];
+        textureRect.left = this->atlasData[std::format("{:03d}", blockID)]["x"];
+        textureRect.top = this->atlasData[std::format("{:03d}", blockID)]["y"];
+        if (blockID == 13) {
+            textureRect.width = 16;
+            textureRect.height = 16;
+            animationLength = idiv((int)this->atlasData[std::format("{:03d}", blockID)]["h"], 16);
+            textureAnimationIndex = mod((this->animationIndex), animationLength * 2 - 1);
+            if (textureAnimationIndex >= animationLength) {
+                textureAnimationIndex = animationLength * 2 - textureAnimationIndex - 1;
+            }
+            textureRect.top += textureAnimationIndex * 16;
+        } else if (blockID == 11 || blockID == 63) {
+            textureRect.width = 16;
+            textureRect.height = 16;
+            textureRect.top += mod((16 * this->animationIndex), (int)this->atlasData[std::format("{:03d}", blockID)]["h"]);
+        } else if (blockID == 12 || blockID == 14 || blockID == 38) {
+            textureRect.width = 16;
+            textureRect.height = 16;
+            textureRect.top += mod((16 * this->animationIndex), (int)this->atlasData[std::format("{:03d}", blockID)]["h"]);
+            textureRect.left += mod(i, 2) * 16;
+        } else {
+            textureRect.width = this->atlasData[std::format("{:03d}", blockID)]["w"];
+            textureRect.height = this->atlasData[std::format("{:03d}", blockID)]["h"];
+        }
+
+        // get a pointer to the triangles' vertices of the current tile
+        sf::Vertex* triangles = &this->vertexArray[i * 6];
+
+        // define the 6 matching texture coordinates
+        triangles[0].texCoords = sf::Vector2f(textureRect.left, textureRect.top);
+        triangles[1].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
+        triangles[2].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
+        triangles[3].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
+        triangles[4].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
+        triangles[5].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top + textureRect.height);
+    }
+}
+
+void Chunk::updateVertexArray() {
+    int blockID;
+    sf::IntRect textureRect;
+
+    int textureAnimationIndex;
+    int animationLength;
+    int i;
+
+    while (this->vertexUpdateQueue.size()) {
+        i = vertexUpdateQueue.front();
+        vertexUpdateQueue.pop();
+        blockID = this->blocks[i];
+
+        textureRect.left = this->atlasData[std::format("{:03d}", blockID)]["x"];
+        textureRect.top = this->atlasData[std::format("{:03d}", blockID)]["y"];
+        if (blockID == 13) {
+            textureRect.width = 16;
+            textureRect.height = 16;
+            animationLength = idiv((int)this->atlasData[std::format("{:03d}", blockID)]["h"], 16);
+            textureAnimationIndex = mod((this->animationIndex), animationLength * 2 - 1);
+            if (textureAnimationIndex >= animationLength) {
+                textureAnimationIndex = animationLength * 2 - textureAnimationIndex - 1;
+            }
+            textureRect.top += textureAnimationIndex * 16;
+        } else if (blockID == 11 || blockID == 63) {
+            textureRect.width = 16;
+            textureRect.height = 16;
+            textureRect.top += mod((16 * this->animationIndex), (int)this->atlasData[std::format("{:03d}", blockID)]["h"]);
+        } else if (blockID == 12 || blockID == 14 || blockID == 38) {
+            textureRect.width = 16;
+            textureRect.height = 16;
+            textureRect.top += mod((16 * this->animationIndex), (int)this->atlasData[std::format("{:03d}", blockID)]["h"]);
+            textureRect.left += mod(i, 2) * 16;
+        } else {
+            textureRect.width = this->atlasData[std::format("{:03d}", blockID)]["w"];
+            textureRect.height = this->atlasData[std::format("{:03d}", blockID)]["h"];
+        }
+
+        // get a pointer to the triangles' vertices of the current tile
+        sf::Vertex* triangles = &this->vertexArray[i * 6];
 
         // define the 6 matching texture coordinates
         triangles[0].texCoords = sf::Vector2f(textureRect.left, textureRect.top);
@@ -105,11 +213,13 @@ int Chunk::getBlock(int x, int y) {
 
 void Chunk::setBlock(int x, int y, int blockID) {
     this->blocks[x + y * 16] = blockID;
-    this->updateVertexArray(false);
+    this->vertexUpdateQueue.push(x + y * 16);
+    this->updateVertexArray();
 }
 
 void Chunk::tickAnimation() {
     this->animationIndex++;
+    this->updateAnimatedVertexArray();
 }
 
 }  // namespace mc

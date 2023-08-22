@@ -2,10 +2,15 @@
 #include <iostream>
 
 #include "mc_chunk.hpp"
+#include "mc_perfDebugInfo.hpp"
+#include "idiv.hpp"
+#include "mod.hpp"
 
 int main() {
     sf::RenderWindow window(sf::VideoMode(1600, 960), "I hate C++", sf::Style::Titlebar | sf::Style::Close);
-    // window.setFramerateLimit(60);
+    window.setFramerateLimit(120);
+    window.setVerticalSyncEnabled(true);
+    window.setKeyRepeatEnabled(false);
     int chunkData[4096] = {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -192,19 +197,19 @@ int main() {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        11, 13, 63, 2, 2, 2, 2, 2, 2, 2, 2, 12, 12, 12, 38, 38,
-        3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 12, 12, 12, 14, 14,
-        3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 12, 12, 12, 14, 14,
-        3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 12, 12, 12, 14, 14,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        0, 0, 0, 0, 0, 7, 7, 7, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 7, 7, 7, 7, 7, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 7, 7, 6, 7, 7, 0, 0, 36, 36, 36, 36, 0,
+        0, 0, 0, 0, 7, 7, 6, 7, 7, 0, 0, 36, 63, 63, 36, 0,
+        0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 36, 63, 63, 36, 0,
+        0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 36, 63, 63, 36, 0,
+        0, 0, 0, 0, 0, 40, 6, 0, 0, 0, 0, 36, 36, 36, 36, 0,
+        11, 13, 63, 2, 52, 2, 2, 68, 68, 68, 2, 12, 12, 12, 38, 38,
+        3, 3, 3, 3, 3, 3, 68, 66, 66, 66, 68, 12, 12, 12, 14, 14,
+        3, 3, 3, 3, 3, 3, 68, 66, 66, 66, 68, 12, 12, 12, 14, 14,
+        3, 3, 3, 3, 3, 3, 68, 66, 66, 66, 68, 12, 12, 12, 14, 14,
+        1, 20, 1, 1, 1, 21, 1, 68, 68, 68, 1, 21, 1, 1, 1, 1,
+        1, 1, 23, 1, 22, 1, 1, 1, 20, 20, 1, 22, 1, 1, 23, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -267,22 +272,22 @@ int main() {
     mc::Chunk chunk(chunkData, "resources/textures/atlases/blocksAtlas.png", "resources/textures/atlases/blocksAtlas.json");
     mc::Chunk chunk2(chunkData, "resources/textures/atlases/blocksAtlas.png", "resources/textures/atlases/blocksAtlas.json");
 
-    chunk.setPosition(sf::Vector2f(0.f, -12288.f));
-    chunk2.setPosition(sf::Vector2f(1024.f, -12288.f));
+    chunk.setPosition(sf::Vector2f(0.f, -11776.f));
+    chunk2.setPosition(sf::Vector2f(1024.f, -11776.f));
 
-    float x = 0;
-    int a = 0;
-    float frameTime;
+    sf::Font robotoRegular;
+    robotoRegular.loadFromFile("resources/fonts/Roboto-Regular.ttf");
 
-    sf::Clock clock;
+    mc::PerfDebugInfo perfDebugInfo(sf::Vector2f(0.f, 0.f), robotoRegular, 24, sf::Color::White, sf::Color::Black, 1.f);
     sf::Clock elapsedClock;
+
+    int b = 0;
 
     int lastTick = 0;
     while (window.isOpen())
     {
-        frameTime = clock.restart().asSeconds();
+        perfDebugInfo.startFrame();
 
-        // handle events
         sf::Event event;
         while (window.pollEvent(event))
         {
@@ -290,30 +295,38 @@ int main() {
                 window.close();
         }
 
+        perfDebugInfo.endEventLoop();
+        perfDebugInfo.endPlayerInputProcessing();
+        perfDebugInfo.endRandomTick();
+
         if (elapsedClock.getElapsedTime().asMilliseconds() - lastTick > 50) {
             lastTick += 50;
             chunk.tickAnimation();
             chunk2.tickAnimation();
-            chunk.updateVertexArray(true);
-            chunk2.updateVertexArray(true);
+            b++;
+            b = mod(b, 128);
+            chunk.setBlock(4, 191, idiv(b, 16) + 43);
         }
 
-        // chunk.setPosition(sf::Vector2f(x, -12288.f));
-        // chunk2.setPosition(sf::Vector2f(x + 1024.f, -12288.f));
+        perfDebugInfo.endChunksUpdate();
+        perfDebugInfo.endEntitiesProcessing();
 
-        // draw the map
-        window.clear();
+        window.clear(sf::Color(160, 192, 255));
         window.draw(chunk);
         window.draw(chunk2);
+
+        perfDebugInfo.endChunksRendering();
+        perfDebugInfo.endEntitiesRendering();
+        perfDebugInfo.endParticlesRendering();
+
+        window.draw(perfDebugInfo);
+
+        perfDebugInfo.endOverlaysRendering();
+
         window.display();
 
-        x += frameTime * 100;
-        x = mod(x, 576);
-
-        a++;
-        a = mod(a, 71);
-
-        std::cout << 1/frameTime << " FPS." << std::endl;
+        perfDebugInfo.endFrame();
+        perfDebugInfo.updateLabels();
     }
 
     return 0;

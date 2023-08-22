@@ -194,14 +194,14 @@ void PerfDebugInfo::endFrame() {
 void PerfDebugInfo::updateLabels() {
     this->fpsLabel.setString(std::format("FPS: {:.2f} ({:.2f} ms.)", 1000000.f / this->frameTime, this->frameTime/1000.f));
     this->eventLoopTimeLabel.setString(std::format("Event Loop: {:.2f} ms.", this->eventLoopTime / 1000.f));
-    this->playerInputProcessingTimeLabel.setString(std::format("Input Processing: {:.2f}", this->playerInputProcessingTime / 1000.f));
-    this->randomTickTimeLabel.setString(std::format("Random Tick: {:.2f}", this->randomTickTime / 1000.f));
-    this->chucksUpdateTimeLabel.setString(std::format("Chunk Updates: {:.2f}", this->chunksUpdateTime / 1000.f));
-    this->entitiesProcessingTimeLabel.setString(std::format("Entities Processing: {:.2f}", this->entitiesProcessingTime / 1000.f));
-    this->chunksRenderingTimeLabel.setString(std::format("Chunks Rendering: {:.2f}", this->chunksRenderingTime / 1000.f));
-    this->entitiesRenderingTimeLabel.setString(std::format("Entities Rendering: {:.2f}", this->entitiesRenderingTime / 1000.f));
-    this->particlesRenderingTimeLabel.setString(std::format("Particles Rendering: {:.2f}", this->particlesRenderingTime / 1000.f));
-    this->overlaysRenderingTimeLabel.setString(std::format("Overlays Rendering: {:.2f}", this->overlaysRenderingTime / 1000.f));
+    this->playerInputProcessingTimeLabel.setString(std::format("Input Processing: {:.2f} ms.", this->playerInputProcessingTime / 1000.f));
+    this->randomTickTimeLabel.setString(std::format("Random Tick: {:.2f} ms.", this->randomTickTime / 1000.f));
+    this->chucksUpdateTimeLabel.setString(std::format("Chunk Updates: {:.2f} ms.", this->chunksUpdateTime / 1000.f));
+    this->entitiesProcessingTimeLabel.setString(std::format("Entities Processing: {:.2f} ms.", this->entitiesProcessingTime / 1000.f));
+    this->chunksRenderingTimeLabel.setString(std::format("Chunks Rendering: {:.2f} ms.", this->chunksRenderingTime / 1000.f));
+    this->entitiesRenderingTimeLabel.setString(std::format("Entities Rendering: {:.2f} ms.", this->entitiesRenderingTime / 1000.f));
+    this->particlesRenderingTimeLabel.setString(std::format("Particles Rendering: {:.2f} ms.", this->particlesRenderingTime / 1000.f));
+    this->overlaysRenderingTimeLabel.setString(std::format("Overlays Rendering: {:.2f} ms.", this->overlaysRenderingTime / 1000.f));
 }
 
 }  // End namespace mc
