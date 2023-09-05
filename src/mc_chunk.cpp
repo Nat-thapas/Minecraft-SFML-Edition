@@ -1,5 +1,6 @@
 #include "mc_chunk.hpp"
 
+#include <cstdlib>
 #include <format>
 #include <fstream>
 #include <string>
@@ -207,14 +208,47 @@ void Chunk::updateVertexArray() {
     }
 }
 
+void Chunk::update() {
+    int i, blockID;
+    while (this->blockUpdateQueue.size()) {
+        i = this->blockUpdateQueue.front();
+        this->blockUpdateQueue.pop();
+        blockID = this->blocks[i];
+        // TODO
+    }
+}
+
 int Chunk::getBlock(int x, int y) {
     return this->blocks[x + y * 16];
 }
 
 void Chunk::setBlock(int x, int y, int blockID) {
     this->blocks[x + y * 16] = blockID;
+    this->blockUpdateQueue.push(x + y * 16);
+    this->update();
     this->vertexUpdateQueue.push(x + y * 16);
     this->updateVertexArray();
+}
+
+bool Chunk::placeBlock(int x, int y, int itemID) {
+    int blockID = this->blockPlaceIDs[itemID]; // TODO
+    this->setBlock(x, y, blockID);
+}
+
+int Chunk::breakBlock(int x, int y, int *xp) {
+    int blockID = this->getBlock(x, y);
+    this->setBlock(x, y, 0);
+    *xp += this->experienceDropAmount[blockID];
+    int dropIntensity = rand()%100 + 1;
+    if (blockID == 19 && dropIntensity > 90) {
+        return 80;
+    }
+    int requiredDropIntensity = 100 - this->itemDropChances[blockID];
+    if (dropIntensity > requiredDropIntensity) {
+        return this->itemDropIDs[blockID];
+    } else {
+        return 0;
+    }
 }
 
 void Chunk::tickAnimation() {

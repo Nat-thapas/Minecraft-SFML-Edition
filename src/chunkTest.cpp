@@ -1,5 +1,7 @@
 #include <SFML/Graphics.hpp>
+#include <cstdlib>
 #include <iostream>
+#include <ctime>
 
 #include "mc_chunk.hpp"
 #include "mc_perfDebugInfo.hpp"
@@ -7,6 +9,8 @@
 #include "mod.hpp"
 
 int main() {
+    srand(time(NULL));
+
     sf::RenderWindow window(sf::VideoMode(1600, 960), "I hate C++", sf::Style::Titlebar | sf::Style::Close);
     window.setFramerateLimit(0);
     window.setVerticalSyncEnabled(false);
@@ -305,7 +309,7 @@ int main() {
             chunk2.tickAnimation();
             b++;
             b = mod(b, 128);
-            chunk.setBlock(4, 191, idiv(b, 16) + 43);
+            chunk.placeBlock(4, 191, idiv(b, 16) + 43);
         }
 
         perfDebugInfo.endChunksUpdate();
