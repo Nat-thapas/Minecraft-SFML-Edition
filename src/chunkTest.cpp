@@ -8,8 +8,8 @@
 
 int main() {
     sf::RenderWindow window(sf::VideoMode(1600, 960), "I hate C++", sf::Style::Titlebar | sf::Style::Close);
-    window.setFramerateLimit(120);
-    window.setVerticalSyncEnabled(true);
+    window.setFramerateLimit(0);
+    window.setVerticalSyncEnabled(false);
     window.setKeyRepeatEnabled(false);
     int chunkData[4096] = {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
