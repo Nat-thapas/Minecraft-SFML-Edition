@@ -3,6 +3,7 @@
 > This is only for users who don't have those tools installed already.
 1. Go to [MSYS2 Website](https://www.msys2.org/) and follow the installation instruction from step 1 to 5. Record the installation directory for later.
 2. Launch MSYS2 and type in command `pacman -S --needed base-devel mingw-w64-x86_64-toolchain` press Enter, press Enter again when prompted to select modules to install, the type `y` and press Enter to confirm.
+3. Add the folder `msys64/mingw64/bin/` to Environment Variable, you can follow this [instruction](https://helpdeskgeek.com/windows-10/add-windows-path-environment-variable/).
 ## Installing C/C++ extension for VS Code
 > This is only for users who don't have the extension installed already.
 1. Open VS Code and install the C/C++ extension via the extensions panel.
