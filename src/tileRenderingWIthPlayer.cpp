@@ -49,11 +49,11 @@ int main() {
     unsigned char gameGrid[25][15] = {
         {1, 1, 1, 1, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0},
         {1, 1, 1, 1, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0},
-        {1, 1, 1, 1, 3, 3, 3, 2, 0, 0, 5, 5, 5, 0, 0},
-        {1, 1, 1, 1, 3, 3, 3, 2, 0, 0, 5, 5, 5, 5, 0},
-        {1, 1, 1, 1, 3, 3, 3, 2, 4, 4, 4, 4, 5, 5, 0},
-        {1, 1, 1, 1, 3, 3, 3, 2, 0, 0, 5, 5, 5, 5, 0},
-        {1, 1, 1, 1, 3, 3, 3, 2, 0, 0, 5, 5, 5, 0, 0},
+        {1, 1, 1, 1, 3, 3, 3, 2, 0, 0, 7, 7, 7, 0, 0},
+        {1, 1, 1, 1, 3, 3, 3, 2, 0, 0, 7, 7, 7, 7, 0},
+        {1, 1, 1, 1, 3, 3, 3, 2, 6, 6, 6, 6, 7, 7, 0},
+        {1, 1, 1, 1, 3, 3, 3, 2, 0, 0, 7, 7, 7, 7, 0},
+        {1, 1, 1, 1, 3, 3, 3, 2, 0, 0, 7, 7, 7, 0, 0},
         {1, 1, 1, 1, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0},
         {1, 1, 1, 1, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0},
         {1, 1, 1, 1, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0},
@@ -94,8 +94,8 @@ int main() {
     // Textures loading
     std::vector<sf::Texture> textures;
     sf::Texture texture;
-    for (int i=0; i<6; i++) {
-        if (!texture.loadFromFile(std::format("resources/textures/blocks/{}.png", i))) {
+    for (int i=0; i<8; i++) {
+        if (!texture.loadFromFile(std::format("resources/textures/blocks/{:03d}.png", i))) {
             std::cout << "Texture at resources/textures/blocks/" << i << ".png failed to load" << std::endl;
         }
         textures.push_back(texture);
@@ -181,6 +181,12 @@ int main() {
                             break;
                         case sf::Keyboard::Num5:
                             selectedBlock = 5;
+                            break;
+                        case sf::Keyboard::Num6:
+                            selectedBlock = 6;
+                            break;
+                        case sf::Keyboard::Num7:
+                            selectedBlock = 7;
                             break;
                         case sf::Keyboard::W:
                             cameraMoveSpeed.y++;
@@ -272,7 +278,7 @@ int main() {
         for (int x=0; x<25; x++) {
             for (int y=0; y<15; y++) {
                 drawer.setPosition(x*64.f+cameraPos.x, (14-y)*64.f+cameraPos.y);
-                if (gameGrid[x][y] < 6) {
+                if (gameGrid[x][y] < 8) {
                     drawer.setTexture(textures.at(gameGrid[x][y]));
                 } else {
                     drawer.setTexture(missingTexture);

@@ -33,7 +33,6 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     void initializeVertexArray();
     void updateAnimatedVertexArray();
     void updateAllVertexArray();
-    void updateVertexArray();
     void update();
     void setBlock(int x, int y, int blockID);
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
@@ -44,6 +43,7 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     bool placeBlock(int x, int y, int itemID);
     int breakBlock(int x, int y, int *xp);
     void tickAnimation();
+    void updateVertexArray();
 };
 
 }  // namespace mc
