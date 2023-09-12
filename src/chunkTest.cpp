@@ -287,6 +287,8 @@ int main() {
 
     int b = 0;
 
+    int xp = 0;
+
     int lastTick = 0;
     while (window.isOpen())
     {
@@ -308,8 +310,9 @@ int main() {
             chunk.tickAnimation();
             chunk2.tickAnimation();
             b++;
-            b = mod(b, 128);
-            chunk.placeBlock(4, 191, idiv(b, 16) + 43);
+            b = mod(b, 200);
+            chunk.breakBlock(4, 191, &xp);
+            chunk.placeBlock(4, 191, idiv(b, 4));
         }
 
         perfDebugInfo.endChunksUpdate();

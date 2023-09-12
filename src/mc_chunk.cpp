@@ -231,8 +231,15 @@ void Chunk::setBlock(int x, int y, int blockID) {
 }
 
 bool Chunk::placeBlock(int x, int y, int itemID) {
-    int blockID = this->blockPlaceIDs[itemID]; // TODO
+    int blockID = this->blockPlaceIDs[itemID];
+    if (blockID == 0) {
+        return false;
+    }
+    if (this->getBlock(x, y)) {
+        return false;
+    }
     this->setBlock(x, y, blockID);
+    return true;
 }
 
 int Chunk::breakBlock(int x, int y, int *xp) {
