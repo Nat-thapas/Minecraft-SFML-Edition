@@ -9,15 +9,20 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "../include/json.hpp"
 #include "mc_chunk.hpp"
 #include "mod.hpp"
 #include "idiv.hpp"
+
+using json = nlohmann::json;
 
 namespace mc {
 
 class Chunks : public sf::Drawable {
     std::string atlasFilePath;
     std::string atlasDataPath;
+    sf::Texture textureAtlas;
+    json atlasData;
     std::deque<mc::Chunk> chunks;
     int pixelPerBlock;
     int screenWidth;
@@ -285,10 +290,14 @@ class Chunks : public sf::Drawable {
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
     };
 
+    void updateTexture();
+    void updateChunksPosition();
+    void initializeChunks();
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
     Chunks(int playerChunkID, int pixelPerBlock, int screenWidth, std::string atlasFilePath, std::string atlasDataPath);
+    void tickAnimation();
     int getPlayerChunkID();
     void setPlayerChunkID(int chunkID);
     sf::Vector2f getPlayerPos();

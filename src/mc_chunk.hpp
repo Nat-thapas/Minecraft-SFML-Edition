@@ -38,7 +38,7 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
-    Chunk(int blocks[4096], std::string textureAtlasFileName, std::string atlasDataFileName);
+    Chunk(int blocks[4096], sf::Texture& textureAtlas, json& atlasData);
     int getBlock(int x, int y);
     bool placeBlock(int x, int y, int itemID);
     int breakBlock(int x, int y, int *xp);

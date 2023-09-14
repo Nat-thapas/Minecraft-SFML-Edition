@@ -23,10 +23,9 @@ void Chunk::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     target.draw(this->vertexArray, states);
 }
 
-Chunk::Chunk(int blocks[4096], std::string textureAtlasFileName, std::string atlasDataFileName) {
-    std::ifstream atlasDataFile(atlasDataFileName);
-    this->atlasData = json::parse(atlasDataFile);
-    this->textureAtlas.loadFromFile(textureAtlasFileName);
+Chunk::Chunk(int blocks[4096], sf::Texture& textureAtlas, json& atlasData) {
+    this->atlasData = atlasData;
+    this->textureAtlas = textureAtlas;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
     for (int i = 0; i < 4096; i++) {

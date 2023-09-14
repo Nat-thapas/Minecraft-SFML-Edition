@@ -61,7 +61,8 @@
         "forward_list": "cpp",
         "ratio": "cpp",
         "ranges": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "unordered_set": "cpp"
     },
     "search.exclude": {
         "**/SFML-2.6.0": true
