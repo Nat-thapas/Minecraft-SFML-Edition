@@ -17,8 +17,8 @@ using json = nlohmann::json;
 namespace mc {
 
 void Chunks::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-    for (mc::Chunk chunk : this->chunks) {
-        target.draw(chunk, states);
+    for (size_t i = 0; i < this->chunks.size(); i++) {
+        target.draw(this->chunks[i], states);
     }
 }
 
