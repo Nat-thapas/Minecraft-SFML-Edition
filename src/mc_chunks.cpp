@@ -17,8 +17,8 @@ using json = nlohmann::json;
 namespace mc {
 
 void Chunks::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-    for (size_t i = 0; i < this->chunks.size(); i++) {
-        target.draw(this->chunks[i], states);
+    for (const Chunk& chunk : this->chunks) {
+        target.draw(chunk, states);
     }
 }
 
@@ -51,14 +51,16 @@ void Chunks::updateChunksPosition() {
     int chunkID;
     int lChunkDistance = this->playerChunkID - this->chunksStartID;
     float fChunkXPos = (this->screenWidth / 2.f) - lChunkDistance * this->pixelPerBlock * 16.f - this->playerPos.x * this->pixelPerBlock;
-    for (size_t i = 0; i < this->chunks.size(); i++) {
-        this->chunks[i].setPosition(sf::Vector2f(fChunkXPos + i * this->pixelPerBlock * 16.f, -1.f * this->playerPos.y * this->pixelPerBlock));
+    int i = 0;
+    for (Chunk& chunk : this->chunks) {
+        chunk.setPosition(sf::Vector2f(fChunkXPos + i * this->pixelPerBlock * 16.f, -1.f * this->playerPos.y * this->pixelPerBlock));
+        i++;
     }
 }
 
 void Chunks::tickAnimation() {
-    for (size_t i = 0; i < this->chunks.size(); i++) {
-        this->chunks[i].tickAnimation();
+    for (Chunk& chunk : this->chunks) {
+        chunk.tickAnimation();
     }
 }
 
