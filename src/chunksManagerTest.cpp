@@ -17,8 +17,7 @@ int main() {
     window.setVerticalSyncEnabled(false);
     window.setKeyRepeatEnabled(false);
 
-    // "resources/textures/atlases/blocksAtlas.png", "resources/textures/atlases/blocksAtlas.json"
-    mc::Chunks chunks(1, 64, 1600, "resources/textures/atlases/blocksAtlas.png", "resources/textures/atlases/blocksAtlas.json");
+    mc::Chunks chunks(1, 50, 1600, 960, "resources/textures/atlases/blocksAtlas.png", "resources/textures/atlases/blocksAtlas.json");
 
     sf::Font robotoRegular;
     robotoRegular.loadFromFile("resources/fonts/Roboto-Regular.ttf");
@@ -28,9 +27,11 @@ int main() {
     sf::Clock frameTimeClock;
     sf::Time frameTime;
 
+    int playerChunkID = 1;
+
     float playerMoveSpeed = 4.317f;  // Blocks per second
     sf::Vector2i playerMoveDir(0, 0);
-    sf::Vector2f playerPos(0.f, 183.f);
+    sf::Vector2f playerPos(0.f, 192.f);
 
     chunks.setPlayerPos(playerPos);
 
@@ -97,6 +98,16 @@ int main() {
         playerPos.x += playerMoveDir.x * playerMoveSpeed * frameTime.asSeconds();
         playerPos.y += playerMoveDir.y * playerMoveSpeed * frameTime.asSeconds();
 
+        if (playerPos.x >= 16) {
+            playerPos.x = mod(playerPos.x, 16);
+            playerChunkID++;
+        }
+        if (playerPos.x < 0) {
+            playerPos.x = mod(playerPos.x, 16);
+            playerChunkID--;
+        }
+
+        chunks.setPlayerChunkID(playerChunkID);
         chunks.setPlayerPos(playerPos);
 
         perfDebugInfo.endPlayerInputProcessing();

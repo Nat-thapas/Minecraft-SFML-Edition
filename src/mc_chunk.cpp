@@ -23,7 +23,8 @@ void Chunk::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     target.draw(this->vertexArray, states);
 }
 
-Chunk::Chunk(int blocks[4096], sf::Texture& textureAtlas, json& atlasData) {
+Chunk::Chunk(int blocks[4096], int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData) {
+    this->pixelPerBlock = pixelPerBlock;
     this->atlasData = atlasData;
     this->textureAtlas = textureAtlas;
     this->vertexArray.setPrimitiveType(sf::Triangles);
@@ -39,8 +40,8 @@ Chunk::Chunk(int blocks[4096], sf::Texture& textureAtlas, json& atlasData) {
 void Chunk::initializeVertexArray() {
     sf::IntRect blockRect;
 
-    blockRect.width = 64;
-    blockRect.height = 64;
+    blockRect.width = this->pixelPerBlock;
+    blockRect.height = this->pixelPerBlock;
 
     for (int i = 0; i < 4096; i++) {
         blockRect.left = mod(i, 16) * blockRect.width;

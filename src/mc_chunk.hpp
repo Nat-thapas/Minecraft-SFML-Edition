@@ -20,6 +20,7 @@ namespace mc {
 class Chunk : public sf::Drawable, public sf::Transformable {
     sf::Texture textureAtlas;
     sf::VertexArray vertexArray;
+    int pixelPerBlock;
     std::queue<int> vertexUpdateQueue;
     std::queue<int> blockUpdateQueue;
     int blocks[4096];
@@ -38,7 +39,7 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
-    Chunk(int blocks[4096], sf::Texture& textureAtlas, json& atlasData);
+    Chunk(int blocks[4096], int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData);
     int getBlock(int x, int y);
     bool placeBlock(int x, int y, int itemID);
     int breakBlock(int x, int y, int *xp);

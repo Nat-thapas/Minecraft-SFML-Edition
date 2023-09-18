@@ -26,6 +26,7 @@ class Chunks : public sf::Drawable {
     std::deque<mc::Chunk> chunks;
     int pixelPerBlock;
     int screenWidth;
+    int screenHeight;
     int chunkCountOnScreen;
     int chunksStartID;
     int chunksEndID;
@@ -296,7 +297,7 @@ class Chunks : public sf::Drawable {
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
-    Chunks(int playerChunkID, int pixelPerBlock, int screenWidth, std::string atlasFilePath, std::string atlasDataPath);
+    Chunks(int playerChunkID, int pixelPerBlock, int screenWidth, int screenHeight, std::string atlasFilePath, std::string atlasDataPath);
     void tickAnimation();
     int getPlayerChunkID();
     void setPlayerChunkID(int chunkID);
