@@ -32,6 +32,10 @@ class Chunks : public sf::Drawable {
     int chunksEndID;
     int playerChunkID;
     sf::Vector2f playerPos;
+    sf::Vector2i mouseScreenPos;
+    int mouseChunkID;
+    sf::Vector2i mousePos;
+    sf::RectangleShape highlighter;
     int sampleChunk[4096] = {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -294,6 +298,8 @@ class Chunks : public sf::Drawable {
     void updateTexture();
     void updateChunksPosition();
     void initializeChunks();
+    void updateMousePosition();
+    void updateHighlighterPosition();
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
@@ -303,6 +309,8 @@ class Chunks : public sf::Drawable {
     void setPlayerChunkID(int chunkID);
     sf::Vector2f getPlayerPos();
     void setPlayerPos(sf::Vector2f pos);
+    void setMouseScreenPos(sf::Vector2i pos);
+    int breakBlock();
 };
 
 }  // namespace mc

@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+#include <iostream>
+
 #include "../include/json.hpp"
 #include "idiv.hpp"
 #include "mod.hpp"
@@ -20,6 +22,7 @@ void Chunks::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     for (const Chunk& chunk : this->chunks) {
         target.draw(chunk, states);
     }
+    target.draw(highlighter, states);
 }
 
 void Chunks::updateTexture() {
@@ -44,6 +47,11 @@ Chunks::Chunks(int playerChunkID, int pixelPerBlock, int screenWidth, int screen
     this->chunksStartID = this->playerChunkID - std::ceil((this->screenWidth / 2.f) / (16.f * this->pixelPerBlock));
     this->chunksEndID = this->playerChunkID + std::ceil((this->screenWidth / 2.f) / (16.f * this->pixelPerBlock));
     this->chunkCountOnScreen = this->chunksEndID - this->chunksStartID + 1;
+    this->highlighter.setSize(sf::Vector2f((float)(pixelPerBlock - 2), (float)(pixelPerBlock - 2)));
+    this->highlighter.setOrigin(-1.f, -1.f);
+    this->highlighter.setFillColor(sf::Color(0, 0, 0, 0));
+    this->highlighter.setOutlineThickness(2.f);
+    this->highlighter.setOutlineColor(sf::Color::Black);
     this->updateTexture();
     this->initializeChunks();
 }
@@ -57,6 +65,28 @@ void Chunks::updateChunksPosition() {
         chunk.setPosition(sf::Vector2f(fChunkXPos + i * this->pixelPerBlock * 16.f, chunkYPos));
         i++;
     }
+}
+
+void Chunks::updateMousePosition() {
+    sf::Vector2f distance(sf::Vector2f(this->mouseScreenPos) - sf::Vector2f(this->screenWidth / 2.f, this->screenHeight / 2.f + (float)this->pixelPerBlock));
+    distance /= (float)this->pixelPerBlock;
+    distance += playerPos;
+    int chunkDistance = floor(distance.x / 16.f);
+    distance.x = mod(distance.x, 16);
+    this->mouseChunkID = this->playerChunkID + chunkDistance;
+    this->mousePos.x = floor(distance.x);
+    this->mousePos.y = floor(distance.y);
+    this->updateHighlighterPosition();
+    // std::cout << this->mouseChunkID << " " << this->mousePos.x << " " << this->mousePos.y << std::endl;
+}
+
+void Chunks::updateHighlighterPosition() {
+    int lChunkDistance = this->playerChunkID - this->chunksStartID;
+    float fChunkXPos = (this->screenWidth / 2.f) - lChunkDistance * this->pixelPerBlock * 16.f - this->playerPos.x * this->pixelPerBlock;
+    float chunkYPos = (this->screenHeight / 2.f) - (this->playerPos.y * this->pixelPerBlock) + this->pixelPerBlock;
+    int i = this->mouseChunkID - this->chunksStartID;
+    // std::cout << fChunkXPos + i * this->pixelPerBlock * 16.f + mousePos.x * this->pixelPerBlock << " " << chunkYPos + (float)(mousePos.y * this->pixelPerBlock) << std::endl;
+    this->highlighter.setPosition(fChunkXPos + i * this->pixelPerBlock * 16.f + mousePos.x * this->pixelPerBlock, chunkYPos + (float)(mousePos.y * this->pixelPerBlock));
 }
 
 void Chunks::tickAnimation() {
@@ -90,6 +120,7 @@ void Chunks::setPlayerChunkID(int chunkID) {
     }
     this->playerChunkID = chunkID;
     this->updateChunksPosition();
+    this->updateMousePosition();
 }
 
 sf::Vector2f Chunks::getPlayerPos() {
@@ -102,6 +133,22 @@ void Chunks::setPlayerPos(sf::Vector2f pos) {
     }
     this->playerPos = pos;
     this->updateChunksPosition();
+    this->updateMousePosition();
+}
+
+void Chunks::setMouseScreenPos(sf::Vector2i pos) {
+    if (this->mouseScreenPos == pos) {
+        return;
+    }
+    this->mouseScreenPos = pos;
+    this->updateMousePosition();
+}
+
+int Chunks::breakBlock() {
+    int breakChunkIndex = this->mouseChunkID - this->chunksStartID;
+    int xp;
+    // std::cout << "Breaking block at " << breakChunkIndex << " " << mousePos.x << " " << mousePos.y << std::endl;
+    return this->chunks[breakChunkIndex].breakBlock(mousePos.x, mousePos.y, &xp);
 }
 
 }  // namespace mc

@@ -227,6 +227,7 @@ void Chunk::setBlock(int x, int y, int blockID) {
     this->blockUpdateQueue.push(x + y * 16);
     this->update();
     this->vertexUpdateQueue.push(x + y * 16);
+    this->updateVertexArray();
 }
 
 bool Chunk::placeBlock(int x, int y, int itemID) {

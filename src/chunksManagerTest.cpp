@@ -17,7 +17,7 @@ int main() {
     window.setVerticalSyncEnabled(false);
     window.setKeyRepeatEnabled(false);
 
-    mc::Chunks chunks(1, 50, 1600, 960, "resources/textures/atlases/blocksAtlas.png", "resources/textures/atlases/blocksAtlas.json");
+    mc::Chunks chunks(1, 64, 1600, 960, "resources/textures/atlases/blocksAtlas.png", "resources/textures/atlases/blocksAtlas.json");
 
     sf::Font robotoRegular;
     robotoRegular.loadFromFile("resources/fonts/Roboto-Regular.ttf");
@@ -32,6 +32,9 @@ int main() {
     float playerMoveSpeed = 4.317f;  // Blocks per second
     sf::Vector2i playerMoveDir(0, 0);
     sf::Vector2f playerPos(0.f, 192.f);
+
+    bool playerLeftClick = false;
+    bool playerRightClick = false;
 
     chunks.setPlayerPos(playerPos);
 
@@ -88,6 +91,20 @@ int main() {
                             break;
                     }
                     break;
+                case sf::Event::MouseButtonPressed:
+                    if (event.mouseButton.button == sf::Mouse::Left) {
+                        playerLeftClick = true;
+                    } else if (event.mouseButton.button == sf::Mouse::Right) {
+                        playerRightClick = true;
+                    }
+                    break;
+                case sf::Event::MouseButtonReleased:
+                    if (event.mouseButton.button == sf::Mouse::Left) {
+                        playerLeftClick = false;
+                    } else if (event.mouseButton.button == sf::Mouse::Right) {
+                        playerRightClick = false;
+                    }
+                    break;
                 default:
                     break;
             }
@@ -109,6 +126,12 @@ int main() {
 
         chunks.setPlayerChunkID(playerChunkID);
         chunks.setPlayerPos(playerPos);
+
+        chunks.setMouseScreenPos(sf::Mouse::getPosition(window));
+
+        if (playerLeftClick) {
+            chunks.breakBlock();
+        }
 
         perfDebugInfo.endPlayerInputProcessing();
         perfDebugInfo.endRandomTick();
