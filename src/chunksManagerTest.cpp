@@ -42,6 +42,8 @@ int main() {
 
     int elapsedTime = elapsedClock.getElapsedTime().asMilliseconds();
     int lastTickTime = elapsedTime;
+
+    int xp = 0;
     
     while (window.isOpen())
     {
@@ -144,7 +146,7 @@ int main() {
         gameDebugInfo.setMouseLightLevel(sf::Vector2i(0, 0));
 
         if (leftClickHeld) {
-            chunks.breakBlock();
+            chunks.breakBlock(xp);
         }
 
         perfDebugInfo.endPlayerInputProcessing();

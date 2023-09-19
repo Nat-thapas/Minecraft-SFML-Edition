@@ -172,10 +172,9 @@ sf::Vector2i Chunks::getLoadedChunks() {
     return sf::Vector2i(this->chunksStartID, this->chunksEndID);
 }
 
-int Chunks::breakBlock() {
+int Chunks::breakBlock(int& xp) {
     int breakChunkIndex = this->mouseChunkID - this->chunksStartID;
-    int xp;
-    return this->chunks[breakChunkIndex].breakBlock(mousePos.x, mousePos.y, &xp);
+    return this->chunks[breakChunkIndex].breakBlock(mousePos.x, mousePos.y, xp);
 }
 
 }  // namespace mc

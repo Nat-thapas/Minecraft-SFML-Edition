@@ -256,10 +256,10 @@ bool Chunk::placeBlock(int x, int y, int itemID) {
     return true;
 }
 
-int Chunk::breakBlock(int x, int y, int *xp) {
+int Chunk::breakBlock(int x, int y, int& xp) {
     int blockID = this->getBlock(x, y);
     this->setBlock(x, y, 0);
-    *xp += this->experienceDropAmount[blockID];
+    xp += this->experienceDropAmount[blockID];
     int dropIntensity = rand()%100 + 1;
     if (blockID == 19 && dropIntensity > 90) {
         return 80;
