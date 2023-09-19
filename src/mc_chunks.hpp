@@ -312,6 +312,7 @@ class Chunks : public sf::Drawable {
     void setMouseScreenPos(sf::Vector2i pos);
     int getMouseChunkID();
     sf::Vector2i getMousePos();
+    sf::Vector2i getLoadedChunks();
     int breakBlock();
 };
 

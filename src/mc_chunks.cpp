@@ -148,6 +148,10 @@ sf::Vector2i Chunks::getMousePos() {
     return this->mousePos;
 }
 
+sf::Vector2i Chunks::getLoadedChunks() {
+    return sf::Vector2i(this->chunksStartID, this->chunksEndID);
+}
+
 int Chunks::breakBlock() {
     int breakChunkIndex = this->mouseChunkID - this->chunksStartID;
     int xp;

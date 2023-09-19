@@ -21,10 +21,12 @@ class GameDebugInfo : public sf::Drawable {
     sf::Vector2i mousePos;
     sf::Vector2i playerLightLevels;
     sf::Vector2i mouseLightLevels;
+    sf::Vector2i loadedChunks;
     sf::Text playerLocationLabel;
     sf::Text mouseLocationLabel;
     sf::Text playerLightLevelLabel;
     sf::Text mouseLightLevelLabel;
+    sf::Text loadedChunksLabel;
 
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
@@ -44,6 +46,7 @@ class GameDebugInfo : public sf::Drawable {
     void setMousePos(sf::Vector2i pos);
     void setPlayerLightLevel(sf::Vector2i lightLevels);
     void setMouseLightLevel(sf::Vector2i lightLevels);
+    void setLoadedChunks(sf::Vector2i loadedChunks);
     void updateLabels();
 };
 

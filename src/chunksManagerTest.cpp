@@ -6,6 +6,7 @@
 #include "mc_chunks.hpp"
 #include "mc_chunk.hpp"
 #include "mc_perfDebugInfo.hpp"
+#include "mc_gameDebugInfo.hpp"
 #include "idiv.hpp"
 #include "mod.hpp"
 
@@ -23,6 +24,7 @@ int main() {
     robotoRegular.loadFromFile("resources/fonts/Roboto-Regular.ttf");
 
     mc::PerfDebugInfo perfDebugInfo(sf::Vector2f(0.f, 0.f), robotoRegular, 24, sf::Color::White, sf::Color::Black, 1.f);
+    mc::GameDebugInfo gameDebugInfo(sf::Vector2f(1200.f, 0.f), robotoRegular, 24, sf::Color::White, sf::Color::Black, 1.f);
     sf::Clock elapsedClock;
     sf::Clock frameTimeClock;
     sf::Time frameTime;
@@ -33,8 +35,8 @@ int main() {
     sf::Vector2i playerMoveDir(0, 0);
     sf::Vector2f playerPos(0.f, 192.f);
 
-    bool playerLeftClick = false;
-    bool playerRightClick = false;
+    bool leftClickHeld = false;
+    bool rightClickHeld = false;
 
     chunks.setPlayerPos(playerPos);
 
@@ -93,16 +95,16 @@ int main() {
                     break;
                 case sf::Event::MouseButtonPressed:
                     if (event.mouseButton.button == sf::Mouse::Left) {
-                        playerLeftClick = true;
+                        leftClickHeld = true;
                     } else if (event.mouseButton.button == sf::Mouse::Right) {
-                        playerRightClick = true;
+                        rightClickHeld = true;
                     }
                     break;
                 case sf::Event::MouseButtonReleased:
                     if (event.mouseButton.button == sf::Mouse::Left) {
-                        playerLeftClick = false;
+                        leftClickHeld = false;
                     } else if (event.mouseButton.button == sf::Mouse::Right) {
-                        playerRightClick = false;
+                        rightClickHeld = false;
                     }
                     break;
                 default:
@@ -127,9 +129,20 @@ int main() {
         chunks.setPlayerChunkID(playerChunkID);
         chunks.setPlayerPos(playerPos);
 
+        gameDebugInfo.setPlayerChunkID(playerChunkID);
+        gameDebugInfo.setPlayerPos(playerPos);
+
+        gameDebugInfo.setLoadedChunks(chunks.getLoadedChunks());
+
         chunks.setMouseScreenPos(sf::Mouse::getPosition(window));
 
-        if (playerLeftClick) {
+        gameDebugInfo.setMouseChunkID(chunks.getMouseChunkID());
+        gameDebugInfo.setMousePos(chunks.getMousePos());
+
+        gameDebugInfo.setPlayerLightLevel(sf::Vector2i(0, 0));
+        gameDebugInfo.setMouseLightLevel(sf::Vector2i(0, 0));
+
+        if (leftClickHeld) {
             chunks.breakBlock();
         }
 
@@ -150,6 +163,9 @@ int main() {
         perfDebugInfo.endChunksRendering();
         perfDebugInfo.endEntitiesRendering();
         perfDebugInfo.endParticlesRendering();
+
+        gameDebugInfo.updateLabels();
+        window.draw(gameDebugInfo);
 
         window.draw(perfDebugInfo);
 

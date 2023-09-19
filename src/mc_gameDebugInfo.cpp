@@ -11,6 +11,7 @@ void GameDebugInfo::draw(sf::RenderTarget& target, sf::RenderStates states) cons
     target.draw(this->mouseLocationLabel, states);
     target.draw(this->playerLightLevelLabel, states);
     target.draw(this->mouseLightLevelLabel, states);
+    target.draw(this->loadedChunksLabel, states);
 }
 
 void GameDebugInfo::setPosition(sf::Vector2f& position) {
@@ -57,26 +58,33 @@ void GameDebugInfo::updateSettings() {
     this->playerLightLevelLabel.setPosition(calulatedPosition);
     calulatedPosition.y += this->characterSize * this->lineHeightMultiplier;
     this->mouseLightLevelLabel.setPosition(calulatedPosition);
+    calulatedPosition.y += this->characterSize * this->lineHeightMultiplier;
+    this->loadedChunksLabel.setPosition(calulatedPosition);
     this->playerLocationLabel.setFont(this->font);
     this->mouseLocationLabel.setFont(this->font);
     this->playerLightLevelLabel.setFont(this->font);
     this->mouseLightLevelLabel.setFont(this->font);
+    this->loadedChunksLabel.setFont(this->font);
     this->playerLocationLabel.setCharacterSize(this->characterSize);
     this->mouseLocationLabel.setCharacterSize(this->characterSize);
     this->playerLightLevelLabel.setCharacterSize(this->characterSize);
     this->mouseLightLevelLabel.setCharacterSize(this->characterSize);
+    this->loadedChunksLabel.setCharacterSize(this->characterSize);
     this->playerLocationLabel.setFillColor(this->fillColor);
     this->mouseLocationLabel.setFillColor(this->fillColor);
     this->playerLightLevelLabel.setFillColor(this->fillColor);
     this->mouseLightLevelLabel.setFillColor(this->fillColor);
+    this->loadedChunksLabel.setFillColor(this->fillColor);
     this->playerLocationLabel.setOutlineColor(this->outlineColor);
     this->mouseLocationLabel.setOutlineColor(this->outlineColor);
     this->playerLightLevelLabel.setOutlineColor(this->outlineColor);
     this->mouseLightLevelLabel.setOutlineColor(this->outlineColor);
+    this->loadedChunksLabel.setOutlineColor(this->outlineColor);
     this->playerLocationLabel.setOutlineThickness(this->outlineThickness);
     this->mouseLocationLabel.setOutlineThickness(this->outlineThickness);
     this->playerLightLevelLabel.setOutlineThickness(this->outlineThickness);
     this->mouseLightLevelLabel.setOutlineThickness(this->outlineThickness);
+    this->loadedChunksLabel.setOutlineThickness(this->outlineThickness);
 }
 
 GameDebugInfo::GameDebugInfo(sf::Vector2f position, sf::Font font, unsigned characterSize, sf::Color fillColor, sf::Color outlineColor, float outlineThickness, float lineHeightMultiplier) {
@@ -114,11 +122,16 @@ void GameDebugInfo::setMouseLightLevel(sf::Vector2i lightLevels) {
     this->mouseLightLevels = lightLevels;
 }
 
+void GameDebugInfo::setLoadedChunks(sf::Vector2i loadedChunks) {
+    this->loadedChunks = loadedChunks;
+}
+
 void GameDebugInfo::updateLabels() {
     this->playerLocationLabel.setString(std::format("Player location: {} {:06.3f} {:06.3f}", this->playerChunkID, this->playerPos.x, this->playerPos.y));
     this->mouseLocationLabel.setString(std::format("Mouse location: {} {} {}", this->mouseChunkID, this->mousePos.x, this->mousePos.y));
     this->playerLightLevelLabel.setString(std::format("Player light level: {} ({} sky, {} block)", std::max(this->playerLightLevels.x, this->playerLightLevels.y), this->playerLightLevels.x, this->playerLightLevels.y));
     this->mouseLightLevelLabel.setString(std::format("Mouse light level: {} ({} sky, {} block)", std::max(this->mouseLightLevels.x, this->mouseLightLevels.y), this->mouseLightLevels.x, this->mouseLightLevels.y));
+    this->loadedChunksLabel.setString(std::format("Chunks loaded: [{}, {}] ({} total)", this->loadedChunks.x, this->loadedChunks.y, this->loadedChunks.y - this->loadedChunks.x + 1));
 }
 
 }  // End namespace mc
