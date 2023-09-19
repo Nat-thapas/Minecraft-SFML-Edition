@@ -40,11 +40,13 @@ class Chunk : public sf::Drawable, public sf::Transformable {
 
    public:
     Chunk(int blocks[4096], int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData);
+    Chunk(std::string, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData);
     int getBlock(int x, int y);
     bool placeBlock(int x, int y, int itemID);
     int breakBlock(int x, int y, int *xp);
     void tickAnimation();
     void updateVertexArray();
+    bool saveToFile(std::string filePath);
 };
 
 }  // namespace mc

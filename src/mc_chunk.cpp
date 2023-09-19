@@ -37,6 +37,20 @@ Chunk::Chunk(int blocks[4096], int pixelPerBlock, sf::Texture& textureAtlas, jso
     this->updateAllVertexArray();
 }
 
+Chunk::Chunk(std::string filePath, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData) {
+    this->pixelPerBlock = pixelPerBlock;
+    this->atlasData = atlasData;
+    this->textureAtlas = textureAtlas;
+    this->vertexArray.setPrimitiveType(sf::Triangles);
+    this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
+    std::ifstream inFile(filePath, std::ios::binary);
+    inFile.read(reinterpret_cast<char*>(this->blocks), sizeof(this->blocks));
+    inFile.close();
+    this->animationIndex = 0;
+    this->initializeVertexArray();
+    this->updateAllVertexArray();
+}
+
 void Chunk::initializeVertexArray() {
     sf::IntRect blockRect;
 
@@ -261,6 +275,13 @@ int Chunk::breakBlock(int x, int y, int *xp) {
 void Chunk::tickAnimation() {
     this->animationIndex++;
     this->updateAnimatedVertexArray();
+}
+
+bool Chunk::saveToFile(std::string filePath) {
+    std::ofstream outFile(filePath, std::ios::binary);
+    outFile.write(reinterpret_cast<char*>(this->blocks), sizeof(this->blocks));
+    outFile.close();
+    return true;
 }
 
 }  // namespace mc

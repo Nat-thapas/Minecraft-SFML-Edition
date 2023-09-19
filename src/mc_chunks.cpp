@@ -7,6 +7,7 @@
 #include <queue>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #include "../include/json.hpp"
 #include "idiv.hpp"
@@ -101,7 +102,12 @@ void Chunks::setPlayerChunkID(int chunkID) {
     }
     if (chunkID > this->playerChunkID) {
         for (int i = 0; i < chunkID - this->playerChunkID; i++) {
-            this->chunks.push_back(Chunk(this->sampleChunk, this->pixelPerBlock, this->textureAtlas, this->atlasData));
+            if (std::filesystem::exists(std::format("saves/test/chunks/{}.dat", this->chunksEndID + 1))) {
+                this->chunks.push_back(Chunk(std::format("saves/test/chunks/{}.dat", this->chunksEndID + 1), this->pixelPerBlock, this->textureAtlas, this->atlasData));
+            } else {
+                this->chunks.push_back(Chunk(this->sampleChunk, this->pixelPerBlock, this->textureAtlas, this->atlasData));
+            }
+            this->chunks.front().saveToFile(std::format("saves/test/chunks/{}.dat", this->chunksStartID));
             this->chunks.pop_front();
             this->chunksStartID++;
             this->chunksEndID++;
@@ -109,6 +115,7 @@ void Chunks::setPlayerChunkID(int chunkID) {
     } else {
         for (int i = 0; i < this->playerChunkID - chunkID; i++) {
             this->chunks.push_front(Chunk(this->sampleChunk, this->pixelPerBlock, this->textureAtlas, this->atlasData));
+            this->chunks.back().saveToFile(std::format("saves/test/chunks/{}.dat", this->chunksEndID));
             this->chunks.pop_back();
             this->chunksStartID--;
             this->chunksEndID--;

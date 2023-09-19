@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <queue>
+#include <filesystem>
 
 #include <SFML/Graphics.hpp>
 
