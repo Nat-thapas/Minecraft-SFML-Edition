@@ -32,7 +32,11 @@ void Chunks::updateTexture() {
 
 void Chunks::initializeChunks() {
     for (int i = 0; i < this->chunkCountOnScreen; i++) {
-        this->chunks.push_back(Chunk(this->sampleChunk, this->pixelPerBlock, this->textureAtlas, this->atlasData));
+        if (std::filesystem::exists(std::format("saves/test/chunks/{}.dat", this->chunksStartID + i))) {
+            this->chunks.push_back(Chunk(std::format("saves/test/chunks/{}.dat", this->chunksStartID + i), this->pixelPerBlock, this->textureAtlas, this->atlasData));
+        } else {
+            this->chunks.push_back(Chunk(this->sampleChunk, this->pixelPerBlock, this->textureAtlas, this->atlasData));
+        }
     }
 }
 
@@ -53,6 +57,15 @@ Chunks::Chunks(int playerChunkID, int pixelPerBlock, int screenWidth, int screen
     this->highlighter.setOutlineColor(sf::Color::Black);
     this->updateTexture();
     this->initializeChunks();
+}
+
+bool Chunks::saveAll() {
+    int i = chunksStartID;
+    for (Chunk& chunk : this->chunks) {
+        chunk.saveToFile(std::format("saves/test/chunks/{}.dat", i));
+        i++;
+    }
+    return true;
 }
 
 void Chunks::updateChunksPosition() {

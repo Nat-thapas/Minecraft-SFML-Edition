@@ -315,6 +315,7 @@ class Chunks : public sf::Drawable {
     sf::Vector2i getMousePos();
     sf::Vector2i getLoadedChunks();
     int breakBlock();
+    bool saveAll();
 };
 
 }  // namespace mc
