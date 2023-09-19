@@ -2,6 +2,7 @@
 #define MC_PERFDEBUGINFO_HPP
 
 #include <SFML/Graphics.hpp>
+#include <format>
 
 namespace mc {
 

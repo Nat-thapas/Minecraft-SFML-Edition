@@ -8,8 +8,6 @@
 #include <string>
 #include <vector>
 
-#include <iostream>
-
 #include "../include/json.hpp"
 #include "idiv.hpp"
 #include "mod.hpp"
@@ -77,7 +75,6 @@ void Chunks::updateMousePosition() {
     this->mousePos.x = floor(distance.x);
     this->mousePos.y = floor(distance.y);
     this->updateHighlighterPosition();
-    // std::cout << this->mouseChunkID << " " << this->mousePos.x << " " << this->mousePos.y << std::endl;
 }
 
 void Chunks::updateHighlighterPosition() {
@@ -85,7 +82,6 @@ void Chunks::updateHighlighterPosition() {
     float fChunkXPos = (this->screenWidth / 2.f) - lChunkDistance * this->pixelPerBlock * 16.f - this->playerPos.x * this->pixelPerBlock;
     float chunkYPos = (this->screenHeight / 2.f) - (this->playerPos.y * this->pixelPerBlock) + this->pixelPerBlock;
     int i = this->mouseChunkID - this->chunksStartID;
-    // std::cout << fChunkXPos + i * this->pixelPerBlock * 16.f + mousePos.x * this->pixelPerBlock << " " << chunkYPos + (float)(mousePos.y * this->pixelPerBlock) << std::endl;
     this->highlighter.setPosition(fChunkXPos + i * this->pixelPerBlock * 16.f + mousePos.x * this->pixelPerBlock, chunkYPos + (float)(mousePos.y * this->pixelPerBlock));
 }
 
@@ -144,10 +140,17 @@ void Chunks::setMouseScreenPos(sf::Vector2i pos) {
     this->updateMousePosition();
 }
 
+int Chunks::getMouseChunkID() {
+    return this->mouseChunkID;
+}
+
+sf::Vector2i Chunks::getMousePos() {
+    return this->mousePos;
+}
+
 int Chunks::breakBlock() {
     int breakChunkIndex = this->mouseChunkID - this->chunksStartID;
     int xp;
-    // std::cout << "Breaking block at " << breakChunkIndex << " " << mousePos.x << " " << mousePos.y << std::endl;
     return this->chunks[breakChunkIndex].breakBlock(mousePos.x, mousePos.y, &xp);
 }
 

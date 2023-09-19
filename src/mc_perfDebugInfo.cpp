@@ -1,4 +1,4 @@
-#include "mc_PerfDebugInfo.hpp"
+#include "mc_perfDebugInfo.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <format>
@@ -136,15 +136,15 @@ PerfDebugInfo::PerfDebugInfo(sf::Vector2f position, sf::Font font, unsigned char
     this->lineHeightMultiplier = lineHeightMultiplier;
     this->updateSettings();
     this->frameTime = 0;
-    this->eventLoopTime = 0 ;
-    this->playerInputProcessingTime = 0 ;
-    this->randomTickTime = 0 ;
-    this->chunksUpdateTime = 0 ;
-    this->entitiesProcessingTime = 0 ;
-    this->chunksRenderingTime = 0 ;
-    this->entitiesRenderingTime = 0 ;
-    this->particlesRenderingTime = 0 ;
-    this->overlaysRenderingTime = 0 ;
+    this->eventLoopTime = 0;
+    this->playerInputProcessingTime = 0;
+    this->randomTickTime = 0;
+    this->chunksUpdateTime = 0;
+    this->entitiesProcessingTime = 0;
+    this->chunksRenderingTime = 0;
+    this->entitiesRenderingTime = 0;
+    this->particlesRenderingTime = 0;
+    this->overlaysRenderingTime = 0;
 }
 
 void PerfDebugInfo::startFrame() {
@@ -192,7 +192,7 @@ void PerfDebugInfo::endFrame() {
 }
 
 void PerfDebugInfo::updateLabels() {
-    this->fpsLabel.setString(std::format("FPS: {:06.2f} ({:05.2f} ms.)", 1000000.f / this->frameTime, this->frameTime/1000.f));
+    this->fpsLabel.setString(std::format("FPS: {:06.2f} ({:05.2f} ms.)", 1000000.f / this->frameTime, this->frameTime / 1000.f));
     this->eventLoopTimeLabel.setString(std::format("Event Loop: {:05.2f} ms.", this->eventLoopTime / 1000.f));
     this->playerInputProcessingTimeLabel.setString(std::format("Input Processing: {:05.2f} ms.", this->playerInputProcessingTime / 1000.f));
     this->randomTickTimeLabel.setString(std::format("Random Tick: {:05.2f} ms.", this->randomTickTime / 1000.f));
