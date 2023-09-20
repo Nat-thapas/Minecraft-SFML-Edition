@@ -11,20 +11,24 @@
 #include <SFML/Graphics.hpp>
 
 #include "../include/json.hpp"
+#include "../include/perlin.hpp"
 #include "mc_chunk.hpp"
 #include "mod.hpp"
 #include "idiv.hpp"
 
 using json = nlohmann::json;
+using Perlin = siv::PerlinNoise;
 
 namespace mc {
 
 class Chunks : public sf::Drawable {
+    int seed;
     std::string atlasFilePath;
     std::string atlasDataPath;
     sf::Texture textureAtlas;
     json atlasData;
     std::deque<mc::Chunk> chunks;
+    Perlin noise;
     int pixelPerBlock;
     int screenWidth;
     int screenHeight;
@@ -304,7 +308,7 @@ class Chunks : public sf::Drawable {
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
-    Chunks(int playerChunkID, int pixelPerBlock, int screenWidth, int screenHeight, std::string atlasFilePath, std::string atlasDataPath);
+    Chunks(int playerChunkID, int seed, int pixelPerBlock, int screenWidth, int screenHeight, std::string atlasFilePath, std::string atlasDataPath);
     void tickAnimation();
     int getPlayerChunkID();
     void setPlayerChunkID(int chunkID);

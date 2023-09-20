@@ -10,10 +10,12 @@
 #include <SFML/Graphics.hpp>
 
 #include "../include/json.hpp"
+#include "../include/perlin.hpp"
 #include "mod.hpp"
 #include "idiv.hpp"
 
 using json = nlohmann::json;
+using Perlin = siv::PerlinNoise;
 
 namespace mc {
 
@@ -23,7 +25,8 @@ void Chunk::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     target.draw(this->vertexArray, states);
 }
 
-Chunk::Chunk(int blocks[4096], int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData) {
+Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData) {
+    this->chunkID = chunkID;
     this->pixelPerBlock = pixelPerBlock;
     this->atlasData = atlasData;
     this->textureAtlas = textureAtlas;
@@ -37,7 +40,8 @@ Chunk::Chunk(int blocks[4096], int pixelPerBlock, sf::Texture& textureAtlas, jso
     this->updateAllVertexArray();
 }
 
-Chunk::Chunk(std::string filePath, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData) {
+Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData) {
+    this->chunkID = chunkID;
     this->pixelPerBlock = pixelPerBlock;
     this->atlasData = atlasData;
     this->textureAtlas = textureAtlas;
@@ -46,6 +50,56 @@ Chunk::Chunk(std::string filePath, int pixelPerBlock, sf::Texture& textureAtlas,
     std::ifstream inFile(filePath, std::ios::binary);
     inFile.read(reinterpret_cast<char*>(this->blocks), sizeof(this->blocks));
     inFile.close();
+    this->animationIndex = 0;
+    this->initializeVertexArray();
+    this->updateAllVertexArray();
+}
+
+Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData) {
+    this->chunkID = chunkID;
+    this->pixelPerBlock = pixelPerBlock;
+    this->atlasData = atlasData;
+    this->textureAtlas = textureAtlas;
+    this->vertexArray.setPrimitiveType(sf::Triangles);
+    this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
+    for (int i = 0; i < 4096; i++) {
+        this->blocks[i] = 0;
+    }
+    for (int x = 0; x < 16; x++) {
+        int height = noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x))/100.f, 8, 0.4) * 100 + 136;
+        for (int y = 0; y < 256; y++) {
+            if (y > 191) {
+                this->blocks[x + y * 16] = 11;
+            }
+            if (y > height) {
+                if (y - height <= 1) {
+                    if (height > 191) {
+                        if (height > 200) {
+                            this->blocks[x + y * 16] = 19;
+                        } else {
+                            this->blocks[x + y * 16] = 15;
+                        }
+                    } else {
+                        this->blocks[x + y * 16] = 2;
+                    }
+                } else if (y - height <= 5) {
+                    if (height > 191) {
+                        if (height > 200) {
+                            this->blocks[x + y * 16] = 19;
+                        } else {
+                            this->blocks[x + y * 16] = 15;
+                        }
+                    } else {
+                        this->blocks[x + y * 16] = 3;
+                    }
+                } else if (y < 255) {
+                    this->blocks[x + y * 16] = 1;
+                } else {
+                    this->blocks[x + y * 16] = 10;
+                }
+            }
+        }
+    }
     this->animationIndex = 0;
     this->initializeVertexArray();
     this->updateAllVertexArray();

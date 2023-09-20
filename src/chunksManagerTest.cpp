@@ -18,7 +18,7 @@ int main() {
     window.setVerticalSyncEnabled(false);
     window.setKeyRepeatEnabled(false);
 
-    mc::Chunks chunks(1, 64, 1600, 960, "resources/textures/atlases/blocksAtlas.png", "resources/textures/atlases/blocksAtlas.json");
+    mc::Chunks chunks(1, 123456, 16, 1600, 960, "resources/textures/atlases/blocksAtlas.png", "resources/textures/atlases/blocksAtlas.json");
 
     sf::Font robotoRegular;
     robotoRegular.loadFromFile("resources/fonts/Roboto-Regular.ttf");
@@ -31,7 +31,7 @@ int main() {
 
     int playerChunkID = 1;
 
-    float playerMoveSpeed = 4.317f;  // Blocks per second
+    float playerMoveSpeed = 4.317f * 10.f;  // Blocks per second
     sf::Vector2i playerMoveDir(0, 0);
     sf::Vector2f playerPos(0.f, 192.f);
 
