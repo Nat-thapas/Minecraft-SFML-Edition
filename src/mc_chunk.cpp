@@ -62,11 +62,12 @@ Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& texture
     this->textureAtlas = textureAtlas;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
+    double oreIntensity;
     for (int i = 0; i < 4096; i++) {
         this->blocks[i] = 0;
     }
     for (int x = 0; x < 16; x++) {
-        int height = noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x))/100.f, 8, 0.4) * 100 + 136;
+        int height = static_cast<int>(noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x))/100.f, 8, 0.4) * 100 + 136);
         for (int y = 0; y < 256; y++) {
             if (y > 191) {
                 this->blocks[x + y * 16] = 11;
@@ -93,7 +94,22 @@ Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& texture
                         this->blocks[x + y * 16] = 3;
                     }
                 } else if (y < 255) {
-                    this->blocks[x + y * 16] = 1;
+                    oreIntensity = noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x)), static_cast<double>(y)*100.0, 8, 0.4);
+                    if (oreIntensity > 0.6) {
+                        if (oreIntensity < 0.625) {
+                            this->blocks[x + y * 16] = 20;
+                        } else if (oreIntensity < 0.65) {
+                            this->blocks[x + y * 16] = 21;
+                        } else if (oreIntensity < 0.675 && y > 210) {
+                            this->blocks[x + y * 16] = 22;
+                        } else if (oreIntensity < 0.7 && y > 220) {
+                            this->blocks[x + y * 16] = 23;
+                        } else {
+                            this->blocks[x + y * 16] = 1;
+                        }
+                    } else {
+                        this->blocks[x + y * 16] = 1;
+                    }
                 } else {
                     this->blocks[x + y * 16] = 10;
                 }
