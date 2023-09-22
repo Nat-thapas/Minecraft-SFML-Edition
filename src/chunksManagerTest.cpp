@@ -13,12 +13,15 @@
 int main() {
     srand(time(NULL));
 
-    sf::RenderWindow window(sf::VideoMode(1600, 960), "I hate C++", sf::Style::Titlebar | sf::Style::Close);
+    sf::ContextSettings settings;
+    settings.antialiasingLevel = 8;
+
+    sf::RenderWindow window(sf::VideoMode(1600, 960), "I hate C++", sf::Style::Titlebar | sf::Style::Close, settings);
     window.setFramerateLimit(0);
     window.setVerticalSyncEnabled(false);
     window.setKeyRepeatEnabled(false);
 
-    mc::Chunks chunks(1, 123456, 16, 1600, 960, "resources/textures/atlases/blocksAtlas.png", "resources/textures/atlases/blocksAtlas.json");
+    mc::Chunks chunks(1, 123654, 16, 1600, 960, "resources/textures/atlases/blocksAtlas.png", "resources/textures/atlases/blocksAtlas.json");
 
     sf::Font robotoRegular;
     robotoRegular.loadFromFile("resources/fonts/Roboto-Regular.ttf");
@@ -44,6 +47,8 @@ int main() {
     int lastTickTime = elapsedTime;
 
     int xp = 0;
+    int tickCount = 0;
+    int pixelPerBlock = 16;
     
     while (window.isOpen())
     {
@@ -73,6 +78,14 @@ int main() {
                             break;
                         case sf::Keyboard::D:
                             playerMoveDir.x++;
+                            break;
+                        case sf::Keyboard::I:
+                            pixelPerBlock *= 2;
+                            break;
+                        case sf::Keyboard::O:
+                            if (pixelPerBlock > 1) {
+                                pixelPerBlock /= 2;
+                            }
                             break;
                         default:
                             break;
@@ -117,6 +130,8 @@ int main() {
 
         perfDebugInfo.endEventLoop();
 
+        chunks.setPixelPerBlock(pixelPerBlock);
+
         playerPos.x += playerMoveDir.x * playerMoveSpeed * frameTime.asSeconds();
         playerPos.y += playerMoveDir.y * playerMoveSpeed * frameTime.asSeconds();
 
@@ -145,17 +160,21 @@ int main() {
         gameDebugInfo.setPlayerLightLevel(sf::Vector2i(0, 0));
         gameDebugInfo.setMouseLightLevel(sf::Vector2i(0, 0));
 
-        if (leftClickHeld) {
-            chunks.breakBlock(xp);
-        }
 
         perfDebugInfo.endPlayerInputProcessing();
         perfDebugInfo.endRandomTick();
 
+        if (leftClickHeld) {
+            chunks.breakBlock(xp);
+        }
+
         if (elapsedTime - lastTickTime >= 50) {
             lastTickTime += 50;
-            chunks.tickAnimation();
+            chunks.tick(tickCount);
+            tickCount++;
         }
+
+        chunks.updateVertexArrays();
 
         perfDebugInfo.endChunksUpdate();
         perfDebugInfo.endEntitiesProcessing();

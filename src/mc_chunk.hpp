@@ -38,17 +38,18 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     void updateAnimatedVertexArray();
     void updateAllVertexArray();
     void update();
-    void setBlock(int x, int y, int blockID);
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
     Chunk(int blocks[4096], int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData);
     Chunk(std::string, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData);
     Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData);
+    void setPixelPerBlock(int pixelPerBlock);
     int getBlock(int x, int y);
+    void setBlock(int x, int y, int blockID);
     bool placeBlock(int x, int y, int itemID);
     int breakBlock(int x, int y, int& xp);
-    void tickAnimation();
+    void tick(int tickCount);
     void updateVertexArray();
     bool saveToFile(std::string filePath);
 };

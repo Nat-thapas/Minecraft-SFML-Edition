@@ -31,6 +31,11 @@ void Chunks::updateTexture() {
     std::ifstream atlasDataFile(this->atlasDataPath);
     this->atlasData = json::parse(atlasDataFile);
     this->textureAtlas.loadFromFile(this->atlasFilePath);
+    if (this->pixelPerBlock < 16) {
+        this->textureAtlas.setSmooth(true);
+    } else {
+        this->textureAtlas.setSmooth(false);
+    }
 }
 
 void Chunks::initializeChunks() {
@@ -51,12 +56,12 @@ Chunks::Chunks(int playerChunkID, int seed, int pixelPerBlock, int screenWidth, 
     this->screenHeight = screenHeight;
     this->atlasFilePath = atlasFilePath;
     this->atlasDataPath = atlasDataPath;
-    this->chunksStartID = this->playerChunkID - std::ceil((this->screenWidth / 2.f) / (16.f * this->pixelPerBlock));
-    this->chunksEndID = this->playerChunkID + std::ceil((this->screenWidth / 2.f) / (16.f * this->pixelPerBlock));
+    this->chunksStartID = this->playerChunkID - std::lround((this->screenWidth / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
+    this->chunksEndID = this->playerChunkID + std::lround((this->screenWidth / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
     this->chunkCountOnScreen = this->chunksEndID - this->chunksStartID + 1;
     Perlin noise(this->seed);
     this->noise = noise;
-    this->highlighter.setSize(sf::Vector2f((float)(pixelPerBlock - 2), (float)(pixelPerBlock - 2)));
+    this->highlighter.setSize(sf::Vector2f(static_cast<float>(pixelPerBlock - 2), static_cast<float>(pixelPerBlock - 2)));
     this->highlighter.setOrigin(-1.f, -1.f);
     this->highlighter.setFillColor(sf::Color(0, 0, 0, 0));
     this->highlighter.setOutlineThickness(2.f);
@@ -89,11 +94,11 @@ void Chunks::updateMousePosition() {
     sf::Vector2f distance(sf::Vector2f(this->mouseScreenPos) - sf::Vector2f(this->screenWidth / 2.f, this->screenHeight / 2.f + (float)this->pixelPerBlock));
     distance /= (float)this->pixelPerBlock;
     distance += playerPos;
-    int chunkDistance = floor(distance.x / 16.f);
+    int chunkDistance = std::lround(distance.x / 16.f - 0.5f);
     distance.x = mod(distance.x, 16);
     this->mouseChunkID = this->playerChunkID + chunkDistance;
-    this->mousePos.x = floor(distance.x);
-    this->mousePos.y = floor(distance.y);
+    this->mousePos.x = std::lround(distance.x - 0.5f);
+    this->mousePos.y = std::lround(distance.y - 0.5f);
     this->updateHighlighterPosition();
 }
 
@@ -105,10 +110,37 @@ void Chunks::updateHighlighterPosition() {
     this->highlighter.setPosition(fChunkXPos + i * this->pixelPerBlock * 16.f + mousePos.x * this->pixelPerBlock, chunkYPos + (float)(mousePos.y * this->pixelPerBlock));
 }
 
-void Chunks::tickAnimation() {
+void Chunks::tick(int tickCount) {
     for (Chunk& chunk : this->chunks) {
-        chunk.tickAnimation();
+        chunk.tick(tickCount);
     }
+}
+
+void Chunks::updateVertexArrays() {
+    for (Chunk& chunk : this->chunks) {
+        chunk.updateVertexArray();
+    }
+}
+
+void Chunks::setPixelPerBlock(int pixelPerBlock) {
+    if (this->pixelPerBlock == pixelPerBlock) {
+        return;
+    }
+    this->saveAll();
+    this->chunks.clear();
+    this->pixelPerBlock = pixelPerBlock;
+    if (this->pixelPerBlock < 16) {
+        this->textureAtlas.setSmooth(true);
+    } else {
+        this->textureAtlas.setSmooth(false);
+    }
+    this->highlighter.setSize(sf::Vector2f(static_cast<float>(this->pixelPerBlock - 2), static_cast<float>(this->pixelPerBlock - 2)));
+    this->chunksStartID = this->playerChunkID - std::lround((this->screenWidth / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
+    this->chunksEndID = this->playerChunkID + std::lround((this->screenWidth / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
+    this->chunkCountOnScreen = this->chunksEndID - this->chunksStartID + 1;
+    this->initializeChunks();
+    this->updateChunksPosition();
+    this->updateMousePosition();
 }
 
 int Chunks::getPlayerChunkID() {
