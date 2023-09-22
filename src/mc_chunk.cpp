@@ -63,7 +63,6 @@ Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& texture
     this->textureAtlas = textureAtlas;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
-    double coalOreIntensity, ironOreIntensity, goldOreIntensity, diamondOreIntensity;
     for (int i = 0; i < 4096; i++) {
         this->blocks[i] = 0;
     }
@@ -95,30 +94,20 @@ Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& texture
                         this->blocks[x + y * 16] = 3;
                     }
                 } else if (y < std::min(256 - static_cast<int>(std::clamp(noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x))*100.0, 4, 0.5) * 10.0, 2.5, 8.5) - 2.5), 255)) {
-                    double caveY = noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x))/100.0 - 8572688.0, 4, 0.4) * 250.0 + 100.0;
-                    double caveHeight = noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x))/50.0 + 3599341.0, 4, 0.4) * 6.0;
-                    double caveY2 = noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x))/100.0 + 6238173.0, 4, 0.4) * 250.0 + 100.0;
-                    double caveHeight2 = noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x))/50.0 - 4800281.0, 4, 0.4) * 6.0;
-                    if (abs(y - caveY) < caveHeight) {
-                        this->blocks[x + y * 16] = 0;
-                    } else if (abs(y - caveY2) < caveHeight2) {
+                    if (abs(y - noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x))/100.0 - 8572688.0, 4, 0.4) * 250.0 + 100.0) < noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x))/50.0 + 3599341.0, 4, 0.4) * 6.0 || abs(y - noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x))/100.0 + 6238173.0, 4, 0.4) * 250.0 + 100.0) < noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x))/50.0 - 4800281.0, 4, 0.4) * 6.0) {
                         this->blocks[x + y * 16] = 0;
                     } else {
-                        coalOreIntensity = noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x))/10.0, static_cast<double>(y)/10.0 + 3925672.0, 4, 0.4);
-                        ironOreIntensity = noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x))/5.0, static_cast<double>(y)/5.0 - 6027822.0, 4, 0.4);
-                        goldOreIntensity = noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x))/5.0, static_cast<double>(y)/5.0 + 7734628.0, 4, 0.4);
-                        diamondOreIntensity = noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x))/5.0, static_cast<double>(y)/5.0 - 1858459.0, 4, 0.4);
                         this->blocks[x + y * 16] = 1;
-                        if (coalOreIntensity > 0.65) {
+                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x))/10.0, static_cast<double>(y)/10.0 + 3925672.0, 4, 0.4) > 0.65) {
                             this->blocks[x + y * 16] = 20;
                         }
-                        if (ironOreIntensity > 0.675) {
+                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x))/5.0, static_cast<double>(y)/5.0 - 6027822.0, 4, 0.4) > 0.675) {
                             this->blocks[x + y * 16] = 21;
                         }
-                        if (goldOreIntensity > 0.725 && y > 224) {
+                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x))/5.0, static_cast<double>(y)/5.0 + 7734628.0, 4, 0.4) > 0.725 && y > 224) {
                             this->blocks[x + y * 16] = 22;
                         }
-                        if (diamondOreIntensity > 0.725 && y > 232) {
+                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x))/5.0, static_cast<double>(y)/5.0 - 1858459.0, 4, 0.4) > 0.725 && y > 232) {
                             this->blocks[x + y * 16] = 23;
                         }
                     }
