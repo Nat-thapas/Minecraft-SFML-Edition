@@ -14,7 +14,7 @@ void GameDebugInfo::draw(sf::RenderTarget& target, sf::RenderStates states) cons
     target.draw(this->loadedChunksLabel, states);
 }
 
-void GameDebugInfo::setPosition(sf::Vector2f& position) {
+void GameDebugInfo::setPosition(sf::Vector2f position) {
     this->position = position;
     this->updateSettings();
 }
@@ -29,12 +29,12 @@ void GameDebugInfo::setCharacterSize(unsigned characterSize) {
     this->updateSettings();
 }
 
-void GameDebugInfo::setFillColor(sf::Color& fillColor) {
+void GameDebugInfo::setFillColor(sf::Color fillColor) {
     this->fillColor = fillColor;
     this->updateSettings();
 }
 
-void GameDebugInfo::setOutlineColor(sf::Color& outlineColor) {
+void GameDebugInfo::setOutlineColor(sf::Color outlineColor) {
     this->outlineColor = outlineColor;
     this->updateSettings();
 }
@@ -128,10 +128,15 @@ void GameDebugInfo::setLoadedChunks(sf::Vector2i loadedChunks) {
 
 void GameDebugInfo::updateLabels() {
     this->playerLocationLabel.setString(std::format("Player location: {} {:06.3f} {:06.3f}", this->playerChunkID, this->playerPos.x, this->playerPos.y));
+    this->playerLocationLabel.setOrigin(this->playerLocationLabel.getLocalBounds().width, 0.f);
     this->mouseLocationLabel.setString(std::format("Mouse location: {} {} {}", this->mouseChunkID, this->mousePos.x, this->mousePos.y));
+    this->mouseLocationLabel.setOrigin(this->mouseLocationLabel.getLocalBounds().width, 0.f);
     this->playerLightLevelLabel.setString(std::format("Player light level: {} ({} sky, {} block)", std::max(this->playerLightLevels.x, this->playerLightLevels.y), this->playerLightLevels.x, this->playerLightLevels.y));
+    this->playerLightLevelLabel.setOrigin(this->playerLightLevelLabel.getLocalBounds().width, 0.f);
     this->mouseLightLevelLabel.setString(std::format("Mouse light level: {} ({} sky, {} block)", std::max(this->mouseLightLevels.x, this->mouseLightLevels.y), this->mouseLightLevels.x, this->mouseLightLevels.y));
+    this->mouseLightLevelLabel.setOrigin(this->mouseLightLevelLabel.getLocalBounds().width, 0.f);
     this->loadedChunksLabel.setString(std::format("Chunks loaded: [{}, {}] ({} total)", this->loadedChunks.x, this->loadedChunks.y, this->loadedChunks.y - this->loadedChunks.x + 1));
+    this->loadedChunksLabel.setOrigin(this->loadedChunksLabel.getLocalBounds().width, 0.f);
 }
 
 }  // End namespace mc

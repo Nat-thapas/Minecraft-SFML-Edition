@@ -18,7 +18,7 @@ void PerfDebugInfo::draw(sf::RenderTarget& target, sf::RenderStates states) cons
     target.draw(this->overlaysRenderingTimeLabel, states);
 }
 
-void PerfDebugInfo::setPosition(sf::Vector2f& position) {
+void PerfDebugInfo::setPosition(sf::Vector2f position) {
     this->position = position;
     this->updateSettings();
 }
@@ -33,12 +33,12 @@ void PerfDebugInfo::setCharacterSize(unsigned characterSize) {
     this->updateSettings();
 }
 
-void PerfDebugInfo::setFillColor(sf::Color& fillColor) {
+void PerfDebugInfo::setFillColor(sf::Color fillColor) {
     this->fillColor = fillColor;
     this->updateSettings();
 }
 
-void PerfDebugInfo::setOutlineColor(sf::Color& outlineColor) {
+void PerfDebugInfo::setOutlineColor(sf::Color outlineColor) {
     this->outlineColor = outlineColor;
     this->updateSettings();
 }

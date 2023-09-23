@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <cstdlib>
+#include <cmath>
 #include <ctime>
 #include <iostream>
 
@@ -16,18 +17,20 @@ int main() {
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
 
-    sf::RenderWindow window(sf::VideoMode(1600, 960), "I hate C++", sf::Style::Titlebar | sf::Style::Close, settings);
+    sf::FloatRect screenRect(0.f, 0.f, 1600.f, 900.f);
+
+    sf::RenderWindow window(sf::VideoMode(lround(screenRect.width), lround(screenRect.height)), "I hate C++", sf::Style::Default, settings);
     window.setFramerateLimit(0);
     window.setVerticalSyncEnabled(false);
     window.setKeyRepeatEnabled(false);
 
-    mc::Chunks chunks(1, 1236547, 16, 1600, 960, "resources/textures/atlases/", "resources/textures/atlases/");
+    mc::Chunks chunks(1, 12365478, 16, sf::Vector2i(lround(screenRect.width), lround(screenRect.height)), "resources/textures/atlases/", "resources/textures/atlases/");
 
     sf::Font robotoRegular;
     robotoRegular.loadFromFile("resources/fonts/Roboto-Regular.ttf");
 
-    mc::PerfDebugInfo perfDebugInfo(sf::Vector2f(0.f, 0.f), robotoRegular, 24, sf::Color::White, sf::Color::Black, 1.f);
-    mc::GameDebugInfo gameDebugInfo(sf::Vector2f(1200.f, 0.f), robotoRegular, 24, sf::Color::White, sf::Color::Black, 1.f);
+    mc::PerfDebugInfo perfDebugInfo(sf::Vector2f(5.f, 0.f), robotoRegular, 24, sf::Color::White, sf::Color::Black, 1.f);
+    mc::GameDebugInfo gameDebugInfo(sf::Vector2f(screenRect.width - 5.f, 0.f), robotoRegular, 24, sf::Color::White, sf::Color::Black, 1.f);
     sf::Clock elapsedClock;
     sf::Clock frameTimeClock;
     sf::Time frameTime;
@@ -125,6 +128,11 @@ int main() {
                         rightClickHeld = false;
                     }
                     break;
+                case sf::Event::Resized:
+                    screenRect = sf::FloatRect(0, 0, event.size.width, event.size.height);
+                    window.setView(sf::View(screenRect));
+                    gameDebugInfo.setPosition(sf::Vector2f(screenRect.width - 5.f, 0.f));
+                    break;
                 default:
                     break;
             }
@@ -133,6 +141,7 @@ int main() {
         perfDebugInfo.endEventLoop();
 
         chunks.setPixelPerBlock(pixelPerBlock);
+        chunks.setScreenSize(sf::Vector2i(lround(screenRect.width), lround(screenRect.height)));
 
         playerPos.x += playerMoveDir.x * playerMoveSpeed * frameTime.asSeconds();
         playerPos.y += playerMoveDir.y * playerMoveSpeed * frameTime.asSeconds();

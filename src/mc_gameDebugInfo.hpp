@@ -31,11 +31,11 @@ class GameDebugInfo : public sf::Drawable {
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
-    void setPosition(sf::Vector2f&);
+    void setPosition(sf::Vector2f);
     void setFont(sf::Font&);
     void setCharacterSize(unsigned);
-    void setFillColor(sf::Color&);
-    void setOutlineColor(sf::Color&);
+    void setFillColor(sf::Color);
+    void setOutlineColor(sf::Color);
     void setOutlineThickness(float);
     void setLineHeightMultiplier(float);
     void updateSettings();

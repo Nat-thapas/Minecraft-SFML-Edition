@@ -49,16 +49,15 @@ void Chunks::initializeChunks() {
     }
 }
 
-Chunks::Chunks(int playerChunkID, int seed, int pixelPerBlock, int screenWidth, int screenHeight, std::string atlasFilesPath, std::string atlasDatasPath) {
+Chunks::Chunks(int playerChunkID, int seed, int pixelPerBlock, sf::Vector2i screenSize, std::string atlasFilesPath, std::string atlasDatasPath) {
     this->seed = seed;
     this->playerChunkID = playerChunkID;
     this->pixelPerBlock = pixelPerBlock;
-    this->screenWidth = screenWidth;
-    this->screenHeight = screenHeight;
+    this->screenSize = screenSize;
     this->atlasFilesPath = atlasFilesPath;
     this->atlasDatasPath = atlasDatasPath;
-    this->chunksStartID = this->playerChunkID - std::lround((this->screenWidth / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
-    this->chunksEndID = this->playerChunkID + std::lround((this->screenWidth / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
+    this->chunksStartID = this->playerChunkID - std::lround((this->screenSize.x / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
+    this->chunksEndID = this->playerChunkID + std::lround((this->screenSize.x / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
     this->chunkCountOnScreen = this->chunksEndID - this->chunksStartID + 1;
     Perlin noise(this->seed);
     this->noise = noise;
@@ -82,8 +81,8 @@ bool Chunks::saveAll() {
 
 void Chunks::updateChunksPosition() {
     int lChunkDistance = this->playerChunkID - this->chunksStartID;
-    float fChunkXPos = (this->screenWidth / 2.f) - lChunkDistance * this->pixelPerBlock * 16.f - this->playerPos.x * this->pixelPerBlock;
-    float chunkYPos = (this->screenHeight / 2.f) - (this->playerPos.y * this->pixelPerBlock) + this->pixelPerBlock;
+    float fChunkXPos = (this->screenSize.x / 2.f) - lChunkDistance * this->pixelPerBlock * 16.f - this->playerPos.x * this->pixelPerBlock;
+    float chunkYPos = (this->screenSize.y / 2.f) - (this->playerPos.y * this->pixelPerBlock) + this->pixelPerBlock;
     int i = 0;
     for (Chunk& chunk : this->chunks) {
         chunk.setPosition(sf::Vector2f(fChunkXPos + i * this->pixelPerBlock * 16.f, chunkYPos));
@@ -92,7 +91,7 @@ void Chunks::updateChunksPosition() {
 }
 
 void Chunks::updateMousePosition() {
-    sf::Vector2f distance(sf::Vector2f(this->mouseScreenPos) - sf::Vector2f(this->screenWidth / 2.f, this->screenHeight / 2.f + (float)this->pixelPerBlock));
+    sf::Vector2f distance(sf::Vector2f(this->mouseScreenPos) - sf::Vector2f(this->screenSize.x / 2.f, this->screenSize.y / 2.f + (float)this->pixelPerBlock));
     distance /= (float)this->pixelPerBlock;
     distance += playerPos;
     int chunkDistance = std::lround(distance.x / 16.f - 0.5f);
@@ -105,8 +104,8 @@ void Chunks::updateMousePosition() {
 
 void Chunks::updateHighlighterPosition() {
     int lChunkDistance = this->playerChunkID - this->chunksStartID;
-    float fChunkXPos = (this->screenWidth / 2.f) - lChunkDistance * this->pixelPerBlock * 16.f - this->playerPos.x * this->pixelPerBlock;
-    float chunkYPos = (this->screenHeight / 2.f) - (this->playerPos.y * this->pixelPerBlock) + this->pixelPerBlock;
+    float fChunkXPos = (this->screenSize.x / 2.f) - lChunkDistance * this->pixelPerBlock * 16.f - this->playerPos.x * this->pixelPerBlock;
+    float chunkYPos = (this->screenSize.y / 2.f) - (this->playerPos.y * this->pixelPerBlock) + this->pixelPerBlock;
     int i = this->mouseChunkID - this->chunksStartID;
     this->highlighter.setPosition(fChunkXPos + i * this->pixelPerBlock * 16.f + mousePos.x * this->pixelPerBlock, chunkYPos + (float)(mousePos.y * this->pixelPerBlock));
 }
@@ -127,8 +126,6 @@ void Chunks::setPixelPerBlock(int pixelPerBlock) {
     if (this->pixelPerBlock == pixelPerBlock) {
         return;
     }
-    // this->saveAll();
-    // this->chunks.clear();
     this->pixelPerBlock = pixelPerBlock;
     this->updateTexture();
     this->highlighter.setSize(sf::Vector2f(static_cast<float>(this->pixelPerBlock - 2), static_cast<float>(this->pixelPerBlock - 2)));
@@ -137,8 +134,50 @@ void Chunks::setPixelPerBlock(int pixelPerBlock) {
     }
     int oldChunksStartID = this->chunksStartID;
     int oldChunksEndID = this->chunksEndID;
-    this->chunksStartID = this->playerChunkID - std::lround((this->screenWidth / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
-    this->chunksEndID = this->playerChunkID + std::lround((this->screenWidth / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
+    this->chunksStartID = this->playerChunkID - std::lround((this->screenSize.x / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
+    this->chunksEndID = this->playerChunkID + std::lround((this->screenSize.x / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
+    this->chunkCountOnScreen = this->chunksEndID - this->chunksStartID + 1;
+    if (this->chunksEndID > oldChunksEndID) {
+        for (int i = 0; i < this->chunksEndID - oldChunksEndID; i++) {
+            if (std::filesystem::exists(std::format("saves/test/chunks/{}.dat", oldChunksEndID + i + 1))) {
+                this->chunks.push_back(Chunk(std::format("saves/test/chunks/{}.dat", oldChunksEndID + i + 1), oldChunksEndID + i + 1, this->pixelPerBlock, this->textureAtlas, this->atlasData));
+            } else {
+                this->chunks.push_back(Chunk(this->noise, oldChunksEndID + i + 1, this->pixelPerBlock, this->textureAtlas, this->atlasData));
+            }
+        }
+    } else if (this->chunksEndID < oldChunksEndID) {
+        for (int i = 0; i < oldChunksEndID - this->chunksEndID; i++) {
+            this->chunks.back().saveToFile(std::format("saves/test/chunks/{}.dat", oldChunksEndID - i));
+            this->chunks.pop_back();
+        }
+    }
+    if (this->chunksStartID < oldChunksStartID) {
+        for (int i = 0; i < oldChunksStartID - this->chunksStartID; i++) {
+            if (std::filesystem::exists(std::format("saves/test/chunks/{}.dat", oldChunksStartID - i - 1))) {
+                this->chunks.push_front(Chunk(std::format("saves/test/chunks/{}.dat", oldChunksStartID - i - 1), oldChunksStartID - i - 1, this->pixelPerBlock, this->textureAtlas, this->atlasData));
+            } else {
+                this->chunks.push_front(Chunk(this->noise, oldChunksStartID - i - 1, this->pixelPerBlock, this->textureAtlas, this->atlasData));
+            }
+        }
+    } else if (this->chunksStartID > oldChunksStartID) {
+        for (int i = 0; i < this->chunksStartID - oldChunksStartID; i++) {
+            this->chunks.front().saveToFile(std::format("saves/test/chunks/{}.dat", oldChunksStartID + i));
+            this->chunks.pop_front();
+        }
+    }
+    this->updateChunksPosition();
+    this->updateMousePosition();
+}
+
+void Chunks::setScreenSize(sf::Vector2i screenSize) {
+    if (this->screenSize == screenSize) {
+        return;
+    }
+    this->screenSize = screenSize;
+    int oldChunksStartID = this->chunksStartID;
+    int oldChunksEndID = this->chunksEndID;
+    this->chunksStartID = this->playerChunkID - std::lround((this->screenSize.x / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
+    this->chunksEndID = this->playerChunkID + std::lround((this->screenSize.x / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
     this->chunkCountOnScreen = this->chunksEndID - this->chunksStartID + 1;
     if (this->chunksEndID > oldChunksEndID) {
         for (int i = 0; i < this->chunksEndID - oldChunksEndID; i++) {

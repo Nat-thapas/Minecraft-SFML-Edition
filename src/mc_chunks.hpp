@@ -30,8 +30,7 @@ class Chunks : public sf::Drawable {
     std::deque<mc::Chunk> chunks;
     Perlin noise;
     int pixelPerBlock;
-    int screenWidth;
-    int screenHeight;
+    sf::Vector2i screenSize;
     int chunkCountOnScreen;
     int chunksStartID;
     int chunksEndID;
@@ -50,10 +49,11 @@ class Chunks : public sf::Drawable {
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
-    Chunks(int playerChunkID, int seed, int pixelPerBlock, int screenWidth, int screenHeight, std::string atlasFilesPath, std::string atlasDatasPath);
+    Chunks(int playerChunkID, int seed, int pixelPerBlock, sf::Vector2i screenSize, std::string atlasFilesPath, std::string atlasDatasPath);
     void tick(int tickCount);
     void updateVertexArrays();
     void setPixelPerBlock(int pixelPerBlock);
+    void setScreenSize(sf::Vector2i screenSize);
     int getPlayerChunkID();
     void setPlayerChunkID(int chunkID);
     sf::Vector2f getPlayerPos();
