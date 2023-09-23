@@ -21,7 +21,7 @@ int main() {
     window.setVerticalSyncEnabled(false);
     window.setKeyRepeatEnabled(false);
 
-    mc::Chunks chunks(1, 123654, 16, 1600, 960, "resources/textures/atlases/", "resources/textures/atlases/");
+    mc::Chunks chunks(1, 1236547, 16, 1600, 960, "resources/textures/atlases/", "resources/textures/atlases/");
 
     sf::Font robotoRegular;
     robotoRegular.loadFromFile("resources/fonts/Roboto-Regular.ttf");
@@ -49,6 +49,7 @@ int main() {
     int xp = 0;
     int tickCount = 0;
     int pixelPerBlock = 16;
+    bool displayDebug = false;
 
     while (window.isOpen()) {
         perfDebugInfo.startFrame();
@@ -84,6 +85,9 @@ int main() {
                             if (pixelPerBlock > 1) {
                                 pixelPerBlock /= 2;
                             }
+                            break;
+                        case sf::Keyboard::F3:
+                            displayDebug ^= 1;
                             break;
                         default:
                             break;
@@ -183,10 +187,12 @@ int main() {
         perfDebugInfo.endEntitiesRendering();
         perfDebugInfo.endParticlesRendering();
 
-        gameDebugInfo.updateLabels();
-        window.draw(gameDebugInfo);
+        if (displayDebug) {
+            window.draw(gameDebugInfo);
 
-        window.draw(perfDebugInfo);
+            gameDebugInfo.updateLabels();
+            window.draw(perfDebugInfo);
+        }
 
         perfDebugInfo.endOverlaysRendering();
 

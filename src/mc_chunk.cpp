@@ -56,6 +56,8 @@ Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& texture
     this->pixelPerBlock = pixelPerBlock;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
+    int plantType;
+    srand(this->chunkID);
     for (int i = 0; i < 4096; i++) {
         this->blocks[i] = 0;
     }
@@ -75,6 +77,22 @@ Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& texture
                         }
                     } else {
                         this->blocks[x + y * 16] = 2;
+                        plantType = rand() % 20;
+                        if (x > 1 && x < 14 && plantType < 3) {
+                            for (int ox = 0; ox < 5; ox++) {
+                                for (int oy = 0; oy < 7; oy++) {
+                                    if (this->oakTrees[0][ox + oy * 5] && this->blocks[(x + ox - 2) + (y + oy - 7) * 16] != 6) {
+                                        this->blocks[(x + ox - 2) + (y + oy - 7) * 16] = this->oakTrees[0][ox + oy * 5];
+                                    }
+                                }
+                            }
+                        } else if (plantType < 10) {
+                            this->blocks[x + (y - 1) * 16] = 9;
+                        } else if (plantType < 12) {
+                            this->blocks[x + (y - 1) * 16] = 28;
+                        } else if (plantType < 14) {
+                            this->blocks[x + (y - 1) * 16] = 29;
+                        }
                     }
                 } else if (y - height <= 5) {
                     if (height > 191) {
@@ -86,7 +104,7 @@ Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& texture
                     } else {
                         this->blocks[x + y * 16] = 3;
                     }
-                } else if (y < std::min(256 - static_cast<int>(std::clamp(noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) * 100.0, 4, 0.5) * 10.0, 2.5, 8.5) - 2.5), 255)) {
+                } else if (y < 255 - rand() % 5) {
                     if (abs(y - (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 100.0 - 8572688.0, 4, 0.4) * 250.0 + 100.0)) < (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 50.0 + 3599341.0, 4, 0.4) * 6.0) || abs(y - (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 100.0 + 6238173.0, 4, 0.4) * 250.0 + 100.0)) < (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 50.0 - 4800281.0, 4, 0.4) * 6.0)) {
                         this->blocks[x + y * 16] = 0;
                     } else {
@@ -284,6 +302,7 @@ void Chunk::update() {
 void Chunk::setPixelPerBlock(int pixelPerBlock) {
     this->pixelPerBlock = pixelPerBlock;
     this->initializeVertexArray();
+    this->updateAllVertexArray();
 }
 
 int Chunk::getBlock(int x, int y) {
