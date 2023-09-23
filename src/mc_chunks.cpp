@@ -2,17 +2,17 @@
 
 #include <SFML/Graphics.hpp>
 #include <cstdlib>
+#include <filesystem>
 #include <format>
 #include <fstream>
 #include <queue>
 #include <string>
 #include <vector>
-#include <filesystem>
 
 #include "../include/json.hpp"
 #include "../include/perlin.hpp"
-#include "mc_chunk.hpp"
 #include "idiv.hpp"
+#include "mc_chunk.hpp"
 #include "mod.hpp"
 
 using json = nlohmann::json;
@@ -28,34 +28,35 @@ void Chunks::draw(sf::RenderTarget& target, sf::RenderStates states) const {
 }
 
 void Chunks::updateTexture() {
-    std::ifstream atlasDataFile(this->atlasDataPath);
-    this->atlasData = json::parse(atlasDataFile);
-    this->textureAtlas.loadFromFile(this->atlasFilePath);
     if (this->pixelPerBlock < 16) {
-        this->textureAtlas.setSmooth(true);
+        std::ifstream atlasDataFile(this->atlasDatasPath + std::format("blocksAtlasx{}.json", this->pixelPerBlock));
+        this->atlasData = json::parse(atlasDataFile);
+        this->textureAtlas.loadFromFile(this->atlasFilesPath + std::format("blocksAtlasx{}.png", this->pixelPerBlock));
     } else {
-        this->textureAtlas.setSmooth(false);
+        std::ifstream atlasDataFile(this->atlasDatasPath + "blocksAtlasx16.json");
+        this->atlasData = json::parse(atlasDataFile);
+        this->textureAtlas.loadFromFile(this->atlasFilesPath + "blocksAtlasx16.png");
     }
 }
 
 void Chunks::initializeChunks() {
     for (int i = 0; i < this->chunkCountOnScreen; i++) {
         if (std::filesystem::exists(std::format("saves/test/chunks/{}.dat", this->chunksStartID + i))) {
-            this->chunks.push_back(Chunk(std::format("saves/test/chunks/{}.dat", this->chunksStartID + i),  this->chunksStartID + i, this->pixelPerBlock, this->textureAtlas, this->atlasData));
+            this->chunks.push_back(Chunk(std::format("saves/test/chunks/{}.dat", this->chunksStartID + i), this->chunksStartID + i, this->pixelPerBlock, this->textureAtlas, this->atlasData));
         } else {
             this->chunks.push_back(Chunk(this->noise, this->chunksStartID + i, this->pixelPerBlock, this->textureAtlas, this->atlasData));
         }
     }
 }
 
-Chunks::Chunks(int playerChunkID, int seed, int pixelPerBlock, int screenWidth, int screenHeight, std::string atlasFilePath, std::string atlasDataPath) {
+Chunks::Chunks(int playerChunkID, int seed, int pixelPerBlock, int screenWidth, int screenHeight, std::string atlasFilesPath, std::string atlasDatasPath) {
     this->seed = seed;
     this->playerChunkID = playerChunkID;
     this->pixelPerBlock = pixelPerBlock;
     this->screenWidth = screenWidth;
     this->screenHeight = screenHeight;
-    this->atlasFilePath = atlasFilePath;
-    this->atlasDataPath = atlasDataPath;
+    this->atlasFilesPath = atlasFilesPath;
+    this->atlasDatasPath = atlasDatasPath;
     this->chunksStartID = this->playerChunkID - std::lround((this->screenWidth / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
     this->chunksEndID = this->playerChunkID + std::lround((this->screenWidth / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
     this->chunkCountOnScreen = this->chunksEndID - this->chunksStartID + 1;
@@ -129,11 +130,7 @@ void Chunks::setPixelPerBlock(int pixelPerBlock) {
     this->saveAll();
     this->chunks.clear();
     this->pixelPerBlock = pixelPerBlock;
-    if (this->pixelPerBlock < 16) {
-        this->textureAtlas.setSmooth(true);
-    } else {
-        this->textureAtlas.setSmooth(false);
-    }
+    this->updateTexture();
     this->highlighter.setSize(sf::Vector2f(static_cast<float>(this->pixelPerBlock - 2), static_cast<float>(this->pixelPerBlock - 2)));
     this->chunksStartID = this->playerChunkID - std::lround((this->screenWidth / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
     this->chunksEndID = this->playerChunkID + std::lround((this->screenWidth / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);

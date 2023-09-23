@@ -1,19 +1,18 @@
 #include "mc_chunk.hpp"
 
+#include <SFML/Graphics.hpp>
+#include <algorithm>
 #include <cstdlib>
 #include <format>
 #include <fstream>
+#include <queue>
 #include <string>
 #include <vector>
-#include <queue>
-#include <algorithm>
-
-#include <SFML/Graphics.hpp>
 
 #include "../include/json.hpp"
 #include "../include/perlin.hpp"
-#include "mod.hpp"
 #include "idiv.hpp"
+#include "mod.hpp"
 
 using json = nlohmann::json;
 using Perlin = siv::PerlinNoise;
@@ -26,11 +25,9 @@ void Chunk::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     target.draw(this->vertexArray, states);
 }
 
-Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData) {
+Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData) : textureAtlas(textureAtlas), atlasData(atlasData) {
     this->chunkID = chunkID;
     this->pixelPerBlock = pixelPerBlock;
-    this->atlasData = atlasData;
-    this->textureAtlas = textureAtlas;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
     for (int i = 0; i < 4096; i++) {
@@ -41,11 +38,9 @@ Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, sf::Texture& text
     this->updateAllVertexArray();
 }
 
-Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData) {
+Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData) : textureAtlas(textureAtlas), atlasData(atlasData) {
     this->chunkID = chunkID;
     this->pixelPerBlock = pixelPerBlock;
-    this->atlasData = atlasData;
-    this->textureAtlas = textureAtlas;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
     std::ifstream inFile(filePath, std::ios::binary);
@@ -56,18 +51,16 @@ Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, sf::Texture& 
     this->updateAllVertexArray();
 }
 
-Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData) {
+Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData) : textureAtlas(textureAtlas), atlasData(atlasData) {
     this->chunkID = chunkID;
     this->pixelPerBlock = pixelPerBlock;
-    this->atlasData = atlasData;
-    this->textureAtlas = textureAtlas;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
     for (int i = 0; i < 4096; i++) {
         this->blocks[i] = 0;
     }
     for (int x = 0; x < 16; x++) {
-        int height = static_cast<int>(noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x))/100.0, 8, 0.4) * 100 + 136);
+        int height = static_cast<int>(noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 100.0, 8, 0.4) * 100 + 136);
         for (int y = 0; y < 256; y++) {
             if (y > 191) {
                 this->blocks[x + y * 16] = 11;
@@ -93,21 +86,21 @@ Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& texture
                     } else {
                         this->blocks[x + y * 16] = 3;
                     }
-                } else if (y < std::min(256 - static_cast<int>(std::clamp(noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x))*100.0, 4, 0.5) * 10.0, 2.5, 8.5) - 2.5), 255)) {
-                    if (abs(y - noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x))/100.0 - 8572688.0, 4, 0.4) * 250.0 + 100.0) < noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x))/50.0 + 3599341.0, 4, 0.4) * 6.0 || abs(y - noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x))/100.0 + 6238173.0, 4, 0.4) * 250.0 + 100.0) < noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x))/50.0 - 4800281.0, 4, 0.4) * 6.0) {
+                } else if (y < std::min(256 - static_cast<int>(std::clamp(noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) * 100.0, 4, 0.5) * 10.0, 2.5, 8.5) - 2.5), 255)) {
+                    if (abs(y - (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 100.0 - 8572688.0, 4, 0.4) * 250.0 + 100.0)) < (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 50.0 + 3599341.0, 4, 0.4) * 6.0) || abs(y - (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 100.0 + 6238173.0, 4, 0.4) * 250.0 + 100.0)) < (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 50.0 - 4800281.0, 4, 0.4) * 6.0)) {
                         this->blocks[x + y * 16] = 0;
                     } else {
                         this->blocks[x + y * 16] = 1;
-                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x))/10.0, static_cast<double>(y)/10.0 + 3925672.0, 4, 0.4) > 0.65) {
+                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 10.0, static_cast<double>(y) / 10.0 + 3925672.0, 4, 0.4) > 0.65) {
                             this->blocks[x + y * 16] = 20;
                         }
-                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x))/5.0, static_cast<double>(y)/5.0 - 6027822.0, 4, 0.4) > 0.675) {
+                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 5.0, static_cast<double>(y) / 5.0 - 6027822.0, 4, 0.4) > 0.675) {
                             this->blocks[x + y * 16] = 21;
                         }
-                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x))/5.0, static_cast<double>(y)/5.0 + 7734628.0, 4, 0.4) > 0.725 && y > 224) {
+                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 5.0, static_cast<double>(y) / 5.0 + 7734628.0, 4, 0.4) > 0.725 && y > 224) {
                             this->blocks[x + y * 16] = 22;
                         }
-                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x))/5.0, static_cast<double>(y)/5.0 - 1858459.0, 4, 0.4) > 0.725 && y > 232) {
+                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 5.0, static_cast<double>(y) / 5.0 - 1858459.0, 4, 0.4) > 0.725 && y > 232) {
                             this->blocks[x + y * 16] = 23;
                         }
                     }
@@ -131,7 +124,7 @@ void Chunk::initializeVertexArray() {
     for (int i = 0; i < 4096; i++) {
         blockRect.left = mod(i, 16) * blockRect.width;
         blockRect.top = idiv(i, 16) * blockRect.height;
-        
+
         // get a pointer to the triangles' vertices of the current tile
         sf::Vertex* triangles = &this->vertexArray[i * 6];
 
@@ -159,26 +152,21 @@ void Chunk::updateAnimatedVertexArray() {
         }
         textureRect.left = this->atlasData[std::format("{:03d}", blockID)]["x"];
         textureRect.top = this->atlasData[std::format("{:03d}", blockID)]["y"];
+        textureRect.width = this->atlasData[std::format("{:03d}", blockID)]["w"];
+        textureRect.height = textureRect.width;
         if (blockID == 13) {
-            textureRect.width = 16;
-            textureRect.height = 16;
-            animationLength = idiv((int)this->atlasData[std::format("{:03d}", blockID)]["h"], 16);
+            animationLength = idiv(static_cast<int>(this->atlasData[std::format("{:03d}", blockID)]["h"]), textureRect.height);
             textureAnimationIndex = mod((this->animationIndex), animationLength * 2 - 1);
             if (textureAnimationIndex >= animationLength) {
                 textureAnimationIndex = animationLength * 2 - textureAnimationIndex - 1;
             }
-            textureRect.top += textureAnimationIndex * 16;
+            textureRect.top += textureAnimationIndex * textureRect.height;
         } else if (blockID == 11 || blockID == 63) {
-            textureRect.width = 16;
-            textureRect.height = 16;
-            textureRect.top += mod((16 * this->animationIndex), (int)this->atlasData[std::format("{:03d}", blockID)]["h"]);
+            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->atlasData[std::format("{:03d}", blockID)]["h"]));
         } else if (blockID == 12 || blockID == 14 || blockID == 38) {
-            textureRect.width = 16;
-            textureRect.height = 16;
-            textureRect.top += mod((16 * this->animationIndex), (int)this->atlasData[std::format("{:03d}", blockID)]["h"]);
-            textureRect.left += mod(i, 2) * 16;
+            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->atlasData[std::format("{:03d}", blockID)]["h"]));
+            textureRect.left += mod(i, 2) * textureRect.width;
         } else {
-            textureRect.width = this->atlasData[std::format("{:03d}", blockID)]["w"];
             textureRect.height = this->atlasData[std::format("{:03d}", blockID)]["h"];
         }
 
@@ -206,26 +194,21 @@ void Chunk::updateAllVertexArray() {
         blockID = this->blocks[i];
         textureRect.left = this->atlasData[std::format("{:03d}", blockID)]["x"];
         textureRect.top = this->atlasData[std::format("{:03d}", blockID)]["y"];
+        textureRect.width = this->atlasData[std::format("{:03d}", blockID)]["w"];
+        textureRect.height = textureRect.width;
         if (blockID == 13) {
-            textureRect.width = 16;
-            textureRect.height = 16;
-            animationLength = idiv((int)this->atlasData[std::format("{:03d}", blockID)]["h"], 16);
+            animationLength = idiv(static_cast<int>(this->atlasData[std::format("{:03d}", blockID)]["h"]), textureRect.height);
             textureAnimationIndex = mod((this->animationIndex), animationLength * 2 - 1);
             if (textureAnimationIndex >= animationLength) {
                 textureAnimationIndex = animationLength * 2 - textureAnimationIndex - 1;
             }
-            textureRect.top += textureAnimationIndex * 16;
+            textureRect.top += textureAnimationIndex * textureRect.height;
         } else if (blockID == 11 || blockID == 63) {
-            textureRect.width = 16;
-            textureRect.height = 16;
-            textureRect.top += mod((16 * this->animationIndex), (int)this->atlasData[std::format("{:03d}", blockID)]["h"]);
+            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->atlasData[std::format("{:03d}", blockID)]["h"]));
         } else if (blockID == 12 || blockID == 14 || blockID == 38) {
-            textureRect.width = 16;
-            textureRect.height = 16;
-            textureRect.top += mod((16 * this->animationIndex), (int)this->atlasData[std::format("{:03d}", blockID)]["h"]);
-            textureRect.left += mod(i, 2) * 16;
+            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->atlasData[std::format("{:03d}", blockID)]["h"]));
+            textureRect.left += mod(i, 2) * textureRect.width;
         } else {
-            textureRect.width = this->atlasData[std::format("{:03d}", blockID)]["w"];
             textureRect.height = this->atlasData[std::format("{:03d}", blockID)]["h"];
         }
 
@@ -257,26 +240,21 @@ void Chunk::updateVertexArray() {
 
         textureRect.left = this->atlasData[std::format("{:03d}", blockID)]["x"];
         textureRect.top = this->atlasData[std::format("{:03d}", blockID)]["y"];
+        textureRect.width = this->atlasData[std::format("{:03d}", blockID)]["w"];
+        textureRect.height = textureRect.width;
         if (blockID == 13) {
-            textureRect.width = 16;
-            textureRect.height = 16;
-            animationLength = idiv((int)this->atlasData[std::format("{:03d}", blockID)]["h"], 16);
+            animationLength = idiv(static_cast<int>(this->atlasData[std::format("{:03d}", blockID)]["h"]), textureRect.height);
             textureAnimationIndex = mod((this->animationIndex), animationLength * 2 - 1);
             if (textureAnimationIndex >= animationLength) {
                 textureAnimationIndex = animationLength * 2 - textureAnimationIndex - 1;
             }
-            textureRect.top += textureAnimationIndex * 16;
+            textureRect.top += textureAnimationIndex * textureRect.height;
         } else if (blockID == 11 || blockID == 63) {
-            textureRect.width = 16;
-            textureRect.height = 16;
-            textureRect.top += mod((16 * this->animationIndex), (int)this->atlasData[std::format("{:03d}", blockID)]["h"]);
+            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->atlasData[std::format("{:03d}", blockID)]["h"]));
         } else if (blockID == 12 || blockID == 14 || blockID == 38) {
-            textureRect.width = 16;
-            textureRect.height = 16;
-            textureRect.top += mod((16 * this->animationIndex), (int)this->atlasData[std::format("{:03d}", blockID)]["h"]);
-            textureRect.left += mod(i, 2) * 16;
+            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->atlasData[std::format("{:03d}", blockID)]["h"]));
+            textureRect.left += mod(i, 2) * textureRect.width;
         } else {
-            textureRect.width = this->atlasData[std::format("{:03d}", blockID)]["w"];
             textureRect.height = this->atlasData[std::format("{:03d}", blockID)]["h"];
         }
 
@@ -335,7 +313,7 @@ int Chunk::breakBlock(int x, int y, int& xp) {
     int blockID = this->getBlock(x, y);
     this->setBlock(x, y, 0);
     xp += this->experienceDropAmount[blockID];
-    int dropIntensity = rand()%100 + 1;
+    int dropIntensity = rand() % 100 + 1;
     if (blockID == 19 && dropIntensity > 90) {
         return 80;
     }

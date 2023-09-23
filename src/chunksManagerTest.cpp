@@ -1,13 +1,13 @@
 #include <SFML/Graphics.hpp>
 #include <cstdlib>
-#include <iostream>
 #include <ctime>
+#include <iostream>
 
-#include "mc_chunks.hpp"
-#include "mc_chunk.hpp"
-#include "mc_perfDebugInfo.hpp"
-#include "mc_gameDebugInfo.hpp"
 #include "idiv.hpp"
+#include "mc_chunk.hpp"
+#include "mc_chunks.hpp"
+#include "mc_gameDebugInfo.hpp"
+#include "mc_perfDebugInfo.hpp"
 #include "mod.hpp"
 
 int main() {
@@ -21,7 +21,7 @@ int main() {
     window.setVerticalSyncEnabled(false);
     window.setKeyRepeatEnabled(false);
 
-    mc::Chunks chunks(1, 123654, 16, 1600, 960, "resources/textures/atlases/blocksAtlas.png", "resources/textures/atlases/blocksAtlas.json");
+    mc::Chunks chunks(1, 123654, 16, 1600, 960, "resources/textures/atlases/", "resources/textures/atlases/");
 
     sf::Font robotoRegular;
     robotoRegular.loadFromFile("resources/fonts/Roboto-Regular.ttf");
@@ -49,17 +49,15 @@ int main() {
     int xp = 0;
     int tickCount = 0;
     int pixelPerBlock = 16;
-    
-    while (window.isOpen())
-    {
+
+    while (window.isOpen()) {
         perfDebugInfo.startFrame();
 
         frameTime = frameTimeClock.restart();
         elapsedTime = elapsedClock.getElapsedTime().asMilliseconds();
 
         sf::Event event;
-        while (window.pollEvent(event))
-        {
+        while (window.pollEvent(event)) {
             switch (event.type) {
                 case sf::Event::Closed:
                     chunks.saveAll();
@@ -159,7 +157,6 @@ int main() {
 
         gameDebugInfo.setPlayerLightLevel(sf::Vector2i(0, 0));
         gameDebugInfo.setMouseLightLevel(sf::Vector2i(0, 0));
-
 
         perfDebugInfo.endPlayerInputProcessing();
         perfDebugInfo.endRandomTick();

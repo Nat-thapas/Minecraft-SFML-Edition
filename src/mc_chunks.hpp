@@ -1,20 +1,20 @@
 #ifndef MC_CHUNKS_HPP
 #define MC_CHUNKS_HPP
 
+#include <SFML/Graphics.hpp>
+#include <cstdlib>
+#include <filesystem>
 #include <format>
 #include <fstream>
+#include <queue>
 #include <string>
 #include <vector>
-#include <queue>
-#include <filesystem>
-
-#include <SFML/Graphics.hpp>
 
 #include "../include/json.hpp"
 #include "../include/perlin.hpp"
+#include "idiv.hpp"
 #include "mc_chunk.hpp"
 #include "mod.hpp"
-#include "idiv.hpp"
 
 using json = nlohmann::json;
 using Perlin = siv::PerlinNoise;
@@ -23,8 +23,8 @@ namespace mc {
 
 class Chunks : public sf::Drawable {
     int seed;
-    std::string atlasFilePath;
-    std::string atlasDataPath;
+    std::string atlasFilesPath;
+    std::string atlasDatasPath;
     sf::Texture textureAtlas;
     json atlasData;
     std::deque<mc::Chunk> chunks;
@@ -50,7 +50,7 @@ class Chunks : public sf::Drawable {
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
-    Chunks(int playerChunkID, int seed, int pixelPerBlock, int screenWidth, int screenHeight, std::string atlasFilePath, std::string atlasDataPath);
+    Chunks(int playerChunkID, int seed, int pixelPerBlock, int screenWidth, int screenHeight, std::string atlasFilesPath, std::string atlasDatasPath);
     void tick(int tickCount);
     void updateVertexArrays();
     void setPixelPerBlock(int pixelPerBlock);
