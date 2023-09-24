@@ -91,7 +91,7 @@ void Chunks::updateChunksPosition() {
 }
 
 void Chunks::updateMousePosition() {
-    sf::Vector2f distance(sf::Vector2f(this->mouseScreenPos) - sf::Vector2f(this->screenSize.x / 2.f, this->screenSize.y / 2.f + (float)this->pixelPerBlock));
+    sf::Vector2f distance(sf::Vector2f(this->mouseScreenPos) - sf::Vector2f(this->screenSize.x / 2.f, this->screenSize.y / 2.f + static_cast<float>(this->pixelPerBlock)));
     distance /= (float)this->pixelPerBlock;
     distance += playerPos;
     int chunkDistance = std::lround(distance.x / 16.f - 0.5f);
@@ -107,7 +107,7 @@ void Chunks::updateHighlighterPosition() {
     float fChunkXPos = (this->screenSize.x / 2.f) - lChunkDistance * this->pixelPerBlock * 16.f - this->playerPos.x * this->pixelPerBlock;
     float chunkYPos = (this->screenSize.y / 2.f) - (this->playerPos.y * this->pixelPerBlock) + this->pixelPerBlock;
     int i = this->mouseChunkID - this->chunksStartID;
-    this->highlighter.setPosition(fChunkXPos + i * this->pixelPerBlock * 16.f + mousePos.x * this->pixelPerBlock, chunkYPos + (float)(mousePos.y * this->pixelPerBlock));
+    this->highlighter.setPosition(fChunkXPos + i * this->pixelPerBlock * 16.f + mousePos.x * this->pixelPerBlock, chunkYPos + static_cast<float>(mousePos.y * this->pixelPerBlock));
 }
 
 void Chunks::tick(int tickCount) {

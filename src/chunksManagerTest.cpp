@@ -17,12 +17,19 @@ int main() {
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
 
+    sf::Image cursorImage;
+    cursorImage.loadFromFile("resources/textures/cursor.png");
+
+    sf::Cursor cursor;
+    cursor.loadFromPixels(cursorImage.getPixelsPtr(), sf::Vector2u(cursorImage.getSize().x, cursorImage.getSize().y), sf::Vector2u(cursorImage.getSize().x / 2 - 1, cursorImage.getSize().y / 2 - 1));
+
     sf::FloatRect screenRect(0.f, 0.f, 1600.f, 900.f);
 
     sf::RenderWindow window(sf::VideoMode(lround(screenRect.width), lround(screenRect.height)), "I hate C++", sf::Style::Default, settings);
     window.setFramerateLimit(0);
     window.setVerticalSyncEnabled(false);
     window.setKeyRepeatEnabled(false);
+    window.setMouseCursor(cursor);
 
     mc::Chunks chunks(1, 12365478, 16, sf::Vector2i(lround(screenRect.width), lround(screenRect.height)), "resources/textures/atlases/", "resources/textures/atlases/");
 
