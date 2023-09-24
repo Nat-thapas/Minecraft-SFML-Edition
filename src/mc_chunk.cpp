@@ -8,6 +8,7 @@
 #include <queue>
 #include <string>
 #include <vector>
+#include <array>
 
 #include "../include/json.hpp"
 #include "../include/perlin.hpp"
@@ -30,6 +31,7 @@ Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, sf::Texture& text
     this->pixelPerBlock = pixelPerBlock;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
+    this->parseAtlasData();
     for (int i = 0; i < 4096; i++) {
         this->blocks[i] = blocks[i];
     }
@@ -43,8 +45,9 @@ Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, sf::Texture& 
     this->pixelPerBlock = pixelPerBlock;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
+    this->parseAtlasData();
     std::ifstream inFile(filePath, std::ios::binary);
-    inFile.read(reinterpret_cast<char*>(this->blocks), sizeof(this->blocks));
+    inFile.read(reinterpret_cast<char*>(this->blocks.data()), this->blocks.size() * sizeof(int));
     inFile.close();
     this->animationIndex = 0;
     this->initializeVertexArray();
@@ -56,6 +59,7 @@ Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& texture
     this->pixelPerBlock = pixelPerBlock;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
+    this->parseAtlasData();
     int plantType;
     srand(this->chunkID);
     for (int i = 0; i < 4096; i++) {
@@ -106,7 +110,11 @@ Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& texture
                     }
                 } else if (y < 255 - rand() % 5) {
                     if (abs(y - (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 100.0 - 8572688.0, 4, 0.4) * 250.0 + 100.0)) < (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 50.0 + 3599341.0, 4, 0.4) * 6.0) || abs(y - (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 100.0 + 6238173.0, 4, 0.4) * 250.0 + 100.0)) < (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 50.0 - 4800281.0, 4, 0.4) * 6.0)) {
-                        this->blocks[x + y * 16] = 0;
+                        if (y > 248) {
+                            this->blocks[x + y * 16] = 13;
+                        } else {
+                            this->blocks[x + y * 16] = 0;
+                        }
                     } else {
                         this->blocks[x + y * 16] = 1;
                         if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 10.0, static_cast<double>(y) / 10.0 + 3925672.0, 4, 0.4) > 0.65) {
@@ -133,6 +141,17 @@ Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& texture
     this->updateAllVertexArray();
 }
 
+void Chunk::parseAtlasData() {
+    sf::IntRect texRect;
+    for (int blockID = 0; blockID < 71; blockID++) {
+        texRect.left = this->atlasData[std::format("{:03d}", blockID)]["x"];
+        texRect.top = this->atlasData[std::format("{:03d}", blockID)]["y"];
+        texRect.width = this->atlasData[std::format("{:03d}", blockID)]["w"];
+        texRect.height = this->atlasData[std::format("{:03d}", blockID)]["h"];
+        this->parsedAtlasData[blockID] = texRect;
+    }
+}
+
 void Chunk::initializeVertexArray() {
     sf::IntRect blockRect;
 
@@ -143,16 +162,12 @@ void Chunk::initializeVertexArray() {
         blockRect.left = mod(i, 16) * blockRect.width;
         blockRect.top = idiv(i, 16) * blockRect.height;
 
-        // get a pointer to the triangles' vertices of the current tile
-        sf::Vertex* triangles = &this->vertexArray[i * 6];
-
-        // define the 6 corners of the two triangles
-        triangles[0].position = sf::Vector2f(blockRect.left, blockRect.top);
-        triangles[1].position = sf::Vector2f(blockRect.left + blockRect.width, blockRect.top);
-        triangles[2].position = sf::Vector2f(blockRect.left, blockRect.top + blockRect.height);
-        triangles[3].position = sf::Vector2f(blockRect.left, blockRect.top + blockRect.height);
-        triangles[4].position = sf::Vector2f(blockRect.left + blockRect.width, blockRect.top);
-        triangles[5].position = sf::Vector2f(blockRect.left + blockRect.width, blockRect.top + blockRect.height);
+        this->vertexArray[i * 6].position = sf::Vector2f(blockRect.left, blockRect.top);
+        this->vertexArray[i * 6 + 1].position = sf::Vector2f(blockRect.left + blockRect.width, blockRect.top);
+        this->vertexArray[i * 6 + 2].position = sf::Vector2f(blockRect.left, blockRect.top + blockRect.height);
+        this->vertexArray[i * 6 + 3].position = sf::Vector2f(blockRect.left, blockRect.top + blockRect.height);
+        this->vertexArray[i * 6 + 4].position = sf::Vector2f(blockRect.left + blockRect.width, blockRect.top);
+        this->vertexArray[i * 6 + 5].position = sf::Vector2f(blockRect.left + blockRect.width, blockRect.top + blockRect.height);
     }
 }
 
@@ -168,36 +183,32 @@ void Chunk::updateAnimatedVertexArray() {
         if (!(11 <= blockID && blockID <= 14) && blockID != 38 && blockID != 63) {
             continue;
         }
-        textureRect.left = this->atlasData[std::format("{:03d}", blockID)]["x"];
-        textureRect.top = this->atlasData[std::format("{:03d}", blockID)]["y"];
-        textureRect.width = this->atlasData[std::format("{:03d}", blockID)]["w"];
+        textureRect.left = this->parsedAtlasData[blockID].left;
+        textureRect.top = this->parsedAtlasData[blockID].top;
+        textureRect.width = this->parsedAtlasData[blockID].width;
         textureRect.height = textureRect.width;
         if (blockID == 13) {
-            animationLength = idiv(static_cast<int>(this->atlasData[std::format("{:03d}", blockID)]["h"]), textureRect.height);
+            animationLength = idiv(static_cast<int>(this->parsedAtlasData[blockID].height), textureRect.height);
             textureAnimationIndex = mod((this->animationIndex), animationLength * 2 - 1);
             if (textureAnimationIndex >= animationLength) {
                 textureAnimationIndex = animationLength * 2 - textureAnimationIndex - 1;
             }
             textureRect.top += textureAnimationIndex * textureRect.height;
         } else if (blockID == 11 || blockID == 63) {
-            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->atlasData[std::format("{:03d}", blockID)]["h"]));
+            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->parsedAtlasData[blockID].height));
         } else if (blockID == 12 || blockID == 14 || blockID == 38) {
-            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->atlasData[std::format("{:03d}", blockID)]["h"]));
+            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->parsedAtlasData[blockID].height));
             textureRect.left += mod(i, 2) * textureRect.width;
         } else {
-            textureRect.height = this->atlasData[std::format("{:03d}", blockID)]["h"];
+            textureRect.height = this->parsedAtlasData[blockID].height;
         }
 
-        // get a pointer to the triangles' vertices of the current tile
-        sf::Vertex* triangles = &this->vertexArray[i * 6];
-
-        // define the 6 matching texture coordinates
-        triangles[0].texCoords = sf::Vector2f(textureRect.left, textureRect.top);
-        triangles[1].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
-        triangles[2].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
-        triangles[3].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
-        triangles[4].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
-        triangles[5].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top + textureRect.height);
+        this->vertexArray[i * 6].texCoords = sf::Vector2f(textureRect.left, textureRect.top);
+        this->vertexArray[i * 6 + 1].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
+        this->vertexArray[i * 6 + 2].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
+        this->vertexArray[i * 6 + 3].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
+        this->vertexArray[i * 6 + 4].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
+        this->vertexArray[i * 6 + 5].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top + textureRect.height);
     }
 }
 
@@ -210,36 +221,32 @@ void Chunk::updateAllVertexArray() {
 
     for (int i = 0; i < 4096; i++) {
         blockID = this->blocks[i];
-        textureRect.left = this->atlasData[std::format("{:03d}", blockID)]["x"];
-        textureRect.top = this->atlasData[std::format("{:03d}", blockID)]["y"];
-        textureRect.width = this->atlasData[std::format("{:03d}", blockID)]["w"];
+        textureRect.left = this->parsedAtlasData[blockID].left;
+        textureRect.top = this->parsedAtlasData[blockID].top;
+        textureRect.width = this->parsedAtlasData[blockID].width;
         textureRect.height = textureRect.width;
         if (blockID == 13) {
-            animationLength = idiv(static_cast<int>(this->atlasData[std::format("{:03d}", blockID)]["h"]), textureRect.height);
+            animationLength = idiv(static_cast<int>(this->parsedAtlasData[blockID].height), textureRect.height);
             textureAnimationIndex = mod((this->animationIndex), animationLength * 2 - 1);
             if (textureAnimationIndex >= animationLength) {
                 textureAnimationIndex = animationLength * 2 - textureAnimationIndex - 1;
             }
             textureRect.top += textureAnimationIndex * textureRect.height;
         } else if (blockID == 11 || blockID == 63) {
-            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->atlasData[std::format("{:03d}", blockID)]["h"]));
+            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->parsedAtlasData[blockID].height));
         } else if (blockID == 12 || blockID == 14 || blockID == 38) {
-            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->atlasData[std::format("{:03d}", blockID)]["h"]));
+            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->parsedAtlasData[blockID].height));
             textureRect.left += mod(i, 2) * textureRect.width;
         } else {
-            textureRect.height = this->atlasData[std::format("{:03d}", blockID)]["h"];
+            textureRect.height = this->parsedAtlasData[blockID].height;
         }
 
-        // get a pointer to the triangles' vertices of the current tile
-        sf::Vertex* triangles = &this->vertexArray[i * 6];
-
-        // define the 6 matching texture coordinates
-        triangles[0].texCoords = sf::Vector2f(textureRect.left, textureRect.top);
-        triangles[1].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
-        triangles[2].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
-        triangles[3].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
-        triangles[4].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
-        triangles[5].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top + textureRect.height);
+        this->vertexArray[i * 6].texCoords = sf::Vector2f(textureRect.left, textureRect.top);
+        this->vertexArray[i * 6 + 1].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
+        this->vertexArray[i * 6 + 2].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
+        this->vertexArray[i * 6 + 3].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
+        this->vertexArray[i * 6 + 4].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
+        this->vertexArray[i * 6 + 5].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top + textureRect.height);
     }
 }
 
@@ -256,36 +263,32 @@ void Chunk::updateVertexArray() {
         vertexUpdateQueue.pop();
         blockID = this->blocks[i];
 
-        textureRect.left = this->atlasData[std::format("{:03d}", blockID)]["x"];
-        textureRect.top = this->atlasData[std::format("{:03d}", blockID)]["y"];
-        textureRect.width = this->atlasData[std::format("{:03d}", blockID)]["w"];
+        textureRect.left = this->parsedAtlasData[blockID].left;
+        textureRect.top = this->parsedAtlasData[blockID].top;
+        textureRect.width = this->parsedAtlasData[blockID].width;
         textureRect.height = textureRect.width;
         if (blockID == 13) {
-            animationLength = idiv(static_cast<int>(this->atlasData[std::format("{:03d}", blockID)]["h"]), textureRect.height);
+            animationLength = idiv(static_cast<int>(this->parsedAtlasData[blockID].height), textureRect.height);
             textureAnimationIndex = mod((this->animationIndex), animationLength * 2 - 1);
             if (textureAnimationIndex >= animationLength) {
                 textureAnimationIndex = animationLength * 2 - textureAnimationIndex - 1;
             }
             textureRect.top += textureAnimationIndex * textureRect.height;
         } else if (blockID == 11 || blockID == 63) {
-            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->atlasData[std::format("{:03d}", blockID)]["h"]));
+            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->parsedAtlasData[blockID].height));
         } else if (blockID == 12 || blockID == 14 || blockID == 38) {
-            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->atlasData[std::format("{:03d}", blockID)]["h"]));
+            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->parsedAtlasData[blockID].height));
             textureRect.left += mod(i, 2) * textureRect.width;
         } else {
-            textureRect.height = this->atlasData[std::format("{:03d}", blockID)]["h"];
+            textureRect.height = this->parsedAtlasData[blockID].height;
         }
 
-        // get a pointer to the triangles' vertices of the current tile
-        sf::Vertex* triangles = &this->vertexArray[i * 6];
-
-        // define the 6 matching texture coordinates
-        triangles[0].texCoords = sf::Vector2f(textureRect.left, textureRect.top);
-        triangles[1].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
-        triangles[2].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
-        triangles[3].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
-        triangles[4].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
-        triangles[5].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top + textureRect.height);
+        this->vertexArray[i * 6].texCoords = sf::Vector2f(textureRect.left, textureRect.top);
+        this->vertexArray[i * 6 + 1].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
+        this->vertexArray[i * 6 + 2].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
+        this->vertexArray[i * 6 + 3].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
+        this->vertexArray[i * 6 + 4].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
+        this->vertexArray[i * 6 + 5].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top + textureRect.height);
     }
 }
 
@@ -301,6 +304,7 @@ void Chunk::update() {
 
 void Chunk::setPixelPerBlock(int pixelPerBlock) {
     this->pixelPerBlock = pixelPerBlock;
+    this->parseAtlasData();
     this->initializeVertexArray();
     this->updateAllVertexArray();
 }
@@ -351,7 +355,7 @@ void Chunk::tick(int tickCount) {
 
 bool Chunk::saveToFile(std::string filePath) {
     std::ofstream outFile(filePath, std::ios::binary);
-    outFile.write(reinterpret_cast<char*>(this->blocks), sizeof(this->blocks));
+    outFile.write(reinterpret_cast<char*>(this->blocks.data()), this->blocks.size() * sizeof(int));
     outFile.close();
     return true;
 }

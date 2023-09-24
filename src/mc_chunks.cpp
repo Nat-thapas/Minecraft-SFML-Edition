@@ -128,7 +128,11 @@ void Chunks::setPixelPerBlock(int pixelPerBlock) {
     }
     this->pixelPerBlock = pixelPerBlock;
     this->updateTexture();
-    this->highlighter.setSize(sf::Vector2f(static_cast<float>(this->pixelPerBlock - 2), static_cast<float>(this->pixelPerBlock - 2)));
+    if (this->pixelPerBlock > 2) {
+        this->highlighter.setSize(sf::Vector2f(static_cast<float>(this->pixelPerBlock - 2), static_cast<float>(this->pixelPerBlock - 2)));
+    } else {
+        this->highlighter.setSize(sf::Vector2f(static_cast<float>(this->pixelPerBlock), static_cast<float>(this->pixelPerBlock)));
+    }
     for (Chunk& chunk : this->chunks) {
         chunk.setPixelPerBlock(this->pixelPerBlock);
     }
