@@ -2,13 +2,13 @@
 
 #include <SFML/Graphics.hpp>
 #include <algorithm>
+#include <array>
 #include <cstdlib>
 #include <format>
 #include <fstream>
 #include <queue>
 #include <string>
 #include <vector>
-#include <array>
 
 #include "../include/json.hpp"
 #include "../include/perlin.hpp"
@@ -160,8 +160,8 @@ void Chunk::initializeVertexArray() {
     blockRect.height = this->pixelPerBlock;
 
     for (int i = 0; i < 4096; i++) {
-        blockRect.left = mod(i, 16) * blockRect.width;
-        blockRect.top = idiv(i, 16) * blockRect.height;
+        blockRect.left = (i % 16) * blockRect.width;
+        blockRect.top = (i / 16) * blockRect.height;
 
         this->vertexArray[i * 6].position = sf::Vector2f(blockRect.left, blockRect.top);
         this->vertexArray[i * 6 + 1].position = sf::Vector2f(blockRect.left + blockRect.width, blockRect.top);
@@ -188,20 +188,36 @@ void Chunk::updateAnimatedVertexArray() {
         textureRect.top = this->parsedAtlasData[blockID].top;
         textureRect.width = this->parsedAtlasData[blockID].width;
         textureRect.height = textureRect.width;
-        if (blockID == 13) {
-            animationLength = idiv(static_cast<int>(this->parsedAtlasData[blockID].height), textureRect.height);
-            textureAnimationIndex = mod((this->animationIndex), animationLength * 2 - 1);
-            if (textureAnimationIndex >= animationLength) {
-                textureAnimationIndex = animationLength * 2 - textureAnimationIndex - 1;
-            }
-            textureRect.top += textureAnimationIndex * textureRect.height;
-        } else if (blockID == 11 || blockID == 63) {
-            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->parsedAtlasData[blockID].height));
-        } else if (blockID == 12 || blockID == 14 || blockID == 38) {
-            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->parsedAtlasData[blockID].height));
-            textureRect.left += mod(i, 2) * textureRect.width;
-        } else {
-            textureRect.height = this->parsedAtlasData[blockID].height;
+        switch (blockID) {
+            case 11:  // Still water
+                textureRect.top += mod((textureRect.height * (this->animationIndex / 2)), this->parsedAtlasData[blockID].height);
+                break;
+            case 12:  // Flowing water
+                textureRect.top += mod((textureRect.height * this->animationIndex), this->parsedAtlasData[blockID].height);
+                textureRect.left += (i % 2) * textureRect.width;
+                break;
+            case 13:  // Still lava
+                animationLength = idiv(this->parsedAtlasData[blockID].height, textureRect.height);
+                textureAnimationIndex = mod(this->animationIndex / 2, animationLength * 2 - 1);
+                if (textureAnimationIndex >= animationLength) {
+                    textureAnimationIndex = animationLength * 2 - textureAnimationIndex - 1;
+                }
+                textureRect.top += textureAnimationIndex * textureRect.height;
+                break;
+            case 14:  // Flowing lava
+                textureRect.top += mod((textureRect.height * (this->animationIndex / 3)), this->parsedAtlasData[blockID].height);
+                textureRect.left += (i % 2) * textureRect.width;
+                break;
+            case 38:  // Fire
+                textureRect.top += mod((textureRect.height * this->animationIndex), this->parsedAtlasData[blockID].height);
+                textureRect.left += (i % 2) * textureRect.width;
+                break;
+            case 63:  // Nether portal
+                textureRect.top += mod((textureRect.height * this->animationIndex), this->parsedAtlasData[blockID].height);
+                break;
+            default:
+                textureRect.height = this->parsedAtlasData[blockID].height;
+                break;
         }
 
         this->vertexArray[i * 6].texCoords = sf::Vector2f(textureRect.left, textureRect.top);
@@ -226,20 +242,36 @@ void Chunk::updateAllVertexArray() {
         textureRect.top = this->parsedAtlasData[blockID].top;
         textureRect.width = this->parsedAtlasData[blockID].width;
         textureRect.height = textureRect.width;
-        if (blockID == 13) {
-            animationLength = idiv(static_cast<int>(this->parsedAtlasData[blockID].height), textureRect.height);
-            textureAnimationIndex = mod((this->animationIndex), animationLength * 2 - 1);
-            if (textureAnimationIndex >= animationLength) {
-                textureAnimationIndex = animationLength * 2 - textureAnimationIndex - 1;
-            }
-            textureRect.top += textureAnimationIndex * textureRect.height;
-        } else if (blockID == 11 || blockID == 63) {
-            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->parsedAtlasData[blockID].height));
-        } else if (blockID == 12 || blockID == 14 || blockID == 38) {
-            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->parsedAtlasData[blockID].height));
-            textureRect.left += mod(i, 2) * textureRect.width;
-        } else {
-            textureRect.height = this->parsedAtlasData[blockID].height;
+        switch (blockID) {
+            case 11:  // Still water
+                textureRect.top += mod((textureRect.height * (this->animationIndex / 2)), this->parsedAtlasData[blockID].height);
+                break;
+            case 12:  // Flowing water
+                textureRect.top += mod((textureRect.height * this->animationIndex), this->parsedAtlasData[blockID].height);
+                textureRect.left += (i % 2) * textureRect.width;
+                break;
+            case 13:  // Still lava
+                animationLength = idiv(this->parsedAtlasData[blockID].height, textureRect.height);
+                textureAnimationIndex = mod(this->animationIndex / 2, animationLength * 2 - 1);
+                if (textureAnimationIndex >= animationLength) {
+                    textureAnimationIndex = animationLength * 2 - textureAnimationIndex - 1;
+                }
+                textureRect.top += textureAnimationIndex * textureRect.height;
+                break;
+            case 14:  // Flowing lava
+                textureRect.top += mod((textureRect.height * (this->animationIndex / 3)), this->parsedAtlasData[blockID].height);
+                textureRect.left += (i % 2) * textureRect.width;
+                break;
+            case 38:  // Fire
+                textureRect.top += mod((textureRect.height * this->animationIndex), this->parsedAtlasData[blockID].height);
+                textureRect.left += (i % 2) * textureRect.width;
+                break;
+            case 63:  // Nether portal
+                textureRect.top += mod((textureRect.height * this->animationIndex), this->parsedAtlasData[blockID].height);
+                break;
+            default:
+                textureRect.height = this->parsedAtlasData[blockID].height;
+                break;
         }
 
         this->vertexArray[i * 6].texCoords = sf::Vector2f(textureRect.left, textureRect.top);
@@ -268,20 +300,36 @@ void Chunk::updateVertexArray() {
         textureRect.top = this->parsedAtlasData[blockID].top;
         textureRect.width = this->parsedAtlasData[blockID].width;
         textureRect.height = textureRect.width;
-        if (blockID == 13) {
-            animationLength = idiv(static_cast<int>(this->parsedAtlasData[blockID].height), textureRect.height);
-            textureAnimationIndex = mod((this->animationIndex), animationLength * 2 - 1);
-            if (textureAnimationIndex >= animationLength) {
-                textureAnimationIndex = animationLength * 2 - textureAnimationIndex - 1;
-            }
-            textureRect.top += textureAnimationIndex * textureRect.height;
-        } else if (blockID == 11 || blockID == 63) {
-            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->parsedAtlasData[blockID].height));
-        } else if (blockID == 12 || blockID == 14 || blockID == 38) {
-            textureRect.top += mod((textureRect.height * this->animationIndex), static_cast<int>(this->parsedAtlasData[blockID].height));
-            textureRect.left += mod(i, 2) * textureRect.width;
-        } else {
-            textureRect.height = this->parsedAtlasData[blockID].height;
+        switch (blockID) {
+            case 11:  // Still water
+                textureRect.top += mod((textureRect.height * (this->animationIndex / 2)), this->parsedAtlasData[blockID].height);
+                break;
+            case 12:  // Flowing water
+                textureRect.top += mod((textureRect.height * this->animationIndex), this->parsedAtlasData[blockID].height);
+                textureRect.left += (i % 2) * textureRect.width;
+                break;
+            case 13:  // Still lava
+                animationLength = idiv(this->parsedAtlasData[blockID].height, textureRect.height);
+                textureAnimationIndex = mod(this->animationIndex / 2, animationLength * 2 - 1);
+                if (textureAnimationIndex >= animationLength) {
+                    textureAnimationIndex = animationLength * 2 - textureAnimationIndex - 1;
+                }
+                textureRect.top += textureAnimationIndex * textureRect.height;
+                break;
+            case 14:  // Flowing lava
+                textureRect.top += mod((textureRect.height * (this->animationIndex / 3)), this->parsedAtlasData[blockID].height);
+                textureRect.left += (i % 2) * textureRect.width;
+                break;
+            case 38:  // Fire
+                textureRect.top += mod((textureRect.height * this->animationIndex), this->parsedAtlasData[blockID].height);
+                textureRect.left += (i % 2) * textureRect.width;
+                break;
+            case 63:  // Nether portal
+                textureRect.top += mod((textureRect.height * this->animationIndex), this->parsedAtlasData[blockID].height);
+                break;
+            default:
+                textureRect.height = this->parsedAtlasData[blockID].height;
+                break;
         }
 
         this->vertexArray[i * 6].texCoords = sf::Vector2f(textureRect.left, textureRect.top);
