@@ -83,6 +83,7 @@ Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& texture
                         this->blocks[x + y * 16] = 2;
                         plantType = rand() % 20;
                         if (x > 1 && x < 14 && plantType < 3) {
+                            this->blocks[x + y * 16] = 3;
                             for (int ox = 0; ox < 5; ox++) {
                                 for (int oy = 0; oy < 7; oy++) {
                                     if (this->oakTrees[plantType][ox + oy * 5] && this->blocks[(x + ox - 2) + (y + oy - 7) * 16] != 6) {
