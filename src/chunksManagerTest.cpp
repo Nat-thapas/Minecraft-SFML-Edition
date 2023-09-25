@@ -31,7 +31,9 @@ int main() {
     window.setKeyRepeatEnabled(false);
     window.setMouseCursor(cursor);
 
-    mc::Chunks chunks(1, 12365478, 16, sf::Vector2i(lround(screenRect.width), lround(screenRect.height)), "resources/textures/atlases/", "resources/textures/atlases/");
+    int playerChunkID = 2147000000;
+
+    mc::Chunks chunks(playerChunkID, 12365478, 16, sf::Vector2i(lround(screenRect.width), lround(screenRect.height)), "resources/textures/atlases/", "resources/textures/atlases/");
 
     sf::Font robotoRegular;
     robotoRegular.loadFromFile("resources/fonts/Roboto-Regular.ttf");
@@ -42,11 +44,11 @@ int main() {
     sf::Clock frameTimeClock;
     sf::Time frameTime;
 
-    int playerChunkID = 1;
-
     float playerMoveSpeed = 4.317f * 10.f;  // Blocks per second
     sf::Vector2i playerMoveDir(0, 0);
     sf::Vector2f playerPos(0.f, 192.f);
+
+    sf::Vector2i mousePosition(sf::Mouse::getPosition(window));
 
     bool leftClickHeld = false;
     bool rightClickHeld = false;
@@ -92,9 +94,7 @@ int main() {
                             pixelPerBlock *= 2;
                             break;
                         case sf::Keyboard::O:
-                            if (pixelPerBlock > 1) {
-                                pixelPerBlock /= 2;
-                            }
+                            pixelPerBlock /= 2;
                             break;
                         case sf::Keyboard::F3:
                             displayDebug ^= 1;
@@ -120,6 +120,9 @@ int main() {
                         default:
                             break;
                     }
+                    break;
+                case sf::Event::MouseMoved:
+                    mousePosition = sf::Vector2i(event.mouseMove.x, event.mouseMove.y);
                     break;
                 case sf::Event::MouseButtonPressed:
                     if (event.mouseButton.button == sf::Mouse::Left) {
@@ -147,6 +150,8 @@ int main() {
 
         perfDebugInfo.endEventLoop();
 
+        pixelPerBlock = std::clamp(pixelPerBlock, 1, 256);
+
         chunks.setPixelPerBlock(pixelPerBlock);
         chunks.setScreenSize(sf::Vector2i(lround(screenRect.width), lround(screenRect.height)));
 
@@ -170,7 +175,7 @@ int main() {
 
         gameDebugInfo.setLoadedChunks(chunks.getLoadedChunks());
 
-        chunks.setMouseScreenPos(sf::Mouse::getPosition(window));
+        chunks.setMouseScreenPos(mousePosition);
 
         gameDebugInfo.setMouseChunkID(chunks.getMouseChunkID());
         gameDebugInfo.setMousePos(chunks.getMousePos());

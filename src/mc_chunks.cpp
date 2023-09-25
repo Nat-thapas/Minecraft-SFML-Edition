@@ -56,8 +56,8 @@ Chunks::Chunks(int playerChunkID, int seed, int pixelPerBlock, sf::Vector2i scre
     this->screenSize = screenSize;
     this->atlasFilesPath = atlasFilesPath;
     this->atlasDatasPath = atlasDatasPath;
-    this->chunksStartID = this->playerChunkID - std::lround((this->screenSize.x / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
-    this->chunksEndID = this->playerChunkID + std::lround((this->screenSize.x / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
+    this->chunksStartID = this->playerChunkID - static_cast<int>(std::ceil((this->screenSize.x / 2.f) / (16.f * this->pixelPerBlock)));
+    this->chunksEndID = this->playerChunkID + static_cast<int>(std::ceil((this->screenSize.x / 2.f) / (16.f * this->pixelPerBlock)));
     this->chunkCountOnScreen = this->chunksEndID - this->chunksStartID + 1;
     Perlin noise(this->seed);
     this->noise = noise;
@@ -94,11 +94,11 @@ void Chunks::updateMousePosition() {
     sf::Vector2f distance(sf::Vector2f(this->mouseScreenPos) - sf::Vector2f(this->screenSize.x / 2.f, this->screenSize.y / 2.f + static_cast<float>(this->pixelPerBlock)));
     distance /= (float)this->pixelPerBlock;
     distance += playerPos;
-    int chunkDistance = std::lround(distance.x / 16.f - 0.5f);
+    int chunkDistance = static_cast<int>(std::floor(distance.x / 16.f));
     distance.x = mod(distance.x, 16);
     this->mouseChunkID = this->playerChunkID + chunkDistance;
-    this->mousePos.x = std::lround(distance.x - 0.5f);
-    this->mousePos.y = std::lround(distance.y - 0.5f);
+    this->mousePos.x = static_cast<int>(std::floor(distance.x));
+    this->mousePos.y = static_cast<int>(std::floor(distance.y));
     this->updateHighlighterPosition();
 }
 
@@ -138,8 +138,8 @@ void Chunks::setPixelPerBlock(int pixelPerBlock) {
     }
     int oldChunksStartID = this->chunksStartID;
     int oldChunksEndID = this->chunksEndID;
-    this->chunksStartID = this->playerChunkID - std::lround((this->screenSize.x / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
-    this->chunksEndID = this->playerChunkID + std::lround((this->screenSize.x / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
+    this->chunksStartID = this->playerChunkID - static_cast<int>(std::ceil((this->screenSize.x / 2.f) / (16.f * this->pixelPerBlock)));
+    this->chunksEndID = this->playerChunkID + static_cast<int>(std::ceil((this->screenSize.x / 2.f) / (16.f * this->pixelPerBlock)));
     this->chunkCountOnScreen = this->chunksEndID - this->chunksStartID + 1;
     if (this->chunksEndID > oldChunksEndID) {
         for (int i = 0; i < this->chunksEndID - oldChunksEndID; i++) {
@@ -180,8 +180,8 @@ void Chunks::setScreenSize(sf::Vector2i screenSize) {
     this->screenSize = screenSize;
     int oldChunksStartID = this->chunksStartID;
     int oldChunksEndID = this->chunksEndID;
-    this->chunksStartID = this->playerChunkID - std::lround((this->screenSize.x / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
-    this->chunksEndID = this->playerChunkID + std::lround((this->screenSize.x / 2.f) / (16.f * this->pixelPerBlock) + 0.5f);
+    this->chunksStartID = this->playerChunkID - static_cast<int>(std::ceil((this->screenSize.x / 2.f) / (16.f * this->pixelPerBlock)));
+    this->chunksEndID = this->playerChunkID + static_cast<int>(std::ceil((this->screenSize.x / 2.f) / (16.f * this->pixelPerBlock)));
     this->chunkCountOnScreen = this->chunksEndID - this->chunksStartID + 1;
     if (this->chunksEndID > oldChunksEndID) {
         for (int i = 0; i < this->chunksEndID - oldChunksEndID; i++) {
