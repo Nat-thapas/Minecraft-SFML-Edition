@@ -31,7 +31,7 @@ int main() {
     window.setKeyRepeatEnabled(false);
     window.setMouseCursor(cursor);
 
-    int playerChunkID = 2147000000;
+    int playerChunkID = 1;
 
     mc::Chunks chunks(playerChunkID, 12365478, 16, sf::Vector2i(lround(screenRect.width), lround(screenRect.height)), "resources/textures/atlases/", "resources/textures/atlases/");
 
@@ -44,7 +44,7 @@ int main() {
     sf::Clock frameTimeClock;
     sf::Time frameTime;
 
-    float playerMoveSpeed = 4.317f * 10.f;  // Blocks per second
+    float playerMoveSpeed = 4.317f;  // Blocks per second
     sf::Vector2i playerMoveDir(0, 0);
     sf::Vector2f playerPos(0.f, 192.f);
 
@@ -156,7 +156,6 @@ int main() {
         chunks.setScreenSize(sf::Vector2i(lround(screenRect.width), lround(screenRect.height)));
 
         playerPos.x += playerMoveDir.x * playerMoveSpeed * frameTime.asSeconds();
-        playerPos.y += playerMoveDir.y * playerMoveSpeed * frameTime.asSeconds();
 
         if (playerPos.x >= 16) {
             playerPos.x = mod(playerPos.x, 16);
@@ -165,6 +164,18 @@ int main() {
         if (playerPos.x < 0) {
             playerPos.x = mod(playerPos.x, 16);
             playerChunkID--;
+        }
+
+        if (!chunks.getBlock(playerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y)))) {
+            playerPos.y += std::min(10.f * frameTime.asSeconds(), 0.9f);
+        }
+
+        while (chunks.getBlock(playerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y)) - 1)) {
+            playerPos.y -= 1.f;
+        }
+
+        if (chunks.getBlock(playerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y)))) {
+            playerPos.y -= mod(playerPos.y, 1.f);
         }
 
         chunks.setPlayerChunkID(playerChunkID);

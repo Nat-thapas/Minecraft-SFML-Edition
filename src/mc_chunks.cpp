@@ -286,6 +286,10 @@ sf::Vector2i Chunks::getLoadedChunks() {
     return sf::Vector2i(this->chunksStartID, this->chunksEndID);
 }
 
+int Chunks::getBlock(int chunkID, int x, int y) {
+    return this->chunks[chunkID - this->chunksStartID].getBlock(x, y);
+}
+
 int Chunks::breakBlock(int& xp) {
     int breakChunkIndex = this->mouseChunkID - this->chunksStartID;
     return this->chunks[breakChunkIndex].breakBlock(mousePos.x, mousePos.y, xp);
