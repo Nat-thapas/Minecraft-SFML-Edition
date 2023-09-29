@@ -149,6 +149,8 @@ int main() {
                 case sf::Event::Resized:
                     screenRect = sf::FloatRect(0, 0, event.size.width, event.size.height);
                     window.setView(sf::View(screenRect));
+                    chunks.setScreenSize(sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))));
+                    player.setScreenSize(sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))));
                     gameDebugInfo.setPosition(sf::Vector2f(screenRect.width - 5.f, 0.f));
                     break;
                 default:
@@ -162,55 +164,12 @@ int main() {
         pixelPerBlock = std::clamp(pixelPerBlock, 1, 256);
 
         chunks.setPixelPerBlock(pixelPerBlock);
-        chunks.setScreenSize(sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))));
 
-        playerPos.x += playerMoveDir.x * playerMoveSpeed * frameTime.asSeconds() * (1.f + 0.3f * playerSprinting);
+        
 
-        if (playerPos.x >= 16) {
-            playerPos.x = mod(playerPos.x, 16);
-            initialPlayerChunkID++;
-        }
-        if (playerPos.x < 0) {
-            playerPos.x = mod(playerPos.x, 16);
-            initialPlayerChunkID--;
-        }
 
-        if ((chunks.getBlock(initialPlayerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y)) - 2)) || (chunks.getBlock(initialPlayerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y)) - 1))) {
-            if (playerMoveDir.x < 0) {
-                playerPos.x += 1.f - mod(playerPos.x, 1.f);
-            } else {
-                playerPos.x -= mod(playerPos.x, 1.f);
-            }
-        }
 
-        if (playerPos.x >= 16) {
-            playerPos.x = mod(playerPos.x, 16);
-            initialPlayerChunkID++;
-        }
-        if (playerPos.x < 0) {
-            playerPos.x = mod(playerPos.x, 16);
-            initialPlayerChunkID--;
-        }
 
-        if (!chunks.getBlock(initialPlayerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y)))) {
-            playerFallSpeed += gravity * frameTime.asSeconds();
-            playerPos.y += std::min(playerFallSpeed * frameTime.asSeconds(), 0.9f);
-        }
-
-        if (chunks.getBlock(initialPlayerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y)))) {
-            playerPos.y -= mod(playerPos.y, 1.f);
-            playerFallSpeed = 0.f;
-        }
-
-        if ((playerJump > 0.f && chunks.getBlock(initialPlayerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y))) && !chunks.getBlock(initialPlayerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y)) - 3)) || (playerJump < 0.1f && playerJump > 0.f)) {
-            playerPos.y -= playerJump * playerJump * frameTime.asSeconds() * 3750.f;
-            playerFallSpeed = 0.f;
-            playerJump -= frameTime.asSeconds();
-        } else {
-            playerJump = 0.f;
-        }
-
-        std::cout << playerJump << std::endl;
         chunks.setPlayerChunkID(initialPlayerChunkID);
         chunks.setPlayerPos(playerPos);
 

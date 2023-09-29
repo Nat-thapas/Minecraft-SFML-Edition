@@ -31,6 +31,19 @@ Player::Player(Chunks& chunks, int chunkID, sf::Vector2f position, sf::Vector2i 
     this->frictionCoefficient = frictionCoefficient;
 }
 
+void Player::setScreenSize(sf::Vector2i screenSize) {
+    this->screenSize = screenSize;
+    this->sprite.setPosition(sf::Vector2f(static_cast<float>(this->screenSize.x) / 2.f, static_cast<float>(this->screenSize.y) / 2.f));
+}
+
+void Player::setPixelPerBlock(int pixelPerBlock) {
+    this->pixelPerBlock = pixelPerBlock;
+    float spriteScaleX =  static_cast<float>(this->pixelPerBlock) / static_cast<float>(this->texture.getSize().x);
+    float spriteScaleY =  static_cast<float>(this->pixelPerBlock * 2) / static_cast<float>(this->texture.getSize().y);
+    this->sprite.setScale(sf::Vector2f(spriteScaleX, spriteScaleY));
+    this->sprite.setOrigin(sf::Vector2f(static_cast<float>(this->pixelPerBlock) / 2.f, static_cast<float>(this->pixelPerBlock)));
+}
+
 int Player::getChunkID() {
     return this->chunkID;
 }
