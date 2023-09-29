@@ -7,6 +7,7 @@
 #include "idiv.hpp"
 #include "mc_chunk.hpp"
 #include "mc_chunks.hpp"
+#include "mc_player.hpp"
 #include "mc_gameDebugInfo.hpp"
 #include "mc_perfDebugInfo.hpp"
 #include "mod.hpp"
@@ -25,15 +26,16 @@ int main() {
 
     sf::FloatRect screenRect(0.f, 0.f, 1600.f, 900.f);
 
-    sf::RenderWindow window(sf::VideoMode(lround(screenRect.width), lround(screenRect.height)), "I hate C++", sf::Style::Default, settings);
+    sf::RenderWindow window(sf::VideoMode(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "I hate C++", sf::Style::Default, settings);
     window.setFramerateLimit(0);
     window.setVerticalSyncEnabled(false);
     window.setKeyRepeatEnabled(false);
     window.setMouseCursor(cursor);
 
-    int playerChunkID = 1;
+    int initialPlayerChunkID = 1;
+    int pixelPerBlock = 32;
 
-    mc::Chunks chunks(playerChunkID, 12365478, 16, sf::Vector2i(lround(screenRect.width), lround(screenRect.height)), "resources/textures/atlases/", "resources/textures/atlases/");
+    mc::Chunks chunks(initialPlayerChunkID, 12365478, pixelPerBlock, sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/");
 
     sf::Font robotoRegular;
     robotoRegular.loadFromFile("resources/fonts/Roboto-Regular.ttf");
@@ -44,28 +46,32 @@ int main() {
     sf::Clock frameTimeClock;
     sf::Time frameTime;
 
-    float playerMoveSpeed = 4.317f * 100.f;  // Blocks per second
-    float gravity = 25.f;
-    sf::Vector2i playerMoveDir(0, 0);
-    sf::Vector2f playerPos(0.f, 192.f);
+    // friction = speed * coefficient
+    float playerMaxSpeed = 4.173f;  // block/second
+    float playerFromStillAcceleration = 20.f;  // m/s^2
+    float playerMass = 75.f;  // kg
+    float playerMovementForce = playerFromStillAcceleration * playerMass;  // F = ma; N
+    float gravity = 25.f;  // m/s^2
+    float playerFrictionCoefficient = playerMovementForce / playerMaxSpeed;
+
+    mc::Player player(chunks, initialPlayerChunkID, sf::Vector2f(0.f, 192.f), sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), pixelPerBlock, "resources/textures/players/right.png", playerMovementForce, playerMass, gravity, playerFrictionCoefficient);
+
+    int playerMoveInput = 0;
+    bool playerIntendJump = false;
 
     sf::Vector2i mousePosition(sf::Mouse::getPosition(window));
 
     bool leftClickHeld = false;
     bool rightClickHeld = false;
 
-    chunks.setPlayerPos(playerPos);
+    chunks.setPlayerPos(player.getPosition());
 
     int elapsedTime = elapsedClock.getElapsedTime().asMilliseconds();
     int lastTickTime = elapsedTime;
 
-    int xp = 0;
     int tickCount = 0;
-    int pixelPerBlock = 16;
     bool displayDebug = false;
-    float playerFallSpeed = 0.f;
     bool playerSprinting = false;
-    float playerJump = 0.f;
 
     while (window.isOpen()) {
         perfDebugInfo.startFrame();
@@ -83,23 +89,17 @@ int main() {
                 case sf::Event::KeyPressed:
                     switch (event.key.code) {
                         case sf::Keyboard::W:
-                            if (playerJump <= 0.f) {
-                                playerJump = 0.1f;
-                            }
+                        case sf::Keyboard::Space:
+                            playerIntendJump = true;
                             break;
                         case sf::Keyboard::A:
-                            playerMoveDir.x--;
+                            playerMoveInput--;
                             break;
                         case sf::Keyboard::D:
-                            playerMoveDir.x++;
+                            playerMoveInput++;
                             break;
                         case sf::Keyboard::LControl:
                             playerSprinting = true;
-                            break;
-                        case sf::Keyboard::Space:
-                            if (playerJump <= 0.f) {
-                                playerJump = 0.1f;
-                            }
                             break;
                         case sf::Keyboard::I:
                             pixelPerBlock *= 2;
@@ -116,13 +116,11 @@ int main() {
                     break;
                 case sf::Event::KeyReleased:
                     switch (event.key.code) {
-                        case sf::Keyboard::W:
-                            break;
                         case sf::Keyboard::A:
-                            playerMoveDir.x++;
+                            playerMoveInput++;
                             break;
                         case sf::Keyboard::D:
-                            playerMoveDir.x--;
+                            playerMoveInput--;
                             break;
                         case sf::Keyboard::LControl:
                             playerSprinting = false;
@@ -159,6 +157,76 @@ int main() {
         }
 
         perfDebugInfo.endEventLoop();
+
+        playerMoveInput = std::clamp(playerMoveInput, -1, 1);
+        pixelPerBlock = std::clamp(pixelPerBlock, 1, 256);
+
+        chunks.setPixelPerBlock(pixelPerBlock);
+        chunks.setScreenSize(sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))));
+
+        playerPos.x += playerMoveDir.x * playerMoveSpeed * frameTime.asSeconds() * (1.f + 0.3f * playerSprinting);
+
+        if (playerPos.x >= 16) {
+            playerPos.x = mod(playerPos.x, 16);
+            initialPlayerChunkID++;
+        }
+        if (playerPos.x < 0) {
+            playerPos.x = mod(playerPos.x, 16);
+            initialPlayerChunkID--;
+        }
+
+        if ((chunks.getBlock(initialPlayerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y)) - 2)) || (chunks.getBlock(initialPlayerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y)) - 1))) {
+            if (playerMoveDir.x < 0) {
+                playerPos.x += 1.f - mod(playerPos.x, 1.f);
+            } else {
+                playerPos.x -= mod(playerPos.x, 1.f);
+            }
+        }
+
+        if (playerPos.x >= 16) {
+            playerPos.x = mod(playerPos.x, 16);
+            initialPlayerChunkID++;
+        }
+        if (playerPos.x < 0) {
+            playerPos.x = mod(playerPos.x, 16);
+            initialPlayerChunkID--;
+        }
+
+        if (!chunks.getBlock(initialPlayerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y)))) {
+            playerFallSpeed += gravity * frameTime.asSeconds();
+            playerPos.y += std::min(playerFallSpeed * frameTime.asSeconds(), 0.9f);
+        }
+
+        if (chunks.getBlock(initialPlayerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y)))) {
+            playerPos.y -= mod(playerPos.y, 1.f);
+            playerFallSpeed = 0.f;
+        }
+
+        if ((playerJump > 0.f && chunks.getBlock(initialPlayerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y))) && !chunks.getBlock(initialPlayerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y)) - 3)) || (playerJump < 0.1f && playerJump > 0.f)) {
+            playerPos.y -= playerJump * playerJump * frameTime.asSeconds() * 3750.f;
+            playerFallSpeed = 0.f;
+            playerJump -= frameTime.asSeconds();
+        } else {
+            playerJump = 0.f;
+        }
+
+        std::cout << playerJump << std::endl;
+        chunks.setPlayerChunkID(initialPlayerChunkID);
+        chunks.setPlayerPos(playerPos);
+
+        gameDebugInfo.setPlayerChunkID(initialPlayerChunkID);
+        gameDebugInfo.setPlayerPos(playerPos);
+
+        gameDebugInfo.setLoadedChunks(chunks.getLoadedChunks());
+
+        chunks.setMouseScreenPos(mousePosition);
+
+        gameDebugInfo.setMouseChunkID(chunks.getMouseChunkID());
+        gameDebugInfo.setMousePos(chunks.getMousePos());
+
+        gameDebugInfo.setPlayerLightLevel(sf::Vector2i(0, 0));
+        gameDebugInfo.setMouseLightLevel(sf::Vector2i(0, 0));
+
         perfDebugInfo.endPlayerInputProcessing();
         perfDebugInfo.endRandomTick();
 
@@ -169,74 +237,6 @@ int main() {
         if (elapsedTime - lastTickTime >= 50) {
             lastTickTime += 50;
             chunks.tick(tickCount);
-            
-            pixelPerBlock = std::clamp(pixelPerBlock, 1, 256);
-
-            chunks.setPixelPerBlock(pixelPerBlock);
-            chunks.setScreenSize(sf::Vector2i(lround(screenRect.width), lround(screenRect.height)));
-
-            playerPos.x += playerMoveDir.x * playerMoveSpeed * frameTime.asSeconds() * (1.f + 0.3f * playerSprinting);
-
-            if (playerPos.x >= 16) {
-                playerPos.x = mod(playerPos.x, 16);
-                playerChunkID++;
-            }
-            if (playerPos.x < 0) {
-                playerPos.x = mod(playerPos.x, 16);
-                playerChunkID--;
-            }
-
-            if ((chunks.getBlock(playerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y)) - 2)) || (chunks.getBlock(playerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y)) - 1))) {
-                if (playerMoveDir.x < 0) {
-                    playerPos.x += 1.f - mod(playerPos.x, 1.f);
-                } else {
-                    playerPos.x -= mod(playerPos.x, 1.f);
-                }
-            }
-
-            if (playerPos.x >= 16) {
-                playerPos.x = mod(playerPos.x, 16);
-                playerChunkID++;
-            }
-            if (playerPos.x < 0) {
-                playerPos.x = mod(playerPos.x, 16);
-                playerChunkID--;
-            }
-
-            if (!chunks.getBlock(playerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y)))) {
-                playerFallSpeed += gravity * frameTime.asSeconds();
-                playerPos.y += std::min(playerFallSpeed * frameTime.asSeconds(), 0.9f);
-            }
-
-            if (chunks.getBlock(playerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y)))) {
-                playerPos.y -= mod(playerPos.y, 1.f);
-                playerFallSpeed = 0.f;
-            }
-
-            if ((playerJump > 0.f && chunks.getBlock(playerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y))) && !chunks.getBlock(playerChunkID, static_cast<int>(std::floor(playerPos.x)), static_cast<int>(std::floor(playerPos.y)) - 3)) || (playerJump < 0.1f && playerJump > 0.f)) {
-                playerPos.y -= playerJump * playerJump * frameTime.asSeconds() * 3750.f;
-                playerFallSpeed = 0.f;
-                playerJump -= frameTime.asSeconds();
-            } else {
-                playerJump = 0.f;
-            }
-
-            chunks.setPlayerChunkID(playerChunkID);
-            chunks.setPlayerPos(playerPos);
-
-            gameDebugInfo.setPlayerChunkID(playerChunkID);
-            gameDebugInfo.setPlayerPos(playerPos);
-
-            gameDebugInfo.setLoadedChunks(chunks.getLoadedChunks());
-
-            chunks.setMouseScreenPos(mousePosition);
-
-            gameDebugInfo.setMouseChunkID(chunks.getMouseChunkID());
-            gameDebugInfo.setMousePos(chunks.getMousePos());
-
-            gameDebugInfo.setPlayerLightLevel(sf::Vector2i(0, 0));
-            gameDebugInfo.setMouseLightLevel(sf::Vector2i(0, 0));
-
             tickCount++;
         }
 
