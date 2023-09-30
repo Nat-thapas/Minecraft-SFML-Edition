@@ -43,7 +43,8 @@ class Player : public sf::Drawable {
     void setPixelPerBlock(int pixelPerBlock);
     int getChunkID();
     sf::Vector2f getPosition();
-    void setLateralForce(int force);
+    sf::Vector2f getVelocity();
+    void setLateralForce(int force, bool sprint);
     void jump();
     void update(sf::Time frameTime);
 };

@@ -28,7 +28,7 @@ int main() {
 
     sf::RenderWindow window(sf::VideoMode(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "I hate C++", sf::Style::Default, settings);
     window.setFramerateLimit(120);
-    window.setVerticalSyncEnabled(true);
+    window.setVerticalSyncEnabled(false);
     window.setKeyRepeatEnabled(false);
     window.setMouseCursor(cursor);
 
@@ -56,7 +56,7 @@ int main() {
     float playerFrictionCoefficient = playerMovementForce / playerMaxSpeed;
     float playerAirDragCoefficient = playerMass * gravity / playerTerminalVelocity;
 
-    mc::Player player(chunks, initialPlayerChunkID, sf::Vector2f(0.f, 192.f), sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), pixelPerBlock, "resources/textures/players/right.png", playerMovementForce, playerMass, gravity, playerFrictionCoefficient, playerAirDragCoefficient);
+    mc::Player player(chunks, initialPlayerChunkID, sf::Vector2f(0.f, 173.f), sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), pixelPerBlock, "resources/textures/players/right.png", playerMovementForce, playerMass, gravity, playerFrictionCoefficient, playerAirDragCoefficient);
 
     int playerMoveInput = 0;
     bool playerIntendJump = false;
@@ -118,6 +118,10 @@ int main() {
                     break;
                 case sf::Event::KeyReleased:
                     switch (event.key.code) {
+                        case sf::Keyboard::W:
+                        case sf::Keyboard::Space:
+                            playerIntendJump = false;
+                            break;
                         case sf::Keyboard::A:
                             playerMoveInput++;
                             break;
@@ -170,9 +174,8 @@ int main() {
 
         if (playerIntendJump) {
             player.jump();
-            playerIntendJump = false;
         }
-        player.setLateralForce(playerMoveInput);
+        player.setLateralForce(playerMoveInput, playerSprinting);
         player.update(frameTime);
 
         chunks.setPlayerChunkID(player.getChunkID());
@@ -180,6 +183,7 @@ int main() {
 
         gameDebugInfo.setPlayerChunkID(player.getChunkID());
         gameDebugInfo.setPlayerPos(player.getPosition());
+        gameDebugInfo.setPlayerVelocity(player.getVelocity());
 
         gameDebugInfo.setLoadedChunks(chunks.getLoadedChunks());
 

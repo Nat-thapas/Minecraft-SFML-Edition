@@ -17,12 +17,14 @@ class GameDebugInfo : public sf::Drawable {
     float lineHeightMultiplier;
     int playerChunkID;
     sf::Vector2f playerPos;
+    sf::Vector2f playerVelocity;
     int mouseChunkID;
     sf::Vector2i mousePos;
     sf::Vector2i playerLightLevels;
     sf::Vector2i mouseLightLevels;
     sf::Vector2i loadedChunks;
     sf::Text playerLocationLabel;
+    sf::Text playerVelocityLabel;
     sf::Text mouseLocationLabel;
     sf::Text playerLightLevelLabel;
     sf::Text mouseLightLevelLabel;
@@ -42,6 +44,7 @@ class GameDebugInfo : public sf::Drawable {
     GameDebugInfo(sf::Vector2f position, sf::Font font, unsigned characterSize, sf::Color fillColor, sf::Color outlineColor, float outlineThickness, float lineHeightMultiplier = 1.2f);
     void setPlayerChunkID(int chunkID);
     void setPlayerPos(sf::Vector2f pos);
+    void setPlayerVelocity(sf::Vector2f velocity);
     void setMouseChunkID(int chunkID);
     void setMousePos(sf::Vector2i pos);
     void setPlayerLightLevel(sf::Vector2i lightLevels);
