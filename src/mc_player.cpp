@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <algorithm>
+#include <iostream>
 
 #include "mc_chunks.hpp"
 #include "idiv.hpp"
@@ -21,10 +22,10 @@ Player::Player(Chunks& chunks, int chunkID, sf::Vector2f position, sf::Vector2i 
     this->pixelPerBlock = pixelPerBlock;
     this->texture.loadFromFile(textureFilePath);
     this->sprite.setTexture(this->texture);
-    float spriteScaleX =  static_cast<float>(this->pixelPerBlock) / static_cast<float>(this->texture.getSize().x);
+    float spriteScaleX =  static_cast<float>(this->pixelPerBlock) / 2.f / static_cast<float>(this->texture.getSize().x);
     float spriteScaleY =  static_cast<float>(this->pixelPerBlock * 2) / static_cast<float>(this->texture.getSize().y);
     this->sprite.setScale(sf::Vector2f(spriteScaleX, spriteScaleY));
-    this->sprite.setOrigin(sf::Vector2f(static_cast<float>(this->pixelPerBlock) / 2.f, static_cast<float>(this->pixelPerBlock)));
+    this->sprite.setOrigin(sf::Vector2f(4.f, 16.f));
     this->sprite.setPosition(sf::Vector2f(static_cast<float>(this->screenSize.x) / 2.f, static_cast<float>(this->screenSize.y) / 2.f));
     this->movementForce = movementForce;
     this->mass = mass;
@@ -40,11 +41,14 @@ void Player::setScreenSize(sf::Vector2i screenSize) {
 }
 
 void Player::setPixelPerBlock(int pixelPerBlock) {
+    if (this->pixelPerBlock == pixelPerBlock) {
+        return;
+    }
     this->pixelPerBlock = pixelPerBlock;
-    float spriteScaleX =  static_cast<float>(this->pixelPerBlock) / static_cast<float>(this->texture.getSize().x);
+    float spriteScaleX =  static_cast<float>(this->pixelPerBlock) / 2.f / static_cast<float>(this->texture.getSize().x);
     float spriteScaleY =  static_cast<float>(this->pixelPerBlock * 2) / static_cast<float>(this->texture.getSize().y);
     this->sprite.setScale(sf::Vector2f(spriteScaleX, spriteScaleY));
-    this->sprite.setOrigin(sf::Vector2f(static_cast<float>(this->pixelPerBlock) / 2.f, static_cast<float>(this->pixelPerBlock)));
+    this->sprite.setOrigin(sf::Vector2f(4.f, 16.f));
 }
 
 int Player::getChunkID() {
@@ -95,7 +99,11 @@ bool Player::isBlockSolid(int blockID) {
 
 void Player::setLateralForce(int force) {
     force = std::clamp(force, -1, 1);
-    this->acceleration.x = (force * this->movementForce) - (this->velocity.x * this->frictionCoefficient);
+    if (force) {
+        this->acceleration.x = ((force * this->movementForce) - (this->velocity.x * this->frictionCoefficient)) / this->mass;
+    } else {
+        this->acceleration.x = - (this->velocity.x * this->frictionCoefficient * 3.f) / this->mass;
+    }
 }
 
 void Player::jump() {
@@ -105,29 +113,35 @@ void Player::jump() {
 }
 
 void Player::update(sf::Time frameTime) {
-    float deltaTime = std::min(frameTime.asSeconds(), 16.6666666666666666667f);  // Limit the physics rate to be above 60 Hz even if the game slows down
+    float deltaTime = std::min(frameTime.asSeconds(), 0.016666667f);
+    std::cout << deltaTime << std::endl;  // Limit the physics rate to be above 60 Hz even if the game slows down
     this->velocity += this->acceleration * deltaTime;
     sf::Vector2f newPosition(this->position + this->velocity * deltaTime);
     // Check if player is sinking in to a block
-    if (this->isBlockSolid(this->getRelativeChunkBlock(sf::Vector2f(newPosition.x, newPosition.y)))) {
+    if ((this->isBlockSolid(this->getRelativeChunkBlock(sf::Vector2f(newPosition.x, newPosition.y)))) || (this->isBlockSolid(this->getRelativeChunkBlock(sf::Vector2f(newPosition.x - 0.3f, newPosition.y)))) || (this->isBlockSolid(this->getRelativeChunkBlock(sf::Vector2f(newPosition.x + 0.3f, newPosition.y))))) {
         newPosition.y = std::floor(newPosition.y);
         this->velocity.y = std::min(this->velocity.y, 0.f);
+        std::cout << 1;
     }
     // Check if player head is rising in to a block
-    if (this->isBlockSolid(this->getRelativeChunkBlock(sf::Vector2f(newPosition.x, newPosition.y - 1.8f)))) {
+    if ((this->isBlockSolid(this->getRelativeChunkBlock(sf::Vector2f(newPosition.x, newPosition.y - 1.8f)))) || (this->isBlockSolid(this->getRelativeChunkBlock(sf::Vector2f(newPosition.x - 0.3f, newPosition.y - 1.8f)))) || (this->isBlockSolid(this->getRelativeChunkBlock(sf::Vector2f(newPosition.x + 0.3f, newPosition.y - 1.8f))))) {
         newPosition.y = std::floor(newPosition.y) + 0.8f;
         this->velocity.y = std::max(this->velocity.y, 0.f);
+        std::cout << 2;
     }
     // Check if player body is going left in to a block
     if ((this->isBlockSolid(this->getRelativeChunkBlock(sf::Vector2f(newPosition.x - 0.3f, newPosition.y)))) || (this->isBlockSolid(this->getRelativeChunkBlock(sf::Vector2f(newPosition.x - 0.3f, newPosition.y - 1.f))))) {
         newPosition.x = std::floor(newPosition.x) + 0.3f;
         this->velocity.x = std::max(this->velocity.x, 0.f);
+        std::cout << 3;
     }
     // Check if player body is going right in to a block
     if ((this->isBlockSolid(this->getRelativeChunkBlock(sf::Vector2f(newPosition.x + 0.3f, newPosition.y)))) || (this->isBlockSolid(this->getRelativeChunkBlock(sf::Vector2f(newPosition.x + 0.3f, newPosition.y - 1.f))))) {
         newPosition.x = std::floor(newPosition.x) + 0.7f;
         this->velocity.x = std::max(this->velocity.x, 0.f);
+        std::cout << 4;
     }
+    std::cout << std::endl;
     int newChunkID = this->chunkID;
     newChunkID += static_cast<int>(std::floor(newPosition.x / 16.f));
     newPosition.x = mod(newPosition.x, 16.f);

@@ -27,15 +27,15 @@ int main() {
     sf::FloatRect screenRect(0.f, 0.f, 1600.f, 900.f);
 
     sf::RenderWindow window(sf::VideoMode(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "I hate C++", sf::Style::Default, settings);
-    window.setFramerateLimit(0);
-    window.setVerticalSyncEnabled(false);
+    window.setFramerateLimit(120);
+    window.setVerticalSyncEnabled(true);
     window.setKeyRepeatEnabled(false);
     window.setMouseCursor(cursor);
 
     int initialPlayerChunkID = 1;
     int pixelPerBlock = 32;
 
-    mc::Chunks chunks(initialPlayerChunkID, 12365478, pixelPerBlock, sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/");
+    mc::Chunks chunks(initialPlayerChunkID, 123654789, pixelPerBlock, sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/");
 
     sf::Font robotoRegular;
     robotoRegular.loadFromFile("resources/fonts/Roboto-Regular.ttf");
@@ -166,6 +166,7 @@ int main() {
         pixelPerBlock = std::clamp(pixelPerBlock, 1, 256);
 
         chunks.setPixelPerBlock(pixelPerBlock);
+        player.setPixelPerBlock(pixelPerBlock);
 
         if (playerIntendJump) {
             player.jump();
@@ -174,14 +175,11 @@ int main() {
         player.setLateralForce(playerMoveInput);
         player.update(frameTime);
 
+        chunks.setPlayerChunkID(player.getChunkID());
+        chunks.setPlayerPos(player.getPosition());
 
-
-
-        chunks.setPlayerChunkID(initialPlayerChunkID);
-        chunks.setPlayerPos(playerPos);
-
-        gameDebugInfo.setPlayerChunkID(initialPlayerChunkID);
-        gameDebugInfo.setPlayerPos(playerPos);
+        gameDebugInfo.setPlayerChunkID(player.getChunkID());
+        gameDebugInfo.setPlayerPos(player.getPosition());
 
         gameDebugInfo.setLoadedChunks(chunks.getLoadedChunks());
 
@@ -197,7 +195,7 @@ int main() {
         perfDebugInfo.endRandomTick();
 
         if (leftClickHeld) {
-            chunks.breakBlock(xp);
+            chunks.breakBlock(player.xp);
         }
 
         if (elapsedTime - lastTickTime >= 50) {
@@ -215,6 +213,9 @@ int main() {
         window.draw(chunks);
 
         perfDebugInfo.endChunksRendering();
+
+        window.draw(player);
+
         perfDebugInfo.endEntitiesRendering();
         perfDebugInfo.endParticlesRendering();
 
