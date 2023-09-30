@@ -46,15 +46,17 @@ int main() {
     sf::Clock frameTimeClock;
     sf::Time frameTime;
 
-    // friction = speed * coefficient
+    // friction, drag = speed * coefficient
     float playerMaxSpeed = 4.173f;  // block/second
     float playerFromStillAcceleration = 20.f;  // m/s^2
+    float playerTerminalVelocity = 40.f;  // m/s
     float playerMass = 75.f;  // kg
     float playerMovementForce = playerFromStillAcceleration * playerMass;  // F = ma; N
     float gravity = 25.f;  // m/s^2
     float playerFrictionCoefficient = playerMovementForce / playerMaxSpeed;
+    float playerAirDragCoefficient = playerMass * gravity / playerTerminalVelocity;
 
-    mc::Player player(chunks, initialPlayerChunkID, sf::Vector2f(0.f, 192.f), sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), pixelPerBlock, "resources/textures/players/right.png", playerMovementForce, playerMass, gravity, playerFrictionCoefficient);
+    mc::Player player(chunks, initialPlayerChunkID, sf::Vector2f(0.f, 192.f), sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), pixelPerBlock, "resources/textures/players/right.png", playerMovementForce, playerMass, gravity, playerFrictionCoefficient, playerAirDragCoefficient);
 
     int playerMoveInput = 0;
     bool playerIntendJump = false;
@@ -165,7 +167,12 @@ int main() {
 
         chunks.setPixelPerBlock(pixelPerBlock);
 
-        
+        if (playerIntendJump) {
+            player.jump();
+            playerIntendJump = false;
+        }
+        player.setLateralForce(playerMoveInput);
+        player.update(frameTime);
 
 
 
