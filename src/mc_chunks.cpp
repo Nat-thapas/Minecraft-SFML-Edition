@@ -287,10 +287,22 @@ sf::Vector2i Chunks::getLoadedChunks() {
 }
 
 int Chunks::getBlock(int chunkID, int x, int y) {
+    if (chunkID < this->chunksStartID || chunkID > this->chunksEndID) {
+        return 0;
+    }
+    if (x < 0 || x > 15 || y < 0 || y > 255) {
+        return 0;
+    }
     return this->chunks[chunkID - this->chunksStartID].getBlock(x, y);
 }
 
 int Chunks::breakBlock(int& xp) {
+    if (this->mouseChunkID < this->chunksStartID || this->mouseChunkID > this->chunksEndID) {
+        return 0;
+    }
+    if (mousePos.x < 0 || mousePos.x > 15 || mousePos.y < 0 || mousePos.y > 255) {
+        return 0;
+    }
     int breakChunkIndex = this->mouseChunkID - this->chunksStartID;
     return this->chunks[breakChunkIndex].breakBlock(mousePos.x, mousePos.y, xp);
 }

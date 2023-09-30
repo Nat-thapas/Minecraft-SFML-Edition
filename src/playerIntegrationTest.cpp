@@ -56,7 +56,7 @@ int main() {
     float playerFrictionCoefficient = playerMovementForce / playerMaxSpeed;
     float playerAirDragCoefficient = playerMass * gravity / playerTerminalVelocity;
 
-    mc::Player player(chunks, initialPlayerChunkID, sf::Vector2f(0.f, 173.f), sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), pixelPerBlock, "resources/textures/players/right.png", playerMovementForce, playerMass, gravity, playerFrictionCoefficient, playerAirDragCoefficient);
+    mc::Player player(chunks, initialPlayerChunkID, sf::Vector2f(0.f, -173.f), sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), pixelPerBlock, "resources/textures/players/right.png", playerMovementForce, playerMass, gravity, playerFrictionCoefficient, playerAirDragCoefficient);
 
     int playerMoveInput = 0;
     bool playerIntendJump = false;

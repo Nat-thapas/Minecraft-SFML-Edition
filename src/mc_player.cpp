@@ -120,6 +120,7 @@ void Player::jump() {
 
 void Player::update(sf::Time frameTime) {
     float deltaTime = std::min(frameTime.asSeconds(), 0.016666667f);  // Limit the physics rate to be above 60 Hz even if the game slows down
+    this->acceleration.y = ((this->mass * this->gravity) - (this->velocity.y * this->airDragCoefficient)) / this->mass;
     this->velocity += this->acceleration * deltaTime;
     sf::Vector2f newPosition = this->position;
     newPosition.y += this->velocity.y * deltaTime;
