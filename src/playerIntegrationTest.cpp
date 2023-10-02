@@ -37,6 +37,11 @@ int main() {
 
     mc::Chunks chunks(initialPlayerChunkID, 123654789, pixelPerBlock, sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/");
 
+    sf::Vector2i initialPlayerPos(0, 0);
+    while (!chunks.getBlock(initialPlayerChunkID, initialPlayerPos.x, initialPlayerPos.y)) {
+        initialPlayerPos.y++;
+    }
+
     sf::Font robotoRegular;
     robotoRegular.loadFromFile("resources/fonts/Roboto-Regular.ttf");
 
@@ -47,7 +52,7 @@ int main() {
     sf::Time frameTime;
 
     // friction, drag = speed * coefficient
-    float playerMaxSpeed = 4.173f;  // block/second
+    float playerMaxSpeed = 4.317f;  // block/second
     float playerFromStillAcceleration = 20.f;  // m/s^2
     float playerTerminalVelocity = 40.f;  // m/s
     float playerMass = 75.f;  // kg
@@ -56,7 +61,7 @@ int main() {
     float playerFrictionCoefficient = playerMovementForce / playerMaxSpeed;
     float playerAirDragCoefficient = playerMass * gravity / playerTerminalVelocity;
 
-    mc::Player player(chunks, initialPlayerChunkID, sf::Vector2f(0.f, -173.f), sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), pixelPerBlock, "resources/textures/players/right.png", playerMovementForce, playerMass, gravity, playerFrictionCoefficient, playerAirDragCoefficient);
+    mc::Player player(chunks, initialPlayerChunkID, sf::Vector2f(initialPlayerPos), sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), pixelPerBlock, "resources/textures/players/right.png", playerMovementForce, playerMass, gravity, playerFrictionCoefficient, playerAirDragCoefficient);
 
     int playerMoveInput = 0;
     bool playerIntendJump = false;
