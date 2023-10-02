@@ -37,8 +37,8 @@ int main() {
 
     mc::Chunks chunks(initialPlayerChunkID, 123654789, pixelPerBlock, sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/");
 
-    sf::Vector2i initialPlayerPos(0, 0);
-    while (!chunks.getBlock(initialPlayerChunkID, initialPlayerPos.x, initialPlayerPos.y)) {
+    sf::Vector2f initialPlayerPos(0.5f, 0.f);
+    while (!chunks.getBlock(initialPlayerChunkID, static_cast<int>(initialPlayerPos.x), static_cast<int>(initialPlayerPos.y))) {
         initialPlayerPos.y++;
     }
 
@@ -61,7 +61,7 @@ int main() {
     float playerFrictionCoefficient = playerMovementForce / playerMaxSpeed;
     float playerAirDragCoefficient = playerMass * gravity / playerTerminalVelocity;
 
-    mc::Player player(chunks, initialPlayerChunkID, sf::Vector2f(initialPlayerPos), sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), pixelPerBlock, "resources/textures/players/right.png", playerMovementForce, playerMass, gravity, playerFrictionCoefficient, playerAirDragCoefficient);
+    mc::Player player(chunks, initialPlayerChunkID, initialPlayerPos, sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), pixelPerBlock, "resources/textures/players/right.png", playerMovementForce, playerMass, gravity, playerFrictionCoefficient, playerAirDragCoefficient);
 
     int playerMoveInput = 0;
     bool playerIntendJump = false;
