@@ -15,21 +15,28 @@ void Inventory::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     states.transform *= getTransform();
     states.texture = &this->textureAtlas;
     target.draw(this->vertexArray, states);
+    for (const sf::Text& label : this->amountLabels) {
+        target.draw(label, states);
+    }
 }
 
-Inventory::Inventory(int size, int width, int scaling, sf::Texture& textureAtlas, json& atlasData) : textureAtlas(textureAtlas), atlasData(atlasData) {
+Inventory::Inventory(int size, int width, int scaling, sf::Font& font, sf::Texture& textureAtlas, json& atlasData) : font(font), textureAtlas(textureAtlas), atlasData(atlasData) {
     this->size = size;
     this->width = width;
     this->scaling = scaling;
     this->itemStacks.resize(size);
+    this->amountLabels.resize(size);
     for (int i = 0; i < size; i++) {
-        this->itemStacks[i] = ItemStack(1, i);
+        this->itemStacks[i] = ItemStack(64 - i, i);
+        this->amountLabels[i] = sf::Text();
     }
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(size * 6);
     this->parseAtlasData();
     this->initializeVertexArray();
+    this->initializeAmountLabels();
     this->updateAllVertexArray();
+    this->updateAllAmountLabels();
 }
 
 void Inventory::parseAtlasData() {
@@ -76,6 +83,23 @@ void Inventory::updateAllVertexArray() {
         this->vertexArray[i * 6 + 3].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
         this->vertexArray[i * 6 + 4].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
         this->vertexArray[i * 6 + 5].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top + textureRect.height);
+    }
+}
+
+void Inventory::initializeAmountLabels() {
+    for (int i = 0; i < this->size; i++) {
+        this->amountLabels[i].setPosition(sf::Vector2f(static_cast<float>((i % this->width) * ((this->scaling * 16) + 2) + 1 + (this->scaling * 8)), static_cast<float>((i / this->width) * ((this->scaling * 16) + 2) + 1 + (this->scaling * 8))));
+        this->amountLabels[i].setFont(this->font);
+        this->amountLabels[i].setCharacterSize(this->scaling * 8);
+        this->amountLabels[i].setFillColor(sf::Color::White);
+        this->amountLabels[i].setOutlineColor(sf::Color::Black);
+        this->amountLabels[i].setOutlineThickness(0.25f * this->scaling);
+    }
+}
+
+void Inventory::updateAllAmountLabels() {
+    for (int i = 0; i < this->size; i++) {
+        this->amountLabels[i].setString(std::format("{}", this->itemStacks[i].amount));
     }
 }
 

@@ -76,11 +76,13 @@ int main() {
     std::ifstream invAtlasDataFile("resources/textures/atlases/itemsAtlas.json");
     json invAtlasData = json::parse(invAtlasDataFile);
 
-    mc::Inventory hotbarInventory(9, 9, 2, invTextureAtlas, invAtlasData);
-    mc::Inventory mainInventory(27, 9, 2, invTextureAtlas, invAtlasData);
+    int uiScaling = 2;
 
-    hotbarInventory.setPosition(sf::Vector2f(0.f, 0.f));
-    mainInventory.setPosition(sf::Vector2f(0.f, 0.f));
+    mc::Inventory hotbarInventory(9, 9, uiScaling, robotoRegular, invTextureAtlas, invAtlasData);
+    mc::Inventory mainInventory(27, 9, uiScaling, robotoRegular, invTextureAtlas, invAtlasData);
+
+    hotbarInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - 4.5f * (18.f * uiScaling) - 1.f, screenRect.height - (18.f * uiScaling) - 2.f));
+    mainInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - 4.5f * (18.f * uiScaling) - 1.f, screenRect.height / 2.f - (18.f * uiScaling) - 2.f));
 
     sf::Vector2i mousePosition(sf::Mouse::getPosition(window));
 

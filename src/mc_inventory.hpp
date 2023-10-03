@@ -20,21 +20,25 @@ struct ItemStack {
 class Inventory : public sf::Drawable, public sf::Transformable {
     int size;
     int width;
+    int scaling;
+    sf::Font& font;
     std::vector<ItemStack> itemStacks;
     sf::Texture& textureAtlas;
     json& atlasData;
+    std::vector<sf::Text> amountLabels;
     std::array<sf::IntRect, 123> parsedAtlasData;
     sf::VertexArray vertexArray;
-    int scaling;
     std::array<int, 123> stackSizes = {0, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 1, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 16, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 64, 64, 64, 1, 64, 64, 64, 1, 1, 1, 1, 1, 1, 64, 64, 64, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 64, 64, 16, 1, 1, 64, 64, 64, 64, 16, 64, 64, 64, 64, 16, 64, 64};
 
     void parseAtlasData();
     void initializeVertexArray();
     void updateAllVertexArray();
+    void initializeAmountLabels();
+    void updateAllAmountLabels();
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
-    Inventory(int size, int width, int scaling, sf::Texture& textureAtlas, json& atlasData);
+    Inventory(int size, int width, int scaling, sf::Font& font, sf::Texture& textureAtlas, json& atlasData);
     ItemStack getItemStack(int slotID);
     void setItemStack(int slotID, ItemStack itemStack);
     ItemStack addItemStack(ItemStack itemStack);
