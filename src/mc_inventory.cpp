@@ -29,6 +29,7 @@ Inventory::Inventory(int size, int width, int scaling, sf::Texture& textureAtlas
     this->vertexArray.resize(size * 6);
     this->parseAtlasData();
     this->initializeVertexArray();
+    this->updateAllVertexArray();
 }
 
 void Inventory::parseAtlasData() {

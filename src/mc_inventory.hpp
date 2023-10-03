@@ -17,7 +17,7 @@ struct ItemStack {
     int id;
 };
     
-class Inventory : public sf::Drawable, sf::Transformable {
+class Inventory : public sf::Drawable, public sf::Transformable {
     int size;
     int width;
     std::vector<ItemStack> itemStacks;

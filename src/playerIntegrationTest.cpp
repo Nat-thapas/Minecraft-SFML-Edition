@@ -4,13 +4,17 @@
 #include <ctime>
 #include <iostream>
 
+#include "../include/json.hpp"
 #include "idiv.hpp"
 #include "mc_chunk.hpp"
 #include "mc_chunks.hpp"
 #include "mc_player.hpp"
+#include "mc_inventory.hpp"
 #include "mc_gameDebugInfo.hpp"
 #include "mc_perfDebugInfo.hpp"
 #include "mod.hpp"
+
+using json = nlohmann::json;
 
 int main() {
     srand(time(NULL));
@@ -65,6 +69,18 @@ int main() {
 
     int playerMoveInput = 0;
     bool playerIntendJump = false;
+
+    sf::Texture invTextureAtlas;
+    invTextureAtlas.loadFromFile("resources/textures/atlases/itemsAtlas.png");
+
+    std::ifstream invAtlasDataFile("resources/textures/atlases/itemsAtlas.json");
+    json invAtlasData = json::parse(invAtlasDataFile);
+
+    mc::Inventory hotbarInventory(9, 9, 2, invTextureAtlas, invAtlasData);
+    mc::Inventory mainInventory(27, 9, 2, invTextureAtlas, invAtlasData);
+
+    hotbarInventory.setPosition(sf::Vector2f(0.f, 0.f));
+    mainInventory.setPosition(sf::Vector2f(0.f, 0.f));
 
     sf::Vector2i mousePosition(sf::Mouse::getPosition(window));
 
@@ -227,6 +243,9 @@ int main() {
 
         perfDebugInfo.endEntitiesRendering();
         perfDebugInfo.endParticlesRendering();
+
+        window.draw(hotbarInventory);
+        window.draw(mainInventory);
 
         if (displayDebug) {
             window.draw(gameDebugInfo);
