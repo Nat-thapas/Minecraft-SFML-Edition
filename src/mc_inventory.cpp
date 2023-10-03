@@ -15,8 +15,10 @@ void Inventory::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     states.transform *= getTransform();
     states.texture = &this->textureAtlas;
     target.draw(this->vertexArray, states);
-    for (const sf::Text& label : this->amountLabels) {
-        target.draw(label, states);
+    for (int i = 0; i < this->size; i++) {
+        if (this->itemStacks[i].amount) {
+            target.draw(this->amountLabels[i], states);
+        }
     }
 }
 
@@ -27,7 +29,7 @@ Inventory::Inventory(int size, int width, int scaling, sf::Font& font, sf::Textu
     this->itemStacks.resize(size);
     this->amountLabels.resize(size);
     for (int i = 0; i < size; i++) {
-        this->itemStacks[i] = ItemStack(64 - i, i);
+        this->itemStacks[i] = ItemStack(0, 0);
         this->amountLabels[i] = sf::Text();
     }
     this->vertexArray.setPrimitiveType(sf::Triangles);
@@ -103,6 +105,14 @@ void Inventory::updateAllAmountLabels() {
     }
 }
 
+void Inventory::setScaling(int scaling) {
+    this->scaling = scaling;
+    this->initializeVertexArray();
+    this->updateAllVertexArray();
+    this->initializeAmountLabels();
+    this->updateAllAmountLabels();
+}
+
 ItemStack Inventory::getItemStack(int slotID) {
     if (slotID < 0 || slotID >= this->size) return ItemStack(0, 0);
     return this->itemStacks[slotID];
@@ -132,6 +142,8 @@ ItemStack Inventory::addItemStack(ItemStack itemStack) {
     if (itemStack.amount == 0) {
         return ItemStack(0, 0);
     }
+    this->updateAllVertexArray();
+    this->updateAllAmountLabels();
     return itemStack;
 }
 

@@ -132,6 +132,18 @@ int main() {
                         case sf::Keyboard::O:
                             pixelPerBlock /= 2;
                             break;
+                        case sf::Keyboard::K:
+                            uiScaling += 1;
+                            uiScaling = std::clamp(uiScaling, 1, 8);
+                            hotbarInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - 4.5f * (18.f * uiScaling) - 1.f, screenRect.height - (18.f * uiScaling) - 2.f));
+                            mainInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - 4.5f * (18.f * uiScaling) - 1.f, screenRect.height / 2.f - (18.f * uiScaling) - 2.f));
+                            break;
+                        case sf::Keyboard::L:
+                            uiScaling -= 1;
+                            uiScaling = std::clamp(uiScaling, 1, 8);
+                            hotbarInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - 4.5f * (18.f * uiScaling) - 1.f, screenRect.height - (18.f * uiScaling) - 2.f));
+                            mainInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - 4.5f * (18.f * uiScaling) - 1.f, screenRect.height / 2.f - (18.f * uiScaling) - 2.f));
+                            break;
                         case sf::Keyboard::F3:
                             displayDebug ^= 1;
                             break;
@@ -181,6 +193,8 @@ int main() {
                     chunks.setScreenSize(sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))));
                     player.setScreenSize(sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))));
                     gameDebugInfo.setPosition(sf::Vector2f(screenRect.width - 5.f, 0.f));
+                    hotbarInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - 4.5f * (18.f * uiScaling) - 1.f, screenRect.height - (18.f * uiScaling) - 2.f));
+                    mainInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - 4.5f * (18.f * uiScaling) - 1.f, screenRect.height / 2.f - (18.f * uiScaling) - 2.f));
                     break;
                 default:
                     break;
@@ -194,6 +208,9 @@ int main() {
 
         chunks.setPixelPerBlock(pixelPerBlock);
         player.setPixelPerBlock(pixelPerBlock);
+
+        hotbarInventory.setScaling(uiScaling);
+        mainInventory.setScaling(uiScaling);
 
         if (playerIntendJump) {
             player.jump();
@@ -221,8 +238,12 @@ int main() {
         perfDebugInfo.endPlayerInputProcessing();
         perfDebugInfo.endRandomTick();
 
+        int droppedItemID;
+
         if (leftClickHeld) {
-            chunks.breakBlock(player.xp);
+            droppedItemID = chunks.breakBlock(player.xp);
+            mc::ItemStack itemStack(1, droppedItemID);
+            hotbarInventory.addItemStack(itemStack);
         }
 
         if (elapsedTime - lastTickTime >= 50) {

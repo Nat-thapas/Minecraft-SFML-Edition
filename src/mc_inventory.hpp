@@ -39,6 +39,7 @@ class Inventory : public sf::Drawable, public sf::Transformable {
 
    public:
     Inventory(int size, int width, int scaling, sf::Font& font, sf::Texture& textureAtlas, json& atlasData);
+    void setScaling(int scaling);
     ItemStack getItemStack(int slotID);
     void setItemStack(int slotID, ItemStack itemStack);
     ItemStack addItemStack(ItemStack itemStack);
