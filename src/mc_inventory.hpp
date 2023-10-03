@@ -43,6 +43,7 @@ class Inventory : public sf::Drawable, public sf::Transformable {
     ItemStack getItemStack(int slotID);
     void setItemStack(int slotID, ItemStack itemStack);
     ItemStack addItemStack(ItemStack itemStack);
+    int subtractItem(int slotID, int amount);
 };
 
 }  // namespace mc

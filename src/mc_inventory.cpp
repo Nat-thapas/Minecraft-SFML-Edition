@@ -55,12 +55,12 @@ void Inventory::parseAtlasData() {
 void Inventory::initializeVertexArray() {
     sf::IntRect itemRect;
 
-    itemRect.width = this->scaling * 16;
-    itemRect.height = this->scaling * 16;
+    itemRect.width = this->scaling * 18;
+    itemRect.height = this->scaling * 18;
 
     for (int i = 0; i < this->size; i++) {
-        itemRect.left = (i % this->width) * (itemRect.width + 2) + 1;
-        itemRect.top = (i / this->width) * (itemRect.height + 2) + 1;
+        itemRect.left = (i % this->width) * (itemRect.width) + 1;
+        itemRect.top = (i / this->width) * (itemRect.height) + 1;
 
         this->vertexArray[i * 6].position = sf::Vector2f(itemRect.left, itemRect.top);
         this->vertexArray[i * 6 + 1].position = sf::Vector2f(itemRect.left + itemRect.width, itemRect.top);
@@ -90,7 +90,7 @@ void Inventory::updateAllVertexArray() {
 
 void Inventory::initializeAmountLabels() {
     for (int i = 0; i < this->size; i++) {
-        this->amountLabels[i].setPosition(sf::Vector2f(static_cast<float>((i % this->width) * ((this->scaling * 16) + 2) + 1 + (this->scaling * 8)), static_cast<float>((i / this->width) * ((this->scaling * 16) + 2) + 1 + (this->scaling * 8))));
+        this->amountLabels[i].setPosition(sf::Vector2f(static_cast<float>((i % this->width) * ((this->scaling * 18)) + 1 + (this->scaling * 8)), static_cast<float>((i / this->width) * (this->scaling * 18) + 1 + (this->scaling * 8))));
         this->amountLabels[i].setFont(this->font);
         this->amountLabels[i].setCharacterSize(this->scaling * 8);
         this->amountLabels[i].setFillColor(sf::Color::White);
@@ -145,6 +145,12 @@ ItemStack Inventory::addItemStack(ItemStack itemStack) {
     this->updateAllVertexArray();
     this->updateAllAmountLabels();
     return itemStack;
+}
+
+int Inventory::subtractItem(int slotID, int amount) {
+    int subtractAmount = std::min(this->itemStacks[slotID].amount, amount);
+    this->itemStacks[slotID].amount -= subtractAmount;
+    return amount - subtractAmount;
 }
 
 }  // namespace mc

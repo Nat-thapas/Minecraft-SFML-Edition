@@ -64,6 +64,7 @@ class Chunks : public sf::Drawable {
     sf::Vector2i getLoadedChunks();
     int getBlock(int chunkID, int x, int y);
     int breakBlock(int& xp);
+    bool placeBlock(int blockID);
     bool saveAll();
 };
 

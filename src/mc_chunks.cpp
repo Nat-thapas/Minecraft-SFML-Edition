@@ -307,4 +307,15 @@ int Chunks::breakBlock(int& xp) {
     return this->chunks[breakChunkIndex].breakBlock(mousePos.x, mousePos.y, xp);
 }
 
+bool Chunks::placeBlock(int blockID) {
+    if (this->mouseChunkID < this->chunksStartID || this->mouseChunkID > this->chunksEndID) {
+        return 0;
+    }
+    if (mousePos.x < 0 || mousePos.x > 15 || mousePos.y < 0 || mousePos.y > 255) {
+        return 0;
+    }
+    int placeChunkIndex = this->mouseChunkID - this->chunksStartID;
+    return this->chunks[placeChunkIndex].placeBlock(mousePos.x, mousePos.y, blockID);
+}
+
 }  // namespace mc
