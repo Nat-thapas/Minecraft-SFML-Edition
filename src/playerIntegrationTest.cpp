@@ -49,6 +49,9 @@ int main() {
     sf::Font robotoRegular;
     robotoRegular.loadFromFile("resources/fonts/Roboto-Regular.ttf");
 
+    sf::Font robotoMonoRegular;
+    robotoMonoRegular.loadFromFile("resources/fonts/RobotoMono-Regular.ttf");
+
     mc::PerfDebugInfo perfDebugInfo(sf::Vector2f(5.f, 0.f), robotoRegular, 24, sf::Color::White, sf::Color::Black, 1.f);
     mc::GameDebugInfo gameDebugInfo(sf::Vector2f(screenRect.width - 5.f, 0.f), robotoRegular, 24, sf::Color::White, sf::Color::Black, 1.f);
     sf::Clock elapsedClock;
@@ -78,16 +81,22 @@ int main() {
 
     int uiScaling = 2;
 
-    mc::Inventory hotbarInventory(9, 9, uiScaling, robotoRegular, invTextureAtlas, invAtlasData);
-    mc::Inventory mainInventory(27, 9, uiScaling, robotoRegular, invTextureAtlas, invAtlasData);
+    mc::Inventory hotbarInventory(9, 9, uiScaling, 2, robotoMonoRegular, invTextureAtlas, invAtlasData);
+    mc::Inventory mainInventory(27, 9, uiScaling, 1, robotoMonoRegular, invTextureAtlas, invAtlasData);
 
-    hotbarInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - 4.5f * (18.f * uiScaling) - 1.f, screenRect.height - (18.f * uiScaling) - 2.f));
-    mainInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - 4.5f * (18.f * uiScaling) - 1.f, screenRect.height / 2.f - (18.f * uiScaling) - 2.f));
+    hotbarInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - hotbarInventory.getLocalBounds().width / 2.f, screenRect.height - hotbarInventory.getLocalBounds().height));
+    mainInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - mainInventory.getLocalBounds().width / 2.f, screenRect.height / 2.f - mainInventory.getLocalBounds().height / 2.f));
 
-    sf::RectangleShape selectedHotbarSlotHighlighter(sf::Vector2f(32.f, 32.f));
-    selectedHotbarSlotHighlighter.setFillColor(sf::Color::Transparent);
-    selectedHotbarSlotHighlighter.setOutlineColor(sf::Color::Black);
-    selectedHotbarSlotHighlighter.setOutlineThickness(2.f);
+    sf::Texture hotbarInventoryTexture;
+    hotbarInventoryTexture.loadFromFile("resources/textures/gui/hotbar.png");
+    sf::Sprite hotbarInventorySprite(hotbarInventoryTexture);
+
+    sf::Texture selectedHotbarSlotTexture;
+    selectedHotbarSlotTexture.loadFromFile("resources/textures/gui/selectedHotbarSlot.png");
+    sf::Sprite selectedHotbarSlotSprite(selectedHotbarSlotTexture);
+
+    hotbarInventorySprite.setPosition(sf::Vector2f(hotbarInventory.getGlobalBounds().left, hotbarInventory.getGlobalBounds().top));
+    
 
     float scrollWheelFraction = 0.f;
     int selectedHotbarSlot = 0;
@@ -142,15 +151,9 @@ int main() {
                             break;
                         case sf::Keyboard::K:
                             uiScaling += 1;
-                            uiScaling = std::clamp(uiScaling, 1, 8);
-                            hotbarInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - 4.5f * (18.f * uiScaling) - 1.f, screenRect.height - (18.f * uiScaling) - 2.f));
-                            mainInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - 4.5f * (18.f * uiScaling) - 1.f, screenRect.height / 2.f - (18.f * uiScaling) - 2.f));
                             break;
                         case sf::Keyboard::L:
                             uiScaling -= 1;
-                            uiScaling = std::clamp(uiScaling, 1, 8);
-                            hotbarInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - 4.5f * (18.f * uiScaling) - 1.f, screenRect.height - (18.f * uiScaling) - 2.f));
-                            mainInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - 4.5f * (18.f * uiScaling) - 1.f, screenRect.height / 2.f - (18.f * uiScaling) - 2.f));
                             break;
                         case sf::Keyboard::F3:
                             displayDebug ^= 1;
@@ -196,10 +199,10 @@ int main() {
                     }
                     break;
                 case sf::Event::MouseWheelScrolled:
-                    selectedHotbarSlot += static_cast<int>(std::floor(event.mouseWheelScroll.delta));
+                    selectedHotbarSlot -= static_cast<int>(std::floor(event.mouseWheelScroll.delta));
                     scrollWheelFraction += event.mouseWheelScroll.delta - std::floor(event.mouseWheelScroll.delta);
                     if (abs(scrollWheelFraction) >= 1.f) {
-                        selectedHotbarSlot += static_cast<int>(std::floor(scrollWheelFraction));
+                        selectedHotbarSlot -= static_cast<int>(std::floor(scrollWheelFraction));
                         scrollWheelFraction -= std::floor(scrollWheelFraction);
                     }
                     selectedHotbarSlot = mod(selectedHotbarSlot, 9);
@@ -210,8 +213,6 @@ int main() {
                     chunks.setScreenSize(sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))));
                     player.setScreenSize(sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))));
                     gameDebugInfo.setPosition(sf::Vector2f(screenRect.width - 5.f, 0.f));
-                    hotbarInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - 4.5f * (18.f * uiScaling) - (uiScaling / 2.f), screenRect.height - (18.f * uiScaling) - static_cast<float>(uiScaling)));
-                    mainInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - 4.5f * (18.f * uiScaling) - (uiScaling / 2.f), screenRect.height / 2.f - (18.f * uiScaling) - static_cast<float>(uiScaling)));
                     break;
                 default:
                     break;
@@ -222,8 +223,13 @@ int main() {
 
         playerMoveInput = std::clamp(playerMoveInput, -1, 1);
         pixelPerBlock = std::clamp(pixelPerBlock, 1, 256);
+        uiScaling = std::clamp(uiScaling, 1, 16);
 
-        selectedHotbarSlotHighlighter.setPosition(sf::Vector2f(screenRect.width / 2.f - 4.5f * (18.f * uiScaling) - (uiScaling / 2.f) + static_cast<float>(selectedHotbarSlot * uiScaling * 18) + 2.f, screenRect.height - (18.f * uiScaling) - static_cast<float>(uiScaling) + 2.f));
+        hotbarInventory.setScaling(uiScaling);
+        mainInventory.setScaling(uiScaling);
+
+        hotbarInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - hotbarInventory.getLocalBounds().width / 2.f, screenRect.height - hotbarInventory.getLocalBounds().height));
+        mainInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - mainInventory.getLocalBounds().width / 2.f, screenRect.height / 2.f - mainInventory.getLocalBounds().height / 2.f));
 
         chunks.setPixelPerBlock(pixelPerBlock);
         player.setPixelPerBlock(pixelPerBlock);
@@ -294,8 +300,6 @@ int main() {
 
         window.draw(hotbarInventory);
         window.draw(mainInventory);
-
-        window.draw(selectedHotbarSlotHighlighter);
 
         if (displayDebug) {
             window.draw(gameDebugInfo);

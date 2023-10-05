@@ -21,6 +21,7 @@ class Inventory : public sf::Drawable, public sf::Transformable {
     int size;
     int width;
     int scaling;
+    int margin;
     sf::Font& font;
     std::vector<ItemStack> itemStacks;
     sf::Texture& textureAtlas;
@@ -38,8 +39,12 @@ class Inventory : public sf::Drawable, public sf::Transformable {
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
-    Inventory(int size, int width, int scaling, sf::Font& font, sf::Texture& textureAtlas, json& atlasData);
+    Inventory(int size, int width, int scaling, int margin, sf::Font& font, sf::Texture& textureAtlas, json& atlasData);
     void setScaling(int scaling);
+    sf::FloatRect getGlobalBounds();
+    sf::FloatRect getLocalBounds();
+    sf::FloatRect getSlotGlobalBounds(int slotID);
+    sf::FloatRect getSlotLocalBounds(int slotID);
     ItemStack getItemStack(int slotID);
     void setItemStack(int slotID, ItemStack itemStack);
     ItemStack addItemStack(ItemStack itemStack);

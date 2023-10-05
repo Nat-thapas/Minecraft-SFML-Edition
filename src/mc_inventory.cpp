@@ -16,16 +16,17 @@ void Inventory::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     states.texture = &this->textureAtlas;
     target.draw(this->vertexArray, states);
     for (int i = 0; i < this->size; i++) {
-        if (this->itemStacks[i].amount) {
+        if (this->itemStacks[i].amount > 1) {
             target.draw(this->amountLabels[i], states);
         }
     }
 }
 
-Inventory::Inventory(int size, int width, int scaling, sf::Font& font, sf::Texture& textureAtlas, json& atlasData) : font(font), textureAtlas(textureAtlas), atlasData(atlasData) {
+Inventory::Inventory(int size, int width, int scaling, int margin, sf::Font& font, sf::Texture& textureAtlas, json& atlasData) : font(font), textureAtlas(textureAtlas), atlasData(atlasData) {
     this->size = size;
     this->width = width;
     this->scaling = scaling;
+    this->margin = margin;
     this->itemStacks.resize(size);
     this->amountLabels.resize(size);
     for (int i = 0; i < size; i++) {
@@ -55,12 +56,12 @@ void Inventory::parseAtlasData() {
 void Inventory::initializeVertexArray() {
     sf::IntRect itemRect;
 
-    itemRect.width = this->scaling * 18;
-    itemRect.height = this->scaling * 18;
+    itemRect.width = this->scaling * 16;
+    itemRect.height = this->scaling * 16;
 
     for (int i = 0; i < this->size; i++) {
-        itemRect.left = (i % this->width) * (itemRect.width) + 1;
-        itemRect.top = (i / this->width) * (itemRect.height) + 1;
+        itemRect.left = (i % this->width) * (itemRect.width + this->margin * this->scaling * 2) + this->margin * this->scaling;
+        itemRect.top = (i / this->width) * (itemRect.height + this->margin * this->scaling * 2) + this->margin * this->scaling;
 
         this->vertexArray[i * 6].position = sf::Vector2f(itemRect.left, itemRect.top);
         this->vertexArray[i * 6 + 1].position = sf::Vector2f(itemRect.left + itemRect.width, itemRect.top);
@@ -90,27 +91,67 @@ void Inventory::updateAllVertexArray() {
 
 void Inventory::initializeAmountLabels() {
     for (int i = 0; i < this->size; i++) {
-        this->amountLabels[i].setPosition(sf::Vector2f(static_cast<float>((i % this->width) * ((this->scaling * 18)) + 1 + (this->scaling * 8)), static_cast<float>((i / this->width) * (this->scaling * 18) + 1 + (this->scaling * 8))));
+        this->amountLabels[i].setPosition(sf::Vector2f(this->getSlotLocalBounds(i).left + static_cast<float>(this->scaling * 16 / 3), this->getSlotLocalBounds(i).top + static_cast<float>(this->scaling * 16 / 3)));
         this->amountLabels[i].setFont(this->font);
-        this->amountLabels[i].setCharacterSize(this->scaling * 8);
+        this->amountLabels[i].setCharacterSize(this->scaling * 10);
         this->amountLabels[i].setFillColor(sf::Color::White);
         this->amountLabels[i].setOutlineColor(sf::Color::Black);
-        this->amountLabels[i].setOutlineThickness(0.25f * this->scaling);
+        this->amountLabels[i].setOutlineThickness(0.5f * this->scaling);
     }
 }
 
 void Inventory::updateAllAmountLabels() {
     for (int i = 0; i < this->size; i++) {
-        this->amountLabels[i].setString(std::format("{}", this->itemStacks[i].amount));
+        this->amountLabels[i].setString(std::format("{:2d}", this->itemStacks[i].amount));
     }
 }
 
 void Inventory::setScaling(int scaling) {
+    if (this->scaling == scaling) {
+        return;
+    }
     this->scaling = scaling;
     this->initializeVertexArray();
-    this->updateAllVertexArray();
     this->initializeAmountLabels();
+    this->updateAllVertexArray();
     this->updateAllAmountLabels();
+}
+
+sf::FloatRect Inventory::getGlobalBounds() {
+    sf::FloatRect globalBounds;
+    globalBounds.left = this->getPosition().x;
+    globalBounds.top = this->getPosition().y;
+    globalBounds.width = static_cast<float>(this->size % this->width * (this->scaling * (16 + this->margin * 2)) + this->scaling * this->margin); 
+    globalBounds.height = static_cast<float>((this->size / this->width + (this->size % this->width > 0)) * (this->scaling * (16 + this->margin * 2)) + this->scaling * this->margin);
+    return globalBounds;
+}
+
+sf::FloatRect Inventory::getLocalBounds() {
+    sf::FloatRect localBounds;
+    localBounds.left = 0.f;
+    localBounds.top = 0.f;
+    localBounds.width = static_cast<float>(std::min(this->width, this->size) * (this->scaling * (16 + this->margin * 2)) + this->scaling * this->margin); 
+    localBounds.height = static_cast<float>((this->size / this->width + (this->size % this->width > 0)) * (this->scaling * (16 + this->margin * 2)) + this->scaling * this->margin);
+    return localBounds;
+}
+
+sf::FloatRect Inventory::getSlotGlobalBounds(int slotID) {
+    sf::FloatRect globalBounds;
+    globalBounds.left = this->getPosition().x + static_cast<float>((slotID % this->width) * (this->scaling * (16 + this->margin * 2)) + this->margin * this->scaling);
+    globalBounds.top = this->getPosition().y + static_cast<float>((slotID / this->width) * (this->scaling * (16 + this->margin * 2)) + this->margin * this->scaling);
+    globalBounds.width = static_cast<float>(this->scaling * (16 + this->margin * 2));
+    globalBounds.height = static_cast<float>(this->scaling * (16 + this->margin * 2));
+    return globalBounds;
+}
+
+
+sf::FloatRect Inventory::getSlotLocalBounds(int slotID) {
+    sf::FloatRect localBounds;
+    localBounds.left = static_cast<float>((slotID % this->width) * (this->scaling * (16 + this->margin * 2)) + this->margin * this->scaling);
+    localBounds.top = static_cast<float>((slotID / this->width) * (this->scaling * (16 + this->margin * 2)) + this->margin * this->scaling);
+    localBounds.width = static_cast<float>(this->scaling * (16 + this->margin * 2));
+    localBounds.height = static_cast<float>(this->scaling * (16 + this->margin * 2));
+    return localBounds;
 }
 
 ItemStack Inventory::getItemStack(int slotID) {
@@ -150,6 +191,11 @@ ItemStack Inventory::addItemStack(ItemStack itemStack) {
 int Inventory::subtractItem(int slotID, int amount) {
     int subtractAmount = std::min(this->itemStacks[slotID].amount, amount);
     this->itemStacks[slotID].amount -= subtractAmount;
+    if (this->itemStacks[slotID].amount <= 0) {
+        this->itemStacks[slotID].id = 0;
+        this->updateAllVertexArray();
+    }
+    this->updateAllAmountLabels();
     return amount - subtractAmount;
 }
 
