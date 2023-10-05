@@ -44,12 +44,12 @@ Inventory::Inventory(int size, int width, int scaling, int margin, sf::Font& fon
 
 void Inventory::parseAtlasData() {
     sf::IntRect texRect;
-    for (int blockID = 0; blockID < 71; blockID++) {
-        texRect.left = this->atlasData[std::format("{:03d}", blockID)]["x"];
-        texRect.top = this->atlasData[std::format("{:03d}", blockID)]["y"];
-        texRect.width = this->atlasData[std::format("{:03d}", blockID)]["w"];
-        texRect.height = this->atlasData[std::format("{:03d}", blockID)]["h"];
-        this->parsedAtlasData[blockID] = texRect;
+    for (int itemID = 0; itemID < 123; itemID++) {
+        texRect.left = this->atlasData[std::format("{:03d}", itemID)]["x"];
+        texRect.top = this->atlasData[std::format("{:03d}", itemID)]["y"];
+        texRect.width = this->atlasData[std::format("{:03d}", itemID)]["w"];
+        texRect.height = this->atlasData[std::format("{:03d}", itemID)]["h"];
+        this->parsedAtlasData[itemID] = texRect;
     }
 }
 
