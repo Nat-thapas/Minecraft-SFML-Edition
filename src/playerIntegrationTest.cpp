@@ -95,9 +95,6 @@ int main() {
     selectedHotbarSlotTexture.loadFromFile("resources/textures/gui/selectedHotbarSlot.png");
     sf::Sprite selectedHotbarSlotSprite(selectedHotbarSlotTexture);
 
-    hotbarInventorySprite.setPosition(sf::Vector2f(hotbarInventory.getGlobalBounds().left, hotbarInventory.getGlobalBounds().top));
-    
-
     float scrollWheelFraction = 0.f;
     int selectedHotbarSlot = 0;
 
@@ -237,6 +234,12 @@ int main() {
         hotbarInventory.setScaling(uiScaling);
         mainInventory.setScaling(uiScaling);
 
+        hotbarInventorySprite.setPosition(sf::Vector2f(hotbarInventory.getGlobalBounds().left - static_cast<float>(uiScaling), hotbarInventory.getGlobalBounds().top - static_cast<float>(uiScaling)));
+        hotbarInventorySprite.setScale(sf::Vector2f(uiScaling, uiScaling));
+
+        selectedHotbarSlotSprite.setPosition(sf::Vector2f(hotbarInventory.getSlotGlobalBounds(selectedHotbarSlot).left - static_cast<float>(uiScaling) * 2.f, hotbarInventory.getSlotGlobalBounds(selectedHotbarSlot).top - static_cast<float>(uiScaling) * 2.f));
+        selectedHotbarSlotSprite.setScale(sf::Vector2f(uiScaling, uiScaling));
+
         if (playerIntendJump) {
             player.jump();
         }
@@ -297,6 +300,9 @@ int main() {
 
         perfDebugInfo.endEntitiesRendering();
         perfDebugInfo.endParticlesRendering();
+
+        window.draw(hotbarInventorySprite);
+        window.draw(selectedHotbarSlotSprite);
 
         window.draw(hotbarInventory);
         window.draw(mainInventory);

@@ -60,8 +60,11 @@ void Inventory::initializeVertexArray() {
     itemRect.height = this->scaling * 16;
 
     for (int i = 0; i < this->size; i++) {
-        itemRect.left = (i % this->width) * (itemRect.width + this->margin * this->scaling * 2) + this->margin * this->scaling;
-        itemRect.top = (i / this->width) * (itemRect.height + this->margin * this->scaling * 2) + this->margin * this->scaling;
+        // itemRect.left = (i % this->width) * (itemRect.width + this->margin * this->scaling * 2) + this->margin * this->scaling;
+        // itemRect.top = (i / this->width) * (itemRect.height + this->margin * this->scaling * 2) + this->margin * this->scaling;
+
+        itemRect.left = getSlotLocalBounds(i).left + this->scaling * this->margin;
+        itemRect.top = getSlotLocalBounds(i).top + this->scaling * this->margin;
 
         this->vertexArray[i * 6].position = sf::Vector2f(itemRect.left, itemRect.top);
         this->vertexArray[i * 6 + 1].position = sf::Vector2f(itemRect.left + itemRect.width, itemRect.top);
@@ -91,7 +94,7 @@ void Inventory::updateAllVertexArray() {
 
 void Inventory::initializeAmountLabels() {
     for (int i = 0; i < this->size; i++) {
-        this->amountLabels[i].setPosition(sf::Vector2f(this->getSlotLocalBounds(i).left + static_cast<float>(this->scaling * 16 / 3), this->getSlotLocalBounds(i).top + static_cast<float>(this->scaling * 16 / 3)));
+        this->amountLabels[i].setPosition(sf::Vector2f(this->getSlotLocalBounds(i).left + static_cast<float>(this->scaling) * 16.f / 2.5f, this->getSlotLocalBounds(i).top + static_cast<float>(this->scaling) * 16.f / 2.f));
         this->amountLabels[i].setFont(this->font);
         this->amountLabels[i].setCharacterSize(this->scaling * 10);
         this->amountLabels[i].setFillColor(sf::Color::White);
@@ -121,8 +124,8 @@ sf::FloatRect Inventory::getGlobalBounds() {
     sf::FloatRect globalBounds;
     globalBounds.left = this->getPosition().x;
     globalBounds.top = this->getPosition().y;
-    globalBounds.width = static_cast<float>(this->size % this->width * (this->scaling * (16 + this->margin * 2)) + this->scaling * this->margin); 
-    globalBounds.height = static_cast<float>((this->size / this->width + (this->size % this->width > 0)) * (this->scaling * (16 + this->margin * 2)) + this->scaling * this->margin);
+    globalBounds.width = static_cast<float>(this->size % this->width * (this->scaling * (16 + this->margin * 2))); 
+    globalBounds.height = static_cast<float>((this->size / this->width + (this->size % this->width > 0)) * (this->scaling * (16 + this->margin * 2)));
     return globalBounds;
 }
 
@@ -130,15 +133,15 @@ sf::FloatRect Inventory::getLocalBounds() {
     sf::FloatRect localBounds;
     localBounds.left = 0.f;
     localBounds.top = 0.f;
-    localBounds.width = static_cast<float>(std::min(this->width, this->size) * (this->scaling * (16 + this->margin * 2)) + this->scaling * this->margin); 
-    localBounds.height = static_cast<float>((this->size / this->width + (this->size % this->width > 0)) * (this->scaling * (16 + this->margin * 2)) + this->scaling * this->margin);
+    localBounds.width = static_cast<float>(std::min(this->width, this->size) * (this->scaling * (16 + this->margin * 2))); 
+    localBounds.height = static_cast<float>((this->size / this->width + (this->size % this->width != 0)) * (this->scaling * (16 + this->margin * 2)));
     return localBounds;
 }
 
 sf::FloatRect Inventory::getSlotGlobalBounds(int slotID) {
     sf::FloatRect globalBounds;
-    globalBounds.left = this->getPosition().x + static_cast<float>((slotID % this->width) * (this->scaling * (16 + this->margin * 2)) + this->margin * this->scaling);
-    globalBounds.top = this->getPosition().y + static_cast<float>((slotID / this->width) * (this->scaling * (16 + this->margin * 2)) + this->margin * this->scaling);
+    globalBounds.left = this->getPosition().x + static_cast<float>((slotID % this->width) * (this->scaling * (16 + this->margin * 2)));
+    globalBounds.top = this->getPosition().y + static_cast<float>((slotID / this->width) * (this->scaling * (16 + this->margin * 2)));
     globalBounds.width = static_cast<float>(this->scaling * (16 + this->margin * 2));
     globalBounds.height = static_cast<float>(this->scaling * (16 + this->margin * 2));
     return globalBounds;
@@ -147,8 +150,8 @@ sf::FloatRect Inventory::getSlotGlobalBounds(int slotID) {
 
 sf::FloatRect Inventory::getSlotLocalBounds(int slotID) {
     sf::FloatRect localBounds;
-    localBounds.left = static_cast<float>((slotID % this->width) * (this->scaling * (16 + this->margin * 2)) + this->margin * this->scaling);
-    localBounds.top = static_cast<float>((slotID / this->width) * (this->scaling * (16 + this->margin * 2)) + this->margin * this->scaling);
+    localBounds.left = static_cast<float>((slotID % this->width) * (this->scaling * (16 + this->margin * 2)));
+    localBounds.top = static_cast<float>((slotID / this->width) * (this->scaling * (16 + this->margin * 2)));
     localBounds.width = static_cast<float>(this->scaling * (16 + this->margin * 2));
     localBounds.height = static_cast<float>(this->scaling * (16 + this->margin * 2));
     return localBounds;

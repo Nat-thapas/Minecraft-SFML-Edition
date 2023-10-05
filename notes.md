@@ -1,4 +1,3 @@
-# References
+# BUGs
 ## Inventory
-### At UI scaling 1
-- Each item takes up 16x16 pixels with 1 px border
+### Wheat seed doesn't render correctly for some reason
