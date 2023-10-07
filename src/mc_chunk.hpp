@@ -62,7 +62,6 @@ class Chunk : public sf::Drawable, public sf::Transformable {
 
     void parseAtlasData();
     void initializeVertexArray();
-    void updateAnimatedVertexArray();
     void updateAllVertexArray();
     void update();
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
@@ -78,6 +77,7 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     int breakBlock(int x, int y, int& xp);
     void tick(int tickCount);
     void updateVertexArray();
+    void updateAnimatedVertexArray();
     bool saveToFile(std::string filePath);
 };
 

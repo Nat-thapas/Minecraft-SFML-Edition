@@ -399,7 +399,7 @@ int Chunk::breakBlock(int x, int y, int& xp) {
 
 void Chunk::tick(int tickCount) {
     this->animationIndex = tickCount;
-    this->updateAnimatedVertexArray();
+    // TODO random tick
 }
 
 bool Chunk::saveToFile(std::string filePath) {

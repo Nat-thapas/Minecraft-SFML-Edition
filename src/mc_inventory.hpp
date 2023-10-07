@@ -41,6 +41,7 @@ class Inventory : public sf::Drawable, public sf::Transformable {
    public:
     Inventory(int size, int width, int scaling, int margin, sf::Font& font, sf::Texture& textureAtlas, json& atlasData);
     void setScaling(int scaling);
+    void setMargin(int margin);
     sf::FloatRect getGlobalBounds();
     sf::FloatRect getLocalBounds();
     sf::FloatRect getSlotGlobalBounds(int slotID);

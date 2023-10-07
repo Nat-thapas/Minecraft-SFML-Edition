@@ -52,6 +52,7 @@ class Chunks : public sf::Drawable {
     Chunks(int playerChunkID, int seed, int pixelPerBlock, sf::Vector2i screenSize, std::string atlasFilesPath, std::string atlasDatasPath);
     void tick(int tickCount);
     void updateVertexArrays();
+    void updateAnimatedVertexArrays();
     void setPixelPerBlock(int pixelPerBlock);
     void setScreenSize(sf::Vector2i screenSize);
     int getPlayerChunkID();

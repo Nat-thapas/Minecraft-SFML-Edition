@@ -92,7 +92,7 @@ void Chunks::updateChunksPosition() {
 
 void Chunks::updateMousePosition() {
     sf::Vector2f distance(sf::Vector2f(this->mouseScreenPos) - sf::Vector2f(this->screenSize.x / 2.f, this->screenSize.y / 2.f + static_cast<float>(this->pixelPerBlock)));
-    distance /= (float)this->pixelPerBlock;
+    distance /= static_cast<float>(this->pixelPerBlock);
     distance += playerPos;
     int chunkDistance = static_cast<int>(std::floor(distance.x / 16.f));
     distance.x = mod(distance.x, 16);
@@ -119,6 +119,12 @@ void Chunks::tick(int tickCount) {
 void Chunks::updateVertexArrays() {
     for (Chunk& chunk : this->chunks) {
         chunk.updateVertexArray();
+    }
+}
+
+void Chunks::updateAnimatedVertexArrays() {
+    for (Chunk& chunk : this->chunks) {
+        chunk.updateAnimatedVertexArray();
     }
 }
 

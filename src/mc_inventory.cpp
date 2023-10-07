@@ -7,6 +7,8 @@
 #include "idiv.hpp"
 #include "mod.hpp"
 
+#include <iostream>
+
 using json = nlohmann::json;
 
 namespace mc {
@@ -94,7 +96,7 @@ void Inventory::updateAllVertexArray() {
 
 void Inventory::initializeAmountLabels() {
     for (int i = 0; i < this->size; i++) {
-        this->amountLabels[i].setPosition(sf::Vector2f(this->getSlotLocalBounds(i).left + static_cast<float>(this->scaling) * 16.f / 2.5f, this->getSlotLocalBounds(i).top + static_cast<float>(this->scaling) * 16.f / 2.f));
+        this->amountLabels[i].setPosition(sf::Vector2f(this->getSlotLocalBounds(i).left + static_cast<float>(this->scaling) * 16.f / 3.f + static_cast<float>(this->margin * this->scaling), this->getSlotLocalBounds(i).top + static_cast<float>(this->scaling) * 16.f / 2.5f + static_cast<float>(this->margin * this->scaling)));
         this->amountLabels[i].setFont(this->font);
         this->amountLabels[i].setCharacterSize(this->scaling * 10);
         this->amountLabels[i].setFillColor(sf::Color::White);
@@ -116,8 +118,15 @@ void Inventory::setScaling(int scaling) {
     this->scaling = scaling;
     this->initializeVertexArray();
     this->initializeAmountLabels();
-    this->updateAllVertexArray();
-    this->updateAllAmountLabels();
+}
+
+void Inventory::setMargin(int margin) {
+    if (this->margin == margin) {
+        return;
+    }
+    this->margin = margin;
+    this->initializeVertexArray();
+    this->initializeAmountLabels();
 }
 
 sf::FloatRect Inventory::getGlobalBounds() {
@@ -165,6 +174,8 @@ ItemStack Inventory::getItemStack(int slotID) {
 void Inventory::setItemStack(int slotID, ItemStack itemStack) {
     if (slotID < 0 || slotID >= this->size) return;
     this->itemStacks[slotID] = itemStack;
+    this->updateAllVertexArray();
+    this->updateAllAmountLabels();
 }
 
 ItemStack Inventory::addItemStack(ItemStack itemStack) {
@@ -183,11 +194,11 @@ ItemStack Inventory::addItemStack(ItemStack itemStack) {
             itemStack.amount -= std::min(itemStack.amount, emptySpace);
         }
     }
+    this->updateAllVertexArray();
+    this->updateAllAmountLabels();
     if (itemStack.amount == 0) {
         return ItemStack(0, 0);
     }
-    this->updateAllVertexArray();
-    this->updateAllAmountLabels();
     return itemStack;
 }
 
