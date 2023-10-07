@@ -28,14 +28,14 @@ void Chunks::draw(sf::RenderTarget& target, sf::RenderStates states) const {
 }
 
 void Chunks::updateTexture() {
-    if (this->pixelPerBlock < 16) {
+    if (this->pixelPerBlock <= 16) {
         std::ifstream atlasDataFile(this->atlasDatasPath + std::format("blocksAtlasx{}.json", this->pixelPerBlock));
         this->atlasData = json::parse(atlasDataFile);
         this->textureAtlas.loadFromFile(this->atlasFilesPath + std::format("blocksAtlasx{}.png", this->pixelPerBlock));
     } else {
-        std::ifstream atlasDataFile(this->atlasDatasPath + "blocksAtlasx16.json");
+        std::ifstream atlasDataFile(this->atlasDatasPath + "blocksAtlasxF.json");
         this->atlasData = json::parse(atlasDataFile);
-        this->textureAtlas.loadFromFile(this->atlasFilesPath + "blocksAtlasx16.png");
+        this->textureAtlas.loadFromFile(this->atlasFilesPath + "blocksAtlasxF.png");
     }
 }
 

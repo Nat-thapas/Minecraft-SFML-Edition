@@ -56,12 +56,13 @@ int main() {
     mc::GameDebugInfo gameDebugInfo(sf::Vector2f(screenRect.width - 5.f, 0.f), robotoRegular, 24, sf::Color::White, sf::Color::Black, 1.f);
     sf::Clock elapsedClock;
     sf::Clock frameTimeClock;
+    sf::Time elapsedTime;
     sf::Time frameTime;
 
     // friction, drag = speed * coefficient
     float playerMaxSpeed = 4.317f;  // block/second
-    float playerFromStillAcceleration = 20.f;  // m/s^2
-    float playerTerminalVelocity = 40.f;  // m/s
+    float playerFromStillAcceleration = 40.f;  // m/s^2
+    float playerTerminalVelocity = 80.f;  // m/s
     float playerMass = 75.f;  // kg
     float playerMovementForce = playerFromStillAcceleration * playerMass;  // F = ma; N
     float gravity = 25.f;  // m/s^2
@@ -105,8 +106,8 @@ int main() {
 
     chunks.setPlayerPos(player.getPosition());
 
-    int elapsedTime = elapsedClock.getElapsedTime().asMilliseconds();
-    int lastTickTime = elapsedTime;
+    elapsedTime = elapsedClock.getElapsedTime();
+    int lastTickTimeMs = elapsedTime.asMilliseconds();
 
     int tickCount = 0;
     bool displayDebug = false;
@@ -116,7 +117,7 @@ int main() {
         perfDebugInfo.startFrame();
 
         frameTime = frameTimeClock.restart();
-        elapsedTime = elapsedClock.getElapsedTime().asMilliseconds();
+        elapsedTime = elapsedClock.getElapsedTime();
 
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -182,17 +183,27 @@ int main() {
                     mousePosition = sf::Vector2i(event.mouseMove.x, event.mouseMove.y);
                     break;
                 case sf::Event::MouseButtonPressed:
-                    if (event.mouseButton.button == sf::Mouse::Left) {
-                        leftClickHeld = true;
-                    } else if (event.mouseButton.button == sf::Mouse::Right) {
-                        rightClickHeld = true;
+                    switch (event.mouseButton.button) {
+                        case sf::Mouse::Left:
+                            leftClickHeld = true;
+                            break;
+                        case sf::Mouse::Right:
+                            rightClickHeld = true;
+                            break;
+                        default:
+                            break;
                     }
                     break;
                 case sf::Event::MouseButtonReleased:
-                    if (event.mouseButton.button == sf::Mouse::Left) {
-                        leftClickHeld = false;
-                    } else if (event.mouseButton.button == sf::Mouse::Right) {
-                        rightClickHeld = false;
+                    switch (event.mouseButton.button) {
+                        case sf::Mouse::Left:
+                            leftClickHeld = false;
+                            break;
+                        case sf::Mouse::Right:
+                            rightClickHeld = false;
+                            break;
+                        default:
+                            break;
                     }
                     break;
                 case sf::Event::MouseWheelScrolled:
@@ -280,8 +291,8 @@ int main() {
             }
         }
 
-        if (elapsedTime - lastTickTime >= 50) {
-            lastTickTime += 50;
+        if (elapsedTime.asMilliseconds() - lastTickTimeMs >= 50) {
+            lastTickTimeMs += 50 + std::max(idiv(elapsedTime.asMilliseconds() - lastTickTimeMs, 50) - 100, 0) * 50;
             chunks.tick(tickCount);
             tickCount++;
         }

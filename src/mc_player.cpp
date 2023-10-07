@@ -105,7 +105,7 @@ void Player::setLateralForce(int force, bool sprint) {
     if (force) {
         this->acceleration.x = ((force * this->movementForce * (1.f + 0.3f * sprint)) - (this->velocity.x * this->frictionCoefficient)) / this->mass;
     } else {
-        this->acceleration.x = - (this->velocity.x * this->frictionCoefficient * 3.f) / this->mass;
+        this->acceleration.x = - (this->velocity.x * this->frictionCoefficient * 2.f) / this->mass;
     }
     if (!this->isOnGround()) {
         this->acceleration.x *= 0.25f;
@@ -118,8 +118,7 @@ void Player::jump() {
     }
 }
 
-void Player::update(sf::Time frameTime) {
-    float deltaTime = std::min(frameTime.asSeconds(), 0.016666667f);  // Limit the physics rate to be above 60 Hz even if the game slows down
+void Player::physicsUpdate(float deltaTime) {
     this->acceleration.y = ((this->mass * this->gravity) - (this->velocity.y * this->airDragCoefficient)) / this->mass;
     this->velocity += this->acceleration * deltaTime;
     sf::Vector2f newPosition = this->position;
@@ -150,6 +149,16 @@ void Player::update(sf::Time frameTime) {
     newPosition.x = mod(newPosition.x, 16.f);
     this->chunkID = newChunkID;
     this->position = newPosition;
+}
+
+void Player::update(sf::Time frameTime) {
+    float deltaTime = frameTime.asSeconds();
+    int stepCount = static_cast<int>(std::ceil(deltaTime / (1.f / this->targetPhysicsRate)));
+    float stepDetaTime = deltaTime / static_cast<float>(stepCount);
+    stepCount = std::min(stepCount, 100);
+    for (int i = 0; i < stepCount; i++) {
+        this->physicsUpdate(stepDetaTime);
+    }
 }
 
 }  // namespace mc

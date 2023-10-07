@@ -24,6 +24,7 @@ class Player : public sf::Drawable {
     float airDragCoefficient;
     sf::Vector2f acceleration;
     sf::Vector2f velocity;
+    float targetPhysicsRate = 480.f;
     int chunkID;
     sf::Vector2f position;
     std::array<bool, 71> blockSolidity = {0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1};
@@ -34,6 +35,7 @@ class Player : public sf::Drawable {
     int getRelativeChunkBlock(sf::Vector2f position);
     int getAbsoluteBlock(int chunkID, sf::Vector2f position);
     bool isBlockSolid(int blockID);
+    void physicsUpdate(float deltaTime);
 
    public:
     int xp;
