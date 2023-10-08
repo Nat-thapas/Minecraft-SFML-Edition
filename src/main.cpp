@@ -45,6 +45,10 @@ int main() {
     window.setVerticalSyncEnabled(false);
     window.setKeyRepeatEnabled(false);
 
+    sf::Image icon;
+    icon.loadFromFile("resources/icon.png");
+    window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
+
     int initialPlayerChunkID = 1;
     int pixelPerBlock = 32;
 
@@ -132,7 +136,7 @@ int main() {
     bool playerSprinting = false;
     int openMenuType = 0;
 
-    bool firstLoop = true;
+    bool isFirstLoop = true;
 
     while (window.isOpen()) {
         perfDebugInfo.startFrame();
@@ -143,10 +147,10 @@ int main() {
         bool leftClick = false;
         bool rightClick = false;
 
-        bool resized = false || firstLoop;
-        bool ppbChanged = false || firstLoop;
-        bool scalingChanged = false || firstLoop;
-        bool menuChanged = false || firstLoop;
+        bool resized = isFirstLoop;
+        bool ppbChanged = isFirstLoop;
+        bool scalingChanged = isFirstLoop;
+        bool menuChanged = isFirstLoop;
 
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -461,7 +465,7 @@ int main() {
         perfDebugInfo.endFrame();
         perfDebugInfo.updateLabels();
 
-        firstLoop = false;
+        isFirstLoop = false;
     }
 
     return 0;

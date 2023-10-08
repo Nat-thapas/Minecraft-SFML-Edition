@@ -96,7 +96,7 @@ void Inventory::updateAllVertexArray() {
 
 void Inventory::initializeAmountLabels() {
     for (int i = 0; i < this->size; i++) {
-        this->amountLabels[i].setPosition(sf::Vector2f(this->getSlotLocalBounds(i).left + static_cast<float>(this->scaling) * 16.f / 3.f + static_cast<float>(this->margin * this->scaling), this->getSlotLocalBounds(i).top + static_cast<float>(this->scaling) * 16.f / 2.5f + static_cast<float>(this->margin * this->scaling)));
+        this->amountLabels[i].setPosition(sf::Vector2f(this->getSlotLocalBounds(i).left + static_cast<float>(this->scaling) * 5.f + static_cast<float>(this->margin * this->scaling), this->getSlotLocalBounds(i).top + static_cast<float>(this->scaling) * 6.f + static_cast<float>(this->margin * this->scaling)));
         this->amountLabels[i].setFont(this->font);
         this->amountLabels[i].setCharacterSize(this->scaling * 10);
         this->amountLabels[i].setFillColor(sf::Color::White);
