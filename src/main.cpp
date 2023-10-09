@@ -357,12 +357,10 @@ int main() {
         perfDebugInfo.endPlayerInputProcessing();
         perfDebugInfo.endRandomTick();
 
-        int droppedItemID;
-
         if (elapsedTime.asMilliseconds() - lastTickTimeMs >= 50) {
             lastTickTimeMs += 50 + std::max(idiv(elapsedTime.asMilliseconds() - lastTickTimeMs, 50) - 100, 0) * 50;
             if (leftClickHeld && openMenuType == MENU_NONE) {
-                droppedItemID = chunks.breakBlock(player.xp);
+                int droppedItemID = chunks.breakBlock(player.xp);
                 mc::ItemStack itemStack(1, droppedItemID);
                 itemStack = hotbarInventory.addItemStack(itemStack);
                 if (itemStack.amount > 0) itemStack = mainInventory.addItemStack(itemStack);
@@ -384,6 +382,9 @@ int main() {
 
             tickCount++;
         }
+
+        chunks.updateLightLevels();
+        chunks.updateLightingVertexArray();
 
         perfDebugInfo.endChunksUpdate();
         perfDebugInfo.endEntitiesProcessing();

@@ -31,6 +31,8 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     std::queue<int> vertexUpdateQueue;
     std::queue<int> blockUpdateQueue;
     std::array<int, 4096> blocks;
+    std::array<int, 4096> skyLightLevels;
+    std::array<int, 4096> blockLightLevels;
     std::array<int, 71> itemDropIDs = {0, 4, 3, 3, 4, 5, 6, 5, 8, 87, 0, 0, 0, 0, 0, 11, 12, 13, 14, 15, 49, 17, 18, 53, 0, 21, 0, 22, 23, 24, 25, 26, 27, 28, 29, 112, 31, 32, 0, 33, 34, 35, 35, 87, 87, 87, 87, 87, 87, 87, (87 << 8) + 36, 3, 3, 37, 0, 38, 0, 38, 39, 40, 41, 42, 43, 0, 44, 45, 0, 0, 0, 47, 48};
     std::array<int, 71> itemDropChances = {0, 100, 100, 100, 100, 100, 100, 15, 100, 25, 0, 0, 0, 0, 0, 100, 100, 100, 100, 100, 100, 100, 100, 100, 0, 100, 0, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 0, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 0, 100, 0, 100, 100, 100, 100, 100, 100, 0, 100, 100, 0, 0, 0, 100, 100};
     std::array<int, 71> experienceDropAmount = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -64,6 +66,7 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     void initializeVertexArray();
     void updateAllVertexArray();
     void update();
+    sf::Color getColorFromLightLevel(int lightLevel);
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
@@ -76,8 +79,16 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     bool placeBlock(int x, int y, int itemID);
     int breakBlock(int x, int y, int& xp);
     void tick(int tickCount);
+    int getSkyLightLevel(int x, int y);
+    int getSkyLightLevel(int idx);
+    int getBlockLightLevel(int x, int y);
+    int getBlockLightLevel(int idx);
+    int getLightLevel(int x, int y);
+    int getLightLevel(int idx);
     void updateVertexArray();
     void updateAnimatedVertexArray();
+    void updateLightLevels();
+    void updateLightingVertexArray();
     bool saveToFile(std::string filePath);
 };
 

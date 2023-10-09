@@ -348,6 +348,23 @@ void Chunk::updateVertexArray() {
     }
 }
 
+void Chunk::updateLightingVertexArray() {
+    for (int y = 0; y < 256; y++) {
+        for (int x = 0; x < 16; x++) {
+            this->vertexArray[(x + y * 16) * 6].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x-1, y-1), this->getLightLevel(x, y-1), this->getLightLevel(x-1, y), this->getLightLevel(x, y)}));  // Top left
+            this->vertexArray[(x + y * 16) * 6 + 1].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y-1), this->getLightLevel(x+1, y-1), this->getLightLevel(x, y), this->getLightLevel(x+1, y)}));  // Top right
+            this->vertexArray[(x + y * 16) * 6 + 2].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x-1, y), this->getLightLevel(x, y), this->getLightLevel(x-1, y+1), this->getLightLevel(x, y+1)}));  // Bottom left
+            this->vertexArray[(x + y * 16) * 6 + 3].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x-1, y), this->getLightLevel(x, y), this->getLightLevel(x-1, y+1), this->getLightLevel(x, y+1)}));  // Bottom left
+            this->vertexArray[(x + y * 16) * 6 + 4].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y-1), this->getLightLevel(x+1, y-1), this->getLightLevel(x, y), this->getLightLevel(x+1, y)}));  // Top right
+            this->vertexArray[(x + y * 16) * 6 + 5].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y), this->getLightLevel(x+1, y), this->getLightLevel(x, y+1), this->getLightLevel(x+1, y+1)}));  // Bottom right
+        }
+    }
+}
+
+sf::Color Chunk::getColorFromLightLevel(int lightLevel) {
+    return sf::Color(lightLevel * 16 + 15, lightLevel * 16 + 15, lightLevel * 16 + 15);
+}
+
 void Chunk::update() {
     int i, blockID;
     while (this->blockUpdateQueue.size()) {
@@ -355,6 +372,13 @@ void Chunk::update() {
         this->blockUpdateQueue.pop();
         blockID = this->blocks[i];
         // TODO
+    }
+}
+
+void Chunk::updateLightLevels() {
+    for (int i = 0; i < 4096; i++) {
+        this->skyLightLevels[i] = i % 16;
+        this->blockLightLevels[i] = i % 16;
     }
 }
 
@@ -407,6 +431,42 @@ int Chunk::breakBlock(int x, int y, int& xp) {
 void Chunk::tick(int tickCount) {
     this->animationIndex = tickCount;
     // TODO random tick
+}
+
+int Chunk::getSkyLightLevel(int x, int y) {
+    if (x < 0 || x > 15 || y < 0 || y > 255) {
+        return 0;
+    }
+    return this->getSkyLightLevel(x + y * 16);
+}
+
+int Chunk::getSkyLightLevel(int idx) {
+    if (idx < 0 || idx > 4095) {
+        return 0;
+    }
+    return this->skyLightLevels[idx];
+}
+
+int Chunk::getBlockLightLevel(int x, int y) {
+    if (x < 0 || x > 15 || y < 0 || y > 255) {
+        return 0;
+    }
+    return this->getBlockLightLevel(x + y * 16);
+}
+
+int Chunk::getBlockLightLevel(int idx) {
+    if (idx < 0 || idx > 4095) {
+        return 0;
+    }
+    return this->blockLightLevels[idx];
+}
+
+int Chunk::getLightLevel(int x, int y) {
+    return this->getLightLevel(x + y * 16);
+}
+
+int Chunk::getLightLevel(int idx) {
+    return std::max(this->getSkyLightLevel(idx), this->getBlockLightLevel(idx));
 }
 
 bool Chunk::saveToFile(std::string filePath) {

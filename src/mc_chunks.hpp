@@ -53,6 +53,8 @@ class Chunks : public sf::Drawable {
     void tick(int tickCount);
     void updateVertexArrays();
     void updateAnimatedVertexArrays();
+    void updateLightLevels();
+    void updateLightingVertexArray();
     void setPixelPerBlock(int pixelPerBlock);
     void setScreenSize(sf::Vector2i screenSize);
     int getPlayerChunkID();

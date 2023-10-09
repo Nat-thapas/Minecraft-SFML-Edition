@@ -128,6 +128,18 @@ void Chunks::updateAnimatedVertexArrays() {
     }
 }
 
+void Chunks::updateLightLevels() {
+    for (Chunk& chunk : this->chunks) {
+        chunk.updateLightLevels();
+    }
+}
+
+void Chunks::updateLightingVertexArray() {
+    for (Chunk& chunk : this->chunks) {
+        chunk.updateLightingVertexArray();
+    }
+}
+
 void Chunks::setPixelPerBlock(int pixelPerBlock) {
     if (this->pixelPerBlock == pixelPerBlock) {
         return;
