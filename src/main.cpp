@@ -40,7 +40,7 @@ int main() {
 
     sf::FloatRect screenRect(0.f, 0.f, 1600.f, 900.f);
 
-    sf::RenderWindow window(sf::VideoMode(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "I hate C++", sf::Style::Default, settings);
+    sf::RenderWindow window(sf::VideoMode(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "Minecraft SFML Edition", sf::Style::Default, settings);
     window.setFramerateLimit(120);
     window.setVerticalSyncEnabled(false);
     window.setKeyRepeatEnabled(false);
@@ -49,7 +49,7 @@ int main() {
     icon.loadFromFile("resources/icon.png");
     window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 
-    int initialPlayerChunkID = 1;
+    int initialPlayerChunkID = 16;
     int pixelPerBlock = 32;
 
     mc::Chunks chunks(initialPlayerChunkID, 123654789, pixelPerBlock, sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/");
@@ -405,7 +405,6 @@ int main() {
                     hotbarInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - hotbarInventory.getLocalBounds().width / 2.f, screenRect.height - hotbarInventory.getLocalBounds().height));
                     hotbarInventorySprite.setPosition(sf::Vector2f(hotbarInventory.getGlobalBounds().left - static_cast<float>(uiScaling), hotbarInventory.getGlobalBounds().top - static_cast<float>(uiScaling)));
                     hotbarInventorySprite.setScale(sf::Vector2f(uiScaling, uiScaling));
-                    selectedHotbarSlotSprite.setPosition(sf::Vector2f(hotbarInventory.getSlotGlobalBounds(selectedHotbarSlot).left - static_cast<float>(uiScaling) * 2.f, hotbarInventory.getSlotGlobalBounds(selectedHotbarSlot).top - static_cast<float>(uiScaling) * 2.f));
                     selectedHotbarSlotSprite.setScale(sf::Vector2f(uiScaling, uiScaling));
                     window.setMouseCursor(crossCursor);
                     if (heldInventory.getItemStack(0).id != 0) {
@@ -428,6 +427,8 @@ int main() {
                     break;
             }
         }
+        
+        selectedHotbarSlotSprite.setPosition(sf::Vector2f(hotbarInventory.getSlotGlobalBounds(selectedHotbarSlot).left - static_cast<float>(uiScaling) * 2.f, hotbarInventory.getSlotGlobalBounds(selectedHotbarSlot).top - static_cast<float>(uiScaling) * 2.f));
 
         switch (openMenuType) {
             case MENU_NONE:

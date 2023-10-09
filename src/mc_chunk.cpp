@@ -76,6 +76,8 @@ Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& texture
                     if (height > 191) {
                         if (height > 200) {
                             this->blocks[x + y * 16] = 19;
+                        } else if (height > 196) {
+                            this->blocks[x + y * 16] = 35;
                         } else {
                             this->blocks[x + y * 16] = 15;
                         }
@@ -103,6 +105,8 @@ Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& texture
                     if (height > 191) {
                         if (height > 200) {
                             this->blocks[x + y * 16] = 19;
+                        } else if (height > 196) {
+                            this->blocks[x + y * 16] = 35;
                         } else {
                             this->blocks[x + y * 16] = 15;
                         }
@@ -110,7 +114,7 @@ Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& texture
                         this->blocks[x + y * 16] = 3;
                     }
                 } else if (y < 255 - rand() % 5) {
-                    if (abs(y - (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 100.0 - 8572688.0, 4, 0.4) * 250.0 + 100.0)) < (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 50.0 + 3599341.0, 4, 0.4) * 6.0) || abs(y - (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 100.0 + 6238173.0, 4, 0.4) * 250.0 + 100.0)) < (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 50.0 - 4800281.0, 4, 0.4) * 6.0)) {
+                    if (abs(y - (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 100.0 - 857.2688, 4, 0.4) * 250.0 + 100.0)) < (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 50.0 + 359.9341, 4, 0.4) * 6.0) || abs(y - (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 100.0 + 623.8173, 4, 0.4) * 250.0 + 100.0)) < (noise.normalizedOctave1D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 50.0 - 480.0281, 4, 0.4) * 6.0)) {
                         if (y > 248) {
                             this->blocks[x + y * 16] = 13;
                         } else {
@@ -118,16 +122,19 @@ Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& texture
                         }
                     } else {
                         this->blocks[x + y * 16] = 1;
-                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 10.0, static_cast<double>(y) / 10.0 + 3925672.0, 4, 0.4) > 0.65) {
+                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 10.0, static_cast<double>(y) / 10.0 - 743.1432, 4, 0.4) > 0.7) {
+                            this->blocks[x + y * 16] = 19;
+                        }
+                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 10.0, static_cast<double>(y) / 10.0 + 392.5672, 4, 0.4) > 0.65) {
                             this->blocks[x + y * 16] = 20;
                         }
-                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 5.0, static_cast<double>(y) / 5.0 - 6027822.0, 4, 0.4) > 0.675) {
+                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 5.0, static_cast<double>(y) / 5.0 - 602.7822, 4, 0.4) > 0.675) {
                             this->blocks[x + y * 16] = 21;
                         }
-                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 5.0, static_cast<double>(y) / 5.0 + 7734628.0, 4, 0.4) > 0.725 && y > 224) {
+                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 5.0, static_cast<double>(y) / 5.0 + 773.4628, 4, 0.4) > 0.725 && y > 224) {
                             this->blocks[x + y * 16] = 22;
                         }
-                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 5.0, static_cast<double>(y) / 5.0 - 1858459.0, 4, 0.4) > 0.725 && y > 232) {
+                        if (noise.normalizedOctave2D_01((this->chunkID * 16.0 + static_cast<double>(x)) / 5.0, static_cast<double>(y) / 5.0 - 185.8459, 4, 0.4) > 0.725 && y > 232) {
                             this->blocks[x + y * 16] = 23;
                         }
                     }
