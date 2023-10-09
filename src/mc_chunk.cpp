@@ -24,6 +24,7 @@ void Chunk::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     states.transform *= getTransform();
     states.texture = &this->textureAtlas;
     target.draw(this->vertexArray, states);
+    target.draw(this->lightingVertexArray, states);
 }
 
 Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData) : textureAtlas(textureAtlas), atlasData(atlasData) {
@@ -31,6 +32,8 @@ Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, sf::Texture& text
     this->pixelPerBlock = pixelPerBlock;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
+    this->lightingVertexArray.setPrimitiveType(sf::Triangles);
+    this->lightingVertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
     this->parseAtlasData();
     for (int i = 0; i < 4096; i++) {
         this->blocks[i] = blocks[i];
@@ -45,6 +48,8 @@ Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, sf::Texture& 
     this->pixelPerBlock = pixelPerBlock;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
+    this->lightingVertexArray.setPrimitiveType(sf::Triangles);
+    this->lightingVertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
     this->parseAtlasData();
     std::ifstream inFile(filePath, std::ios::binary);
     inFile.read(reinterpret_cast<char*>(this->blocks.data()), this->blocks.size() * sizeof(int));
@@ -59,6 +64,8 @@ Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& texture
     this->pixelPerBlock = pixelPerBlock;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
+    this->lightingVertexArray.setPrimitiveType(sf::Triangles);
+    this->lightingVertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
     this->parseAtlasData();
     int plantType;
     srand(this->chunkID);
@@ -176,6 +183,13 @@ void Chunk::initializeVertexArray() {
         this->vertexArray[i * 6 + 3].position = sf::Vector2f(blockRect.left, blockRect.top + blockRect.height);
         this->vertexArray[i * 6 + 4].position = sf::Vector2f(blockRect.left + blockRect.width, blockRect.top);
         this->vertexArray[i * 6 + 5].position = sf::Vector2f(blockRect.left + blockRect.width, blockRect.top + blockRect.height);
+
+        this->lightingVertexArray[i * 6].position = sf::Vector2f(blockRect.left, blockRect.top);
+        this->lightingVertexArray[i * 6 + 1].position = sf::Vector2f(blockRect.left + blockRect.width, blockRect.top);
+        this->lightingVertexArray[i * 6 + 2].position = sf::Vector2f(blockRect.left, blockRect.top + blockRect.height);
+        this->lightingVertexArray[i * 6 + 3].position = sf::Vector2f(blockRect.left, blockRect.top + blockRect.height);
+        this->lightingVertexArray[i * 6 + 4].position = sf::Vector2f(blockRect.left + blockRect.width, blockRect.top);
+        this->lightingVertexArray[i * 6 + 5].position = sf::Vector2f(blockRect.left + blockRect.width, blockRect.top + blockRect.height);
     }
 }
 
@@ -351,18 +365,18 @@ void Chunk::updateVertexArray() {
 void Chunk::updateLightingVertexArray() {
     for (int y = 0; y < 256; y++) {
         for (int x = 0; x < 16; x++) {
-            this->vertexArray[(x + y * 16) * 6].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x-1, y-1), this->getLightLevel(x, y-1), this->getLightLevel(x-1, y), this->getLightLevel(x, y)}));  // Top left
-            this->vertexArray[(x + y * 16) * 6 + 1].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y-1), this->getLightLevel(x+1, y-1), this->getLightLevel(x, y), this->getLightLevel(x+1, y)}));  // Top right
-            this->vertexArray[(x + y * 16) * 6 + 2].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x-1, y), this->getLightLevel(x, y), this->getLightLevel(x-1, y+1), this->getLightLevel(x, y+1)}));  // Bottom left
-            this->vertexArray[(x + y * 16) * 6 + 3].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x-1, y), this->getLightLevel(x, y), this->getLightLevel(x-1, y+1), this->getLightLevel(x, y+1)}));  // Bottom left
-            this->vertexArray[(x + y * 16) * 6 + 4].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y-1), this->getLightLevel(x+1, y-1), this->getLightLevel(x, y), this->getLightLevel(x+1, y)}));  // Top right
-            this->vertexArray[(x + y * 16) * 6 + 5].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y), this->getLightLevel(x+1, y), this->getLightLevel(x, y+1), this->getLightLevel(x+1, y+1)}));  // Bottom right
+            this->lightingVertexArray[(x + y * 16) * 6].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x-1, y-1), this->getLightLevel(x, y-1), this->getLightLevel(x-1, y), this->getLightLevel(x, y)}));  // Top left
+            this->lightingVertexArray[(x + y * 16) * 6 + 1].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y-1), this->getLightLevel(x+1, y-1), this->getLightLevel(x, y), this->getLightLevel(x+1, y)}));  // Top right
+            this->lightingVertexArray[(x + y * 16) * 6 + 2].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x-1, y), this->getLightLevel(x, y), this->getLightLevel(x-1, y+1), this->getLightLevel(x, y+1)}));  // Bottom left
+            this->lightingVertexArray[(x + y * 16) * 6 + 3].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x-1, y), this->getLightLevel(x, y), this->getLightLevel(x-1, y+1), this->getLightLevel(x, y+1)}));  // Bottom left
+            this->lightingVertexArray[(x + y * 16) * 6 + 4].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y-1), this->getLightLevel(x+1, y-1), this->getLightLevel(x, y), this->getLightLevel(x+1, y)}));  // Top right
+            this->lightingVertexArray[(x + y * 16) * 6 + 5].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y), this->getLightLevel(x+1, y), this->getLightLevel(x, y+1), this->getLightLevel(x+1, y+1)}));  // Bottom right
         }
     }
 }
 
 sf::Color Chunk::getColorFromLightLevel(int lightLevel) {
-    return sf::Color(lightLevel * 16 + 15, lightLevel * 16 + 15, lightLevel * 16 + 15);
+    return sf::Color(0, 0, 0, (15 - lightLevel) * 16);
 }
 
 void Chunk::update() {
