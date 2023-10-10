@@ -24,6 +24,7 @@ void Chunk::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     states.transform *= getTransform();
     states.texture = &this->textureAtlas;
     target.draw(this->vertexArray, states);
+    states.texture = NULL;
     target.draw(this->lightingVertexArray, states);
 }
 
@@ -39,8 +40,10 @@ Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, sf::Texture& text
         this->blocks[i] = blocks[i];
     }
     this->animationIndex = 0;
-    this->initializeVertexArray();
+    this->initializeVertexArrays();
     this->updateAllVertexArray();
+    this->initializeLightEngine();
+    this->updateAllLightingVertexArray();
 }
 
 Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData) : textureAtlas(textureAtlas), atlasData(atlasData) {
@@ -55,8 +58,10 @@ Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, sf::Texture& 
     inFile.read(reinterpret_cast<char*>(this->blocks.data()), this->blocks.size() * sizeof(int));
     inFile.close();
     this->animationIndex = 0;
-    this->initializeVertexArray();
+    this->initializeVertexArrays();
     this->updateAllVertexArray();
+    this->initializeLightEngine();
+    this->updateAllLightingVertexArray();
 }
 
 Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData) : textureAtlas(textureAtlas), atlasData(atlasData) {
@@ -152,8 +157,10 @@ Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& texture
         }
     }
     this->animationIndex = 0;
-    this->initializeVertexArray();
+    this->initializeVertexArrays();
     this->updateAllVertexArray();
+    this->initializeLightEngine();
+    this->updateAllLightingVertexArray();
 }
 
 void Chunk::parseAtlasData() {
@@ -167,7 +174,7 @@ void Chunk::parseAtlasData() {
     }
 }
 
-void Chunk::initializeVertexArray() {
+void Chunk::initializeVertexArrays() {
     sf::IntRect blockRect;
 
     blockRect.width = this->pixelPerBlock;
@@ -312,7 +319,7 @@ void Chunk::updateVertexArray() {
     int animationLength;
     int i;
 
-    while (this->vertexUpdateQueue.size()) {
+    while (!this->vertexUpdateQueue.empty()) {
         i = vertexUpdateQueue.front();
         vertexUpdateQueue.pop();
         blockID = this->blocks[i];
@@ -362,7 +369,7 @@ void Chunk::updateVertexArray() {
     }
 }
 
-void Chunk::updateLightingVertexArray() {
+void Chunk::updateAllLightingVertexArray() {
     for (int y = 0; y < 256; y++) {
         for (int x = 0; x < 16; x++) {
             this->lightingVertexArray[(x + y * 16) * 6].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x - 1, y - 1), this->getLightLevel(x, y - 1), this->getLightLevel(x - 1, y), this->getLightLevel(x, y)}));      // Top left
@@ -371,6 +378,30 @@ void Chunk::updateLightingVertexArray() {
             this->lightingVertexArray[(x + y * 16) * 6 + 3].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x - 1, y), this->getLightLevel(x, y), this->getLightLevel(x - 1, y + 1), this->getLightLevel(x, y + 1)}));  // Bottom left
             this->lightingVertexArray[(x + y * 16) * 6 + 4].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y - 1), this->getLightLevel(x + 1, y - 1), this->getLightLevel(x, y), this->getLightLevel(x + 1, y)}));  // Top right
             this->lightingVertexArray[(x + y * 16) * 6 + 5].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y), this->getLightLevel(x + 1, y), this->getLightLevel(x, y + 1), this->getLightLevel(x + 1, y + 1)}));  // Bottom right
+        }
+    }
+}
+
+void Chunk::updateLightingVertexArray() {
+    while (!this->lightingVertexUpdateQueue.empty()) {
+        int idx = this->lightingVertexUpdateQueue.front();
+        this->lightingVertexUpdateQueue.pop();
+        int X = idx % 16;
+        int Y = idx / 16;
+        for (int oX = -1; oX <= 1; oX++) {
+            for (int oY = -1; oY <= 1; oY++) {
+                int x = X + oX;
+                int y = Y + oY;
+                if (x < 0 || x > 15 || y < 0 || y > 255) {
+                    continue;
+                }
+                this->lightingVertexArray[(x + y * 16) * 6].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x - 1, y - 1), this->getLightLevel(x, y - 1), this->getLightLevel(x - 1, y), this->getLightLevel(x, y)}));      // Top left
+                this->lightingVertexArray[(x + y * 16) * 6 + 1].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y - 1), this->getLightLevel(x + 1, y - 1), this->getLightLevel(x, y), this->getLightLevel(x + 1, y)}));  // Top right
+                this->lightingVertexArray[(x + y * 16) * 6 + 2].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x - 1, y), this->getLightLevel(x, y), this->getLightLevel(x - 1, y + 1), this->getLightLevel(x, y + 1)}));  // Bottom left
+                this->lightingVertexArray[(x + y * 16) * 6 + 3].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x - 1, y), this->getLightLevel(x, y), this->getLightLevel(x - 1, y + 1), this->getLightLevel(x, y + 1)}));  // Bottom left
+                this->lightingVertexArray[(x + y * 16) * 6 + 4].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y - 1), this->getLightLevel(x + 1, y - 1), this->getLightLevel(x, y), this->getLightLevel(x + 1, y)}));  // Top right
+                this->lightingVertexArray[(x + y * 16) * 6 + 5].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y), this->getLightLevel(x + 1, y), this->getLightLevel(x, y + 1), this->getLightLevel(x + 1, y + 1)}));  // Bottom right
+            }
         }
     }
 }
@@ -400,6 +431,7 @@ void Chunk::initializeLightEngine() {
             this->skyLightLevels[x + 0 * 16] = 15;
         }
         this->skyLightUpdateQueue.push(x + 1 * 16);
+        this->lightingVertexUpdateQueue.push(x + 0 * 16);
     }
 
     for (int y = 0; y < 255; y++) {
@@ -419,6 +451,7 @@ void Chunk::initializeLightEngine() {
                 if (y < 255) {
                     this->blockLightUpdateQueue.push(x + (y + 1) * 16);
                 }
+                this->lightingVertexUpdateQueue.push(x + y * 16);
             }
         }
     }
@@ -426,7 +459,7 @@ void Chunk::initializeLightEngine() {
 
 void Chunk::update() {
     int i, blockID;
-    while (this->blockUpdateQueue.size()) {
+    while (!this->blockUpdateQueue.empty()) {
         i = this->blockUpdateQueue.front();
         this->blockUpdateQueue.pop();
         blockID = this->blocks[i];
@@ -442,8 +475,6 @@ void Chunk::updateLightLevels() {
         int y = idx / 16;
         int oldLightLevel = this->getSkyLightLevel(x, y);
         int lightLevel = 0;
-        // TODO check if block is at top of world
-        // or make getLightLevel return 15 when y = -1
         if (!this->isBlockOpaque(x, y)) {
             if (y > 0 && this->getSkyLightLevel(x, y - 1) > lightLevel) {
                 lightLevel = this->getSkyLightLevel(x, y - 1);
@@ -457,11 +488,15 @@ void Chunk::updateLightLevels() {
             if (y < 255 && this->getSkyLightLevel(x, y + 1) - 1 > lightLevel) {
                 lightLevel = this->getSkyLightLevel(x, y + 1) - 1;
             }
+            if (y == 0) {
+                lightLevel = 15;
+            }
         }
         if (oldLightLevel == lightLevel) {
             continue;
         }
         this->skyLightLevels[idx] = lightLevel;
+        this->lightingVertexUpdateQueue.push(idx);
         if (x > 0) {
             this->skyLightUpdateQueue.push((x - 1) + y * 16);
         }
@@ -483,8 +518,9 @@ void Chunk::updateLightLevels() {
         int y = idx / 16;
         int oldLightLevel = this->getBlockLightLevel(x, y);
         int lightLevel = 0;
-        // TODO check if block is emissive
-        if (!this->isBlockOpaque(x, y)) {
+        if (this->getBlockEmissionLevel(x, y)) {
+            lightLevel = this->getBlockEmissionLevel(x, y);
+        } else if (!this->isBlockOpaque(x, y)) {
             if (y > 0 && this->getBlockLightLevel(x, y - 1) - 1 > lightLevel) {
                 lightLevel = this->getBlockLightLevel(x, y - 1) - 1;
             }
@@ -502,6 +538,7 @@ void Chunk::updateLightLevels() {
             continue;
         }
         this->blockLightLevels[idx] = lightLevel;
+        this->lightingVertexUpdateQueue.push(idx);
         if (x > 0) {
             this->blockLightUpdateQueue.push((x - 1) + y * 16);
         }
@@ -520,7 +557,7 @@ void Chunk::updateLightLevels() {
 void Chunk::setPixelPerBlock(int pixelPerBlock) {
     this->pixelPerBlock = pixelPerBlock;
     this->parseAtlasData();
-    this->initializeVertexArray();
+    this->initializeVertexArrays();
     this->updateAllVertexArray();
 }
 

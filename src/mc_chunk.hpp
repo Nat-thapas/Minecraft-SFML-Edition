@@ -33,6 +33,7 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     std::queue<int> blockUpdateQueue;
     std::queue<int> skyLightUpdateQueue;
     std::queue<int> blockLightUpdateQueue;
+    std::queue<int> lightingVertexUpdateQueue;
     std::array<int, 4096> blocks;
     std::array<int, 4096> skyLightLevels;
     std::array<int, 4096> blockLightLevels;
@@ -68,7 +69,7 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     int animationIndex;
 
     void parseAtlasData();
-    void initializeVertexArray();
+    void initializeVertexArrays();
     void updateAllVertexArray();
     void update();
     sf::Color getColorFromLightLevel(int lightLevel);
@@ -93,6 +94,7 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     void updateVertexArray();
     void updateAnimatedVertexArray();
     void updateLightLevels();
+    void updateAllLightingVertexArray();
     void updateLightingVertexArray();
     bool saveToFile(std::string filePath);
 };
