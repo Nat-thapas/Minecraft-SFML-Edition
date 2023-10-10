@@ -81,11 +81,8 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     int breakBlock(int x, int y, int& xp);
     void tick(int tickCount);
     int getSkyLightLevel(int x, int y);
-    int getSkyLightLevel(int idx);
     int getBlockLightLevel(int x, int y);
-    int getBlockLightLevel(int idx);
     int getLightLevel(int x, int y);
-    int getLightLevel(int idx);
     void updateVertexArray();
     void updateAnimatedVertexArray();
     void updateLightLevels();

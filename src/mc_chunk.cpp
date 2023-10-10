@@ -454,13 +454,6 @@ int Chunk::getSkyLightLevel(int x, int y) {
     return this->skyLightLevels[x + y * 16];
 }
 
-int Chunk::getSkyLightLevel(int idx) {
-    if (idx < 0 || idx > 4095) {
-        return 0;
-    }
-    return this->skyLightLevels[idx];
-}
-
 int Chunk::getBlockLightLevel(int x, int y) {
     if (x < 0 || x > 15 || y < 0 || y > 255) {
         return 0;
@@ -468,19 +461,8 @@ int Chunk::getBlockLightLevel(int x, int y) {
     return this->blockLightLevels[x + y * 16];
 }
 
-int Chunk::getBlockLightLevel(int idx) {
-    if (idx < 0 || idx > 4095) {
-        return 0;
-    }
-    return this->blockLightLevels[idx];
-}
-
 int Chunk::getLightLevel(int x, int y) {
     return std::max(this->getSkyLightLevel(x, y), this->getBlockLightLevel(x, y));
-}
-
-int Chunk::getLightLevel(int idx) {
-    return std::max(this->getSkyLightLevel(idx), this->getBlockLightLevel(idx));
 }
 
 bool Chunk::saveToFile(std::string filePath) {
