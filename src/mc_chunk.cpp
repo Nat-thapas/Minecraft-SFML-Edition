@@ -365,18 +365,63 @@ void Chunk::updateVertexArray() {
 void Chunk::updateLightingVertexArray() {
     for (int y = 0; y < 256; y++) {
         for (int x = 0; x < 16; x++) {
-            this->lightingVertexArray[(x + y * 16) * 6].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x-1, y-1), this->getLightLevel(x, y-1), this->getLightLevel(x-1, y), this->getLightLevel(x, y)}));  // Top left
-            this->lightingVertexArray[(x + y * 16) * 6 + 1].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y-1), this->getLightLevel(x+1, y-1), this->getLightLevel(x, y), this->getLightLevel(x+1, y)}));  // Top right
-            this->lightingVertexArray[(x + y * 16) * 6 + 2].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x-1, y), this->getLightLevel(x, y), this->getLightLevel(x-1, y+1), this->getLightLevel(x, y+1)}));  // Bottom left
-            this->lightingVertexArray[(x + y * 16) * 6 + 3].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x-1, y), this->getLightLevel(x, y), this->getLightLevel(x-1, y+1), this->getLightLevel(x, y+1)}));  // Bottom left
-            this->lightingVertexArray[(x + y * 16) * 6 + 4].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y-1), this->getLightLevel(x+1, y-1), this->getLightLevel(x, y), this->getLightLevel(x+1, y)}));  // Top right
-            this->lightingVertexArray[(x + y * 16) * 6 + 5].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y), this->getLightLevel(x+1, y), this->getLightLevel(x, y+1), this->getLightLevel(x+1, y+1)}));  // Bottom right
+            this->lightingVertexArray[(x + y * 16) * 6].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x - 1, y - 1), this->getLightLevel(x, y - 1), this->getLightLevel(x - 1, y), this->getLightLevel(x, y)}));      // Top left
+            this->lightingVertexArray[(x + y * 16) * 6 + 1].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y - 1), this->getLightLevel(x + 1, y - 1), this->getLightLevel(x, y), this->getLightLevel(x + 1, y)}));  // Top right
+            this->lightingVertexArray[(x + y * 16) * 6 + 2].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x - 1, y), this->getLightLevel(x, y), this->getLightLevel(x - 1, y + 1), this->getLightLevel(x, y + 1)}));  // Bottom left
+            this->lightingVertexArray[(x + y * 16) * 6 + 3].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x - 1, y), this->getLightLevel(x, y), this->getLightLevel(x - 1, y + 1), this->getLightLevel(x, y + 1)}));  // Bottom left
+            this->lightingVertexArray[(x + y * 16) * 6 + 4].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y - 1), this->getLightLevel(x + 1, y - 1), this->getLightLevel(x, y), this->getLightLevel(x + 1, y)}));  // Top right
+            this->lightingVertexArray[(x + y * 16) * 6 + 5].color = this->getColorFromLightLevel(std::max({this->getLightLevel(x, y), this->getLightLevel(x + 1, y), this->getLightLevel(x, y + 1), this->getLightLevel(x + 1, y + 1)}));  // Bottom right
         }
     }
 }
 
+bool Chunk::isBlockOpaque(int x, int y) {
+    return this->blockOpaqueness[this->getBlock(x, y)];
+}
+
+int Chunk::getBlockEmissionLevel(int x, int y) {
+    return this->blockEmissionLevels[this->getBlock(x, y)];
+}
+
 sf::Color Chunk::getColorFromLightLevel(int lightLevel) {
     return sf::Color(0, 0, 0, (15 - lightLevel) * 16);
+}
+
+void Chunk::initializeLightEngine() {
+    for (int i = 0; i < 4096; i++) {
+        this->skyLightLevels[i] = 0;
+        this->blockLightLevels[i] = 0;
+    }
+
+    for (int x = 0; x < 16; x++) {
+        if (this->isBlockOpaque(x, 0)) {
+            this->skyLightLevels[x + 0 * 16] = 0;
+        } else {
+            this->skyLightLevels[x + 0 * 16] = 15;
+        }
+        this->skyLightUpdateQueue.push(x + 1 * 16);
+    }
+
+    for (int y = 0; y < 255; y++) {
+        for (int x = 0; x < 16; x++) {
+            int blockEmissionLevel = this->getBlockEmissionLevel(x, y);
+            if (blockEmissionLevel > 0) {
+                this->blockLightLevels[x + y * 16] = blockEmissionLevel;
+                if (x > 0) {
+                    this->blockLightUpdateQueue.push((x - 1) + y * 16);
+                }
+                if (x < 15) {
+                    this->blockLightUpdateQueue.push((x + 1) + y * 16);
+                }
+                if (y > 0) {
+                    this->blockLightUpdateQueue.push(x + (y - 1) * 16);
+                }
+                if (y < 255) {
+                    this->blockLightUpdateQueue.push(x + (y + 1) * 16);
+                }
+            }
+        }
+    }
 }
 
 void Chunk::update() {
@@ -390,9 +435,85 @@ void Chunk::update() {
 }
 
 void Chunk::updateLightLevels() {
-    for (int i = 0; i < 4096; i++) {
-        this->skyLightLevels[i] = i % 16;
-        this->blockLightLevels[i] = i % 16;
+    while (!this->skyLightUpdateQueue.empty()) {
+        int idx = this->skyLightUpdateQueue.front();
+        this->skyLightUpdateQueue.pop();
+        int x = idx % 16;
+        int y = idx / 16;
+        int oldLightLevel = this->getSkyLightLevel(x, y);
+        int lightLevel = 0;
+        // TODO check if block is at top of world
+        // or make getLightLevel return 15 when y = -1
+        if (!this->isBlockOpaque(x, y)) {
+            if (y > 0 && this->getSkyLightLevel(x, y - 1) > lightLevel) {
+                lightLevel = this->getSkyLightLevel(x, y - 1);
+            }
+            if (x > 0 && this->getSkyLightLevel(x - 1, y) - 1 > lightLevel) {
+                lightLevel = this->getSkyLightLevel(x - 1, y) - 1;
+            }
+            if (x < 15 && this->getSkyLightLevel(x + 1, y) - 1 > lightLevel) {
+                lightLevel = this->getSkyLightLevel(x + 1, y) - 1;
+            }
+            if (y < 255 && this->getSkyLightLevel(x, y + 1) - 1 > lightLevel) {
+                lightLevel = this->getSkyLightLevel(x, y + 1) - 1;
+            }
+        }
+        if (oldLightLevel == lightLevel) {
+            continue;
+        }
+        this->skyLightLevels[idx] = lightLevel;
+        if (x > 0) {
+            this->skyLightUpdateQueue.push((x - 1) + y * 16);
+        }
+        if (x < 15) {
+            this->skyLightUpdateQueue.push((x + 1) + y * 16);
+        }
+        if (y > 0) {
+            this->skyLightUpdateQueue.push(x + (y - 1) * 16);
+        }
+        if (y < 255) {
+            this->skyLightUpdateQueue.push(x + (y + 1) * 16);
+        }
+    }
+
+    while (!this->blockLightUpdateQueue.empty()) {
+        int idx = this->blockLightUpdateQueue.front();
+        this->blockLightUpdateQueue.pop();
+        int x = idx % 16;
+        int y = idx / 16;
+        int oldLightLevel = this->getBlockLightLevel(x, y);
+        int lightLevel = 0;
+        // TODO check if block is emissive
+        if (!this->isBlockOpaque(x, y)) {
+            if (y > 0 && this->getBlockLightLevel(x, y - 1) - 1 > lightLevel) {
+                lightLevel = this->getBlockLightLevel(x, y - 1) - 1;
+            }
+            if (x > 0 && this->getBlockLightLevel(x - 1, y) - 1 > lightLevel) {
+                lightLevel = this->getBlockLightLevel(x - 1, y) - 1;
+            }
+            if (x < 15 && this->getBlockLightLevel(x + 1, y) - 1 > lightLevel) {
+                lightLevel = this->getBlockLightLevel(x + 1, y) - 1;
+            }
+            if (y < 255 && this->getBlockLightLevel(x, y + 1) - 1 > lightLevel) {
+                lightLevel = this->getBlockLightLevel(x, y + 1) - 1;
+            }
+        }
+        if (oldLightLevel == lightLevel) {
+            continue;
+        }
+        this->blockLightLevels[idx] = lightLevel;
+        if (x > 0) {
+            this->blockLightUpdateQueue.push((x - 1) + y * 16);
+        }
+        if (x < 15) {
+            this->blockLightUpdateQueue.push((x + 1) + y * 16);
+        }
+        if (y > 0) {
+            this->blockLightUpdateQueue.push(x + (y - 1) * 16);
+        }
+        if (y < 255) {
+            this->blockLightUpdateQueue.push(x + (y + 1) * 16);
+        }
     }
 }
 

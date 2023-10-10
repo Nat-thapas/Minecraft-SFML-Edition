@@ -341,8 +341,8 @@ int main() {
         gameDebugInfo.setMouseChunkID(chunks.getMouseChunkID());
         gameDebugInfo.setMousePos(chunks.getMousePos());
 
-        gameDebugInfo.setPlayerLightLevel(sf::Vector2i(0, 0));
-        gameDebugInfo.setMouseLightLevel(sf::Vector2i(0, 0));
+        gameDebugInfo.setPlayerLightLevel(chunks.getPlayerLightLevel());
+        gameDebugInfo.setMouseLightLevel(chunks.getMouseLightLevel());
         
         switch (openMenuType) {
             case MENU_NONE:

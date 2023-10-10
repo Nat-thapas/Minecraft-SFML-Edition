@@ -65,6 +65,8 @@ class Chunks : public sf::Drawable {
     int getMouseChunkID();
     sf::Vector2i getMousePos();
     sf::Vector2i getLoadedChunks();
+    sf::Vector2i getPlayerLightLevel();
+    sf::Vector2i getMouseLightLevel();
     int getBlock(int chunkID, int x, int y);
     int breakBlock(int& xp);
     bool placeBlock(int blockID);

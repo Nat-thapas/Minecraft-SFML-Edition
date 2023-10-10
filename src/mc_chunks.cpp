@@ -304,6 +304,29 @@ sf::Vector2i Chunks::getLoadedChunks() {
     return sf::Vector2i(this->chunksStartID, this->chunksEndID);
 }
 
+sf::Vector2i Chunks::getPlayerLightLevel() {
+    if (this->playerChunkID < this->chunksStartID || this->playerChunkID > this->chunksEndID) {
+        return sf::Vector2i(-1, -1);
+    }
+    sf::Vector2i playerIntPos;
+    playerIntPos.x = static_cast<int>(this->playerPos.x);
+    playerIntPos.y = static_cast<int>(std::ceil(this->playerPos.y)) - 1;
+    if (playerIntPos.x < 0 || playerIntPos.x > 15 || playerIntPos.y < 0 || playerIntPos.y > 255) {
+        return sf::Vector2i(-1, -1);
+    }
+    return sf::Vector2i(this->chunks[this->playerChunkID - this->chunksStartID].getSkyLightLevel(playerIntPos.x, playerIntPos.y), this->chunks[this->playerChunkID - this->chunksStartID].getBlockLightLevel(playerIntPos.x, playerIntPos.y));
+}
+
+sf::Vector2i Chunks::getMouseLightLevel() {
+    if (this->mouseChunkID < this->chunksStartID || this->mouseChunkID > this->chunksEndID) {
+        return sf::Vector2i(-1, -1);
+    }
+    if (mousePos.x < 0 || mousePos.x > 15 || mousePos.y < 0 || mousePos.y > 255) {
+        return sf::Vector2i(-1, -1);
+    }
+    return sf::Vector2i(this->chunks[this->mouseChunkID - this->chunksStartID].getSkyLightLevel(mousePos.x, mousePos.y), this->chunks[this->mouseChunkID - this->chunksStartID].getBlockLightLevel(mousePos.x, mousePos.y));
+}
+
 int Chunks::getBlock(int chunkID, int x, int y) {
     if (chunkID < this->chunksStartID || chunkID > this->chunksEndID) {
         return 0;
