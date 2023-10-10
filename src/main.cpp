@@ -26,8 +26,8 @@ using json = nlohmann::json;
 int main() {
     srand(time(NULL));
 
-    sf::ContextSettings settings;
-    settings.antialiasingLevel = 8;
+    sf::ContextSettings ctxSettings;
+    ctxSettings.antialiasingLevel = 8;
 
     sf::Image cursorImage;
     cursorImage.loadFromFile("resources/textures/cursor.png");
@@ -40,7 +40,7 @@ int main() {
 
     sf::FloatRect screenRect(0.f, 0.f, 1600.f, 900.f);
 
-    sf::RenderWindow window(sf::VideoMode(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "Minecraft SFML Edition", sf::Style::Default, settings);
+    sf::RenderWindow window(sf::VideoMode(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "Minecraft SFML Edition", sf::Style::Default, ctxSettings);
     window.setFramerateLimit(120);
     window.setVerticalSyncEnabled(false);
     window.setKeyRepeatEnabled(false);
@@ -137,6 +137,7 @@ int main() {
     int openMenuType = 0;
 
     bool isFirstLoop = true;
+    bool isFullScreen = false;
 
     while (window.isOpen()) {
         perfDebugInfo.startFrame();
@@ -207,6 +208,21 @@ int main() {
                             break;
                         case sf::Keyboard::F3:
                             displayDebug ^= 1;
+                            break;
+                        case sf::Keyboard::F11:
+                            isFullScreen ^= 1;
+                            if (isFullScreen) {
+                                sf::VideoMode fullScreenVideoMode = sf::VideoMode::getFullscreenModes()[0];
+                                window.create(fullScreenVideoMode, "Minecraft SFML Edition", sf::Style::Default | sf::Style::Fullscreen, ctxSettings);
+                                resized = true;
+                                screenRect = sf::FloatRect(0, 0, fullScreenVideoMode.width, fullScreenVideoMode.height);
+                                window.setView(sf::View(screenRect));
+                            } else {
+                                screenRect = sf::FloatRect(0.f, 0.f, 1600.f, 900.f);
+                                window.create(sf::VideoMode(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "Minecraft SFML Edition", sf::Style::Default, ctxSettings);
+                                resized = true;
+                                window.setView(sf::View(screenRect));
+                            }
                             break;
                         default:
                             break;
