@@ -29,6 +29,9 @@ void PerfDebugInfo::setFont(sf::Font& font) {
 }
 
 void PerfDebugInfo::setCharacterSize(unsigned characterSize) {
+    if (this->characterSize == characterSize) {
+        return;
+    }
     this->characterSize = characterSize;
     this->updateSettings();
 }
@@ -126,9 +129,8 @@ void PerfDebugInfo::updateSettings() {
     this->overlaysRenderingTimeLabel.setOutlineThickness(this->outlineThickness);
 }
 
-PerfDebugInfo::PerfDebugInfo(sf::Vector2f position, sf::Font font, unsigned characterSize, sf::Color fillColor, sf::Color outlineColor, float outlineThickness, float lineHeightMultiplier) {
+PerfDebugInfo::PerfDebugInfo(sf::Vector2f position, sf::Font& font, unsigned characterSize, sf::Color fillColor, sf::Color outlineColor, float outlineThickness, float lineHeightMultiplier) : font(font) {
     this->position = position;
-    this->font = font;
     this->characterSize = characterSize;
     this->fillColor = fillColor;
     this->outlineColor = outlineColor;

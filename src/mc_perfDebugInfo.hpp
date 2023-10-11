@@ -9,7 +9,7 @@ namespace mc {
 class PerfDebugInfo : public sf::Drawable {
     sf::Clock frameTimeClock;
     sf::Clock clock;
-    sf::Font font;
+    sf::Font& font;
     sf::Vector2f position;
     unsigned characterSize;
     sf::Color fillColor;
@@ -48,7 +48,7 @@ class PerfDebugInfo : public sf::Drawable {
     void setOutlineThickness(float);
     void setLineHeightMultiplier(float);
     void updateSettings();
-    PerfDebugInfo(sf::Vector2f position, sf::Font font, unsigned characterSize, sf::Color fillColor, sf::Color outlineColor, float outlineThickness, float lineHeightMultiplier = 1.2f);
+    PerfDebugInfo(sf::Vector2f position, sf::Font& font, unsigned characterSize, sf::Color fillColor, sf::Color outlineColor, float outlineThickness, float lineHeightMultiplier = 1.2f);
     void startFrame();
     void endEventLoop();
     void endPlayerInputProcessing();

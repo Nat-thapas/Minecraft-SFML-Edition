@@ -8,7 +8,7 @@
 namespace mc {
 
 class GameDebugInfo : public sf::Drawable {
-    sf::Font font;
+    sf::Font& font;
     sf::Vector2f position;
     unsigned characterSize;
     sf::Color fillColor;
@@ -41,7 +41,7 @@ class GameDebugInfo : public sf::Drawable {
     void setOutlineThickness(float);
     void setLineHeightMultiplier(float);
     void updateSettings();
-    GameDebugInfo(sf::Vector2f position, sf::Font font, unsigned characterSize, sf::Color fillColor, sf::Color outlineColor, float outlineThickness, float lineHeightMultiplier = 1.2f);
+    GameDebugInfo(sf::Vector2f position, sf::Font& font, unsigned characterSize, sf::Color fillColor, sf::Color outlineColor, float outlineThickness, float lineHeightMultiplier = 1.2f);
     void setPlayerChunkID(int chunkID);
     void setPlayerPos(sf::Vector2f pos);
     void setPlayerVelocity(sf::Vector2f velocity);
