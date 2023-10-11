@@ -26,6 +26,7 @@ class Chunks : public sf::Drawable {
     std::string atlasFilesPath;
     std::string atlasDatasPath;
     sf::Texture textureAtlas;
+    sf::Shader shader;
     json atlasData;
     std::deque<mc::Chunk> chunks;
     Perlin noise;
@@ -49,7 +50,7 @@ class Chunks : public sf::Drawable {
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
-    Chunks(int playerChunkID, int seed, int pixelPerBlock, sf::Vector2i screenSize, std::string atlasFilesPath, std::string atlasDatasPath);
+    Chunks(int playerChunkID, int seed, int pixelPerBlock, sf::Vector2i screenSize, std::string atlasFilesPath, std::string atlasDatasPath, std::string shaderFilePath);
     void tick(int tickCount);
     void updateVertexArrays();
     void updateAnimatedVertexArrays();

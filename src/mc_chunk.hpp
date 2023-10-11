@@ -25,6 +25,7 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     int chunkID;
     sf::Texture& textureAtlas;
     json& atlasData;
+    sf::Shader& shader;
     std::array<sf::IntRect, 71> parsedAtlasData;
     sf::VertexArray vertexArray;
     int pixelPerBlock;
@@ -78,9 +79,9 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
-    Chunk(int blocks[4096], int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData);
-    Chunk(std::string, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData);
-    Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData);
+    Chunk(int blocks[4096], int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData, sf::Shader& shader);
+    Chunk(std::string, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData, sf::Shader& shader);
+    Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData, sf::Shader& shader);
     void setPixelPerBlock(int pixelPerBlock);
     int getBlock(int x, int y);
     void setBlock(int x, int y, int blockID);

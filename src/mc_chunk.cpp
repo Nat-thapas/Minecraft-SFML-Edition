@@ -22,11 +22,10 @@ namespace mc {
 
 void Chunk::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     states.transform *= getTransform();
-    states.texture = &this->textureAtlas;
     target.draw(this->vertexArray, states);
 }
 
-Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData) : textureAtlas(textureAtlas), atlasData(atlasData) {
+Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData, sf::Shader& shader) : textureAtlas(textureAtlas), atlasData(atlasData), shader(shader) {
     this->chunkID = chunkID;
     this->pixelPerBlock = pixelPerBlock;
     this->vertexArray.setPrimitiveType(sf::Triangles);
@@ -42,7 +41,7 @@ Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, sf::Texture& text
     this->updateAllLightingVertexArray();
 }
 
-Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData) : textureAtlas(textureAtlas), atlasData(atlasData) {
+Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData, sf::Shader& shader) : textureAtlas(textureAtlas), atlasData(atlasData), shader(shader) {
     this->chunkID = chunkID;
     this->pixelPerBlock = pixelPerBlock;
     this->vertexArray.setPrimitiveType(sf::Triangles);
@@ -58,7 +57,7 @@ Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, sf::Texture& 
     this->updateAllLightingVertexArray();
 }
 
-Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData) : textureAtlas(textureAtlas), atlasData(atlasData) {
+Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData, sf::Shader& shader) : textureAtlas(textureAtlas), atlasData(atlasData), shader(shader) {
     this->chunkID = chunkID;
     this->pixelPerBlock = pixelPerBlock;
     this->vertexArray.setPrimitiveType(sf::Triangles);
@@ -401,7 +400,8 @@ int Chunk::getBlockEmissionLevel(int x, int y) {
 }
 
 sf::Color Chunk::getColorFromLightLevel(int lightLevel) {
-    return sf::Color(0, 0, 0, (15 - lightLevel) * 16);
+    int val = lightLevel * 16 + 15;
+    return sf::Color(val, val, val, 255);
 }
 
 void Chunk::initializeLightEngine() {
