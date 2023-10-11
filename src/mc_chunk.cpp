@@ -446,9 +446,10 @@ void Chunk::updateLightLevels() {
         int y = idx / 16;
         int oldLightLevel = this->getSkyLightLevel(x, y);
         int lightLevel = 0;
+        bool filterLevel = 11 <= this->getBlock(x, y) && this->getBlock(x, y);
         if (!this->isBlockOpaque(x, y)) {
-            if (y > 0 && this->getSkyLightLevel(x, y - 1) > lightLevel) {
-                lightLevel = this->getSkyLightLevel(x, y - 1);
+            if (y > 0 && this->getSkyLightLevel(x, y - 1) - static_cast<int>(filterLevel) > lightLevel) {
+                lightLevel = this->getSkyLightLevel(x, y - 1) - static_cast<int>(filterLevel);
             }
             if (x > 0 && this->getSkyLightLevel(x - 1, y) - 1 > lightLevel) {
                 lightLevel = this->getSkyLightLevel(x - 1, y) - 1;
