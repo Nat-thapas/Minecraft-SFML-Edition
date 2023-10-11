@@ -400,7 +400,7 @@ int Chunk::getBlockEmissionLevel(int x, int y) {
 }
 
 sf::Color Chunk::getColorFromLightLevel(int lightLevel) {
-    int val = lightLevel * 16 + 15;
+    int val = lightLevel * (lightLevel + 1) + 15;
     return sf::Color(val, val, val, 255);
 }
 
