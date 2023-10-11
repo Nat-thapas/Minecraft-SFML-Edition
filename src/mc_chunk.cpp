@@ -25,12 +25,11 @@ void Chunk::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     target.draw(this->vertexArray, states);
 }
 
-Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData, sf::Shader& shader) : textureAtlas(textureAtlas), atlasData(atlasData), shader(shader) {
+Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, std::array<sf::IntRect, 71>& parsedAtlasData) : parsedAtlasData(parsedAtlasData) {
     this->chunkID = chunkID;
     this->pixelPerBlock = pixelPerBlock;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
-    this->parseAtlasData();
     for (int i = 0; i < 4096; i++) {
         this->blocks[i] = blocks[i];
     }
@@ -41,12 +40,11 @@ Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, sf::Texture& text
     this->updateAllLightingVertexArray();
 }
 
-Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData, sf::Shader& shader) : textureAtlas(textureAtlas), atlasData(atlasData), shader(shader) {
+Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, std::array<sf::IntRect, 71>& parsedAtlasData) : parsedAtlasData(parsedAtlasData) {
     this->chunkID = chunkID;
     this->pixelPerBlock = pixelPerBlock;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
-    this->parseAtlasData();
     std::ifstream inFile(filePath, std::ios::binary);
     inFile.read(reinterpret_cast<char*>(this->blocks.data()), this->blocks.size() * sizeof(int));
     inFile.close();
@@ -57,13 +55,11 @@ Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, sf::Texture& 
     this->updateAllLightingVertexArray();
 }
 
-Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& textureAtlas, json& atlasData, sf::Shader& shader) : textureAtlas(textureAtlas), atlasData(atlasData), shader(shader) {
+Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, std::array<sf::IntRect, 71>& parsedAtlasData) : parsedAtlasData(parsedAtlasData) {
     this->chunkID = chunkID;
     this->pixelPerBlock = pixelPerBlock;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
-
-    this->parseAtlasData();
     int plantType;
     srand(this->chunkID);
     for (int i = 0; i < 4096; i++) {
@@ -153,17 +149,6 @@ Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, sf::Texture& texture
     this->updateAllVertexArray();
     this->initializeLightEngine();
     this->updateAllLightingVertexArray();
-}
-
-void Chunk::parseAtlasData() {
-    sf::IntRect texRect;
-    for (int blockID = 0; blockID < 71; blockID++) {
-        texRect.left = this->atlasData[std::format("{:03d}", blockID)]["x"];
-        texRect.top = this->atlasData[std::format("{:03d}", blockID)]["y"];
-        texRect.width = this->atlasData[std::format("{:03d}", blockID)]["w"];
-        texRect.height = this->atlasData[std::format("{:03d}", blockID)]["h"];
-        this->parsedAtlasData[blockID] = texRect;
-    }
 }
 
 void Chunk::initializeVertexArrays() {
@@ -542,7 +527,6 @@ void Chunk::updateLightLevels() {
 
 void Chunk::setPixelPerBlock(int pixelPerBlock) {
     this->pixelPerBlock = pixelPerBlock;
-    this->parseAtlasData();
     this->initializeVertexArrays();
     this->updateAllVertexArray();
 }
@@ -556,6 +540,8 @@ void Chunk::setBlock(int x, int y, int blockID) {
     this->blockUpdateQueue.push(x + y * 16);
     this->update();
     this->vertexUpdateQueue.push(x + y * 16);
+    this->skyLightUpdateQueue.push(x + y * 16);
+    this->blockLightUpdateQueue.push(x + y * 16);
 }
 
 bool Chunk::placeBlock(int x, int y, int itemID) {

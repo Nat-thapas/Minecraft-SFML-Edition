@@ -41,12 +41,23 @@ void Chunks::updateTexture() {
     }
 }
 
+void Chunks::parseAtlasData() {
+    sf::IntRect texRect;
+    for (int blockID = 0; blockID < 71; blockID++) {
+        texRect.left = this->atlasData[std::format("{:03d}", blockID)]["x"];
+        texRect.top = this->atlasData[std::format("{:03d}", blockID)]["y"];
+        texRect.width = this->atlasData[std::format("{:03d}", blockID)]["w"];
+        texRect.height = this->atlasData[std::format("{:03d}", blockID)]["h"];
+        this->parsedAtlasData[blockID] = texRect;
+    }
+}
+
 void Chunks::initializeChunks() {
     for (int i = 0; i < this->chunkCountOnScreen; i++) {
         if (std::filesystem::exists(std::format("saves/test/chunks/{}.dat", this->chunksStartID + i))) {
-            this->chunks.push_back(Chunk(std::format("saves/test/chunks/{}.dat", this->chunksStartID + i), this->chunksStartID + i, this->pixelPerBlock, this->textureAtlas, this->atlasData, this->shader));
+            this->chunks.push_back(Chunk(std::format("saves/test/chunks/{}.dat", this->chunksStartID + i), this->chunksStartID + i, this->pixelPerBlock, this->parsedAtlasData));
         } else {
-            this->chunks.push_back(Chunk(this->noise, this->chunksStartID + i, this->pixelPerBlock, this->textureAtlas, this->atlasData, this->shader));
+            this->chunks.push_back(Chunk(this->noise, this->chunksStartID + i, this->pixelPerBlock, this->parsedAtlasData));
         }
     }
 }
@@ -71,6 +82,7 @@ Chunks::Chunks(int playerChunkID, int seed, int pixelPerBlock, sf::Vector2i scre
     this->highlighter.setOutlineThickness(2.f);
     this->highlighter.setOutlineColor(sf::Color::Black);
     this->updateTexture();
+    this->parseAtlasData();
     this->initializeChunks();
 }
 
@@ -150,6 +162,7 @@ void Chunks::setPixelPerBlock(int pixelPerBlock) {
     }
     this->pixelPerBlock = pixelPerBlock;
     this->updateTexture();
+    this->parseAtlasData();
     if (this->pixelPerBlock > 2) {
         this->highlighter.setSize(sf::Vector2f(static_cast<float>(this->pixelPerBlock - 2), static_cast<float>(this->pixelPerBlock - 2)));
     } else {
@@ -166,9 +179,9 @@ void Chunks::setPixelPerBlock(int pixelPerBlock) {
     if (this->chunksEndID > oldChunksEndID) {
         for (int i = 0; i < this->chunksEndID - oldChunksEndID; i++) {
             if (std::filesystem::exists(std::format("saves/test/chunks/{}.dat", oldChunksEndID + i + 1))) {
-                this->chunks.push_back(Chunk(std::format("saves/test/chunks/{}.dat", oldChunksEndID + i + 1), oldChunksEndID + i + 1, this->pixelPerBlock, this->textureAtlas, this->atlasData, this->shader));
+                this->chunks.push_back(Chunk(std::format("saves/test/chunks/{}.dat", oldChunksEndID + i + 1), oldChunksEndID + i + 1, this->pixelPerBlock, this->parsedAtlasData));
             } else {
-                this->chunks.push_back(Chunk(this->noise, oldChunksEndID + i + 1, this->pixelPerBlock, this->textureAtlas, this->atlasData, this->shader));
+                this->chunks.push_back(Chunk(this->noise, oldChunksEndID + i + 1, this->pixelPerBlock, this->parsedAtlasData));
             }
         }
     } else if (this->chunksEndID < oldChunksEndID) {
@@ -180,9 +193,9 @@ void Chunks::setPixelPerBlock(int pixelPerBlock) {
     if (this->chunksStartID < oldChunksStartID) {
         for (int i = 0; i < oldChunksStartID - this->chunksStartID; i++) {
             if (std::filesystem::exists(std::format("saves/test/chunks/{}.dat", oldChunksStartID - i - 1))) {
-                this->chunks.push_front(Chunk(std::format("saves/test/chunks/{}.dat", oldChunksStartID - i - 1), oldChunksStartID - i - 1, this->pixelPerBlock, this->textureAtlas, this->atlasData, this->shader));
+                this->chunks.push_front(Chunk(std::format("saves/test/chunks/{}.dat", oldChunksStartID - i - 1), oldChunksStartID - i - 1, this->pixelPerBlock, this->parsedAtlasData));
             } else {
-                this->chunks.push_front(Chunk(this->noise, oldChunksStartID - i - 1, this->pixelPerBlock, this->textureAtlas, this->atlasData, this->shader));
+                this->chunks.push_front(Chunk(this->noise, oldChunksStartID - i - 1, this->pixelPerBlock, this->parsedAtlasData));
             }
         }
     } else if (this->chunksStartID > oldChunksStartID) {
@@ -208,9 +221,9 @@ void Chunks::setScreenSize(sf::Vector2i screenSize) {
     if (this->chunksEndID > oldChunksEndID) {
         for (int i = 0; i < this->chunksEndID - oldChunksEndID; i++) {
             if (std::filesystem::exists(std::format("saves/test/chunks/{}.dat", oldChunksEndID + i + 1))) {
-                this->chunks.push_back(Chunk(std::format("saves/test/chunks/{}.dat", oldChunksEndID + i + 1), oldChunksEndID + i + 1, this->pixelPerBlock, this->textureAtlas, this->atlasData, this->shader));
+                this->chunks.push_back(Chunk(std::format("saves/test/chunks/{}.dat", oldChunksEndID + i + 1), oldChunksEndID + i + 1, this->pixelPerBlock, this->parsedAtlasData));
             } else {
-                this->chunks.push_back(Chunk(this->noise, oldChunksEndID + i + 1, this->pixelPerBlock, this->textureAtlas, this->atlasData, this->shader));
+                this->chunks.push_back(Chunk(this->noise, oldChunksEndID + i + 1, this->pixelPerBlock, this->parsedAtlasData));
             }
         }
     } else if (this->chunksEndID < oldChunksEndID) {
@@ -222,9 +235,9 @@ void Chunks::setScreenSize(sf::Vector2i screenSize) {
     if (this->chunksStartID < oldChunksStartID) {
         for (int i = 0; i < oldChunksStartID - this->chunksStartID; i++) {
             if (std::filesystem::exists(std::format("saves/test/chunks/{}.dat", oldChunksStartID - i - 1))) {
-                this->chunks.push_front(Chunk(std::format("saves/test/chunks/{}.dat", oldChunksStartID - i - 1), oldChunksStartID - i - 1, this->pixelPerBlock, this->textureAtlas, this->atlasData, this->shader));
+                this->chunks.push_front(Chunk(std::format("saves/test/chunks/{}.dat", oldChunksStartID - i - 1), oldChunksStartID - i - 1, this->pixelPerBlock, this->parsedAtlasData));
             } else {
-                this->chunks.push_front(Chunk(this->noise, oldChunksStartID - i - 1, this->pixelPerBlock, this->textureAtlas, this->atlasData, this->shader));
+                this->chunks.push_front(Chunk(this->noise, oldChunksStartID - i - 1, this->pixelPerBlock, this->parsedAtlasData));
             }
         }
     } else if (this->chunksStartID > oldChunksStartID) {
@@ -248,9 +261,9 @@ void Chunks::setPlayerChunkID(int chunkID) {
     if (chunkID > this->playerChunkID) {
         for (int i = 0; i < chunkID - this->playerChunkID; i++) {
             if (std::filesystem::exists(std::format("saves/test/chunks/{}.dat", this->chunksEndID + 1))) {
-                this->chunks.push_back(Chunk(std::format("saves/test/chunks/{}.dat", this->chunksEndID + 1), this->chunksEndID + 1, this->pixelPerBlock, this->textureAtlas, this->atlasData, this->shader));
+                this->chunks.push_back(Chunk(std::format("saves/test/chunks/{}.dat", this->chunksEndID + 1), this->chunksEndID + 1, this->pixelPerBlock, this->parsedAtlasData));
             } else {
-                this->chunks.push_back(Chunk(this->noise, this->chunksEndID + 1, this->pixelPerBlock, this->textureAtlas, this->atlasData, this->shader));
+                this->chunks.push_back(Chunk(this->noise, this->chunksEndID + 1, this->pixelPerBlock, this->parsedAtlasData));
             }
             this->chunks.front().saveToFile(std::format("saves/test/chunks/{}.dat", this->chunksStartID));
             this->chunks.pop_front();
@@ -260,9 +273,9 @@ void Chunks::setPlayerChunkID(int chunkID) {
     } else {
         for (int i = 0; i < this->playerChunkID - chunkID; i++) {
             if (std::filesystem::exists(std::format("saves/test/chunks/{}.dat", this->chunksStartID - 1))) {
-                this->chunks.push_front(Chunk(std::format("saves/test/chunks/{}.dat", this->chunksStartID - 1), this->chunksStartID + 1, this->pixelPerBlock, this->textureAtlas, this->atlasData, this->shader));
+                this->chunks.push_front(Chunk(std::format("saves/test/chunks/{}.dat", this->chunksStartID - 1), this->chunksStartID + 1, this->pixelPerBlock, this->parsedAtlasData));
             } else {
-                this->chunks.push_front(Chunk(this->noise, this->chunksStartID - 1, this->pixelPerBlock, this->textureAtlas, this->atlasData, this->shader));
+                this->chunks.push_front(Chunk(this->noise, this->chunksStartID - 1, this->pixelPerBlock, this->parsedAtlasData));
             }
             this->chunks.back().saveToFile(std::format("saves/test/chunks/{}.dat", this->chunksEndID));
             this->chunks.pop_back();

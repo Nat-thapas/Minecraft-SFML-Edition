@@ -405,7 +405,7 @@ int main() {
         perfDebugInfo.endChunksUpdate();
         perfDebugInfo.endEntitiesProcessing();
 
-        window.clear(sf::Color(122, 168, 255));
+        window.clear(sf::Color(144, 184, 255));
         window.draw(chunks);
 
         perfDebugInfo.endChunksRendering();

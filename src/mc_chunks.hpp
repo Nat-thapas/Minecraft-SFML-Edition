@@ -25,6 +25,7 @@ class Chunks : public sf::Drawable {
     int seed;
     std::string atlasFilesPath;
     std::string atlasDatasPath;
+    std::array<sf::IntRect, 71> parsedAtlasData;
     sf::Texture textureAtlas;
     sf::Shader shader;
     json atlasData;
@@ -43,6 +44,7 @@ class Chunks : public sf::Drawable {
     sf::RectangleShape highlighter;
 
     void updateTexture();
+    void parseAtlasData();
     void updateChunksPosition();
     void initializeChunks();
     void updateMousePosition();
