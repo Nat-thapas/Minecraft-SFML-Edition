@@ -27,7 +27,6 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     json& atlasData;
     std::array<sf::IntRect, 71> parsedAtlasData;
     sf::VertexArray vertexArray;
-    sf::VertexArray lightingVertexArray;
     int pixelPerBlock;
     std::queue<int> vertexUpdateQueue;
     std::queue<int> blockUpdateQueue;
