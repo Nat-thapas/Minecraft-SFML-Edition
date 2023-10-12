@@ -65,7 +65,6 @@ class Chunk : public sf::Drawable, public sf::Transformable {
 
     void initializeVertexArrays();
     void updateAllVertexArray();
-    void update();
     sf::Color getColorFromLightLevel(int lightLevel);
     bool isBlockOpaque(int x, int y);
     int getBlockEmissionLevel(int x, int y);
@@ -76,6 +75,7 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     Chunk(int blocks[4096], int chunkID, int pixelPerBlock, std::array<sf::IntRect, 71>& parsedAtlasData);
     Chunk(std::string, int chunkID, int pixelPerBlock, std::array<sf::IntRect, 71>& parsedAtlasData);
     Chunk(Perlin& noise, int chunkID, int pixelPerBlock, std::array<sf::IntRect, 71>& parsedAtlasData);
+    void update();
     void setPixelPerBlock(int pixelPerBlock);
     int getBlock(int x, int y);
     void setBlock(int x, int y, int blockID);

@@ -132,6 +132,12 @@ void Chunks::tick(int tickCount) {
     }
 }
 
+void Chunks::update() {
+    for (Chunk& chunk : this->chunks) {
+        chunk.update();
+    }
+}
+
 void Chunks::updateVertexArrays() {
     for (Chunk& chunk : this->chunks) {
         chunk.updateVertexArray();

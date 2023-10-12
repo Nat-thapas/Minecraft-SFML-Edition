@@ -171,14 +171,13 @@ void Chunk::initializeVertexArrays() {
 }
 
 void Chunk::updateAnimatedVertexArray() {
-    int blockID;
     sf::IntRect textureRect;
 
     int textureAnimationIndex;
     int animationLength;
 
     for (int i = 0; i < 4096; i++) {
-        blockID = this->blocks[i];
+        int blockID = this->blocks[i];
         if (!(11 <= blockID && blockID <= 14) && blockID != 38 && blockID != 63) {
             continue;
         }
@@ -228,14 +227,13 @@ void Chunk::updateAnimatedVertexArray() {
 }
 
 void Chunk::updateAllVertexArray() {
-    int blockID;
     sf::IntRect textureRect;
 
     int textureAnimationIndex;
     int animationLength;
 
     for (int i = 0; i < 4096; i++) {
-        blockID = this->blocks[i];
+        int blockID = this->blocks[i];
         textureRect.left = this->parsedAtlasData[blockID].left;
         textureRect.top = this->parsedAtlasData[blockID].top;
         textureRect.width = this->parsedAtlasData[blockID].width;
@@ -282,17 +280,15 @@ void Chunk::updateAllVertexArray() {
 }
 
 void Chunk::updateVertexArray() {
-    int blockID;
     sf::IntRect textureRect;
 
     int textureAnimationIndex;
     int animationLength;
-    int i;
 
     while (!this->vertexUpdateQueue.empty()) {
-        i = vertexUpdateQueue.front();
-        vertexUpdateQueue.pop();
-        blockID = this->blocks[i];
+        int idx = this->vertexUpdateQueue.front();
+        this->vertexUpdateQueue.pop();
+        int blockID = this->blocks[idx];
 
         textureRect.left = this->parsedAtlasData[blockID].left;
         textureRect.top = this->parsedAtlasData[blockID].top;
@@ -304,7 +300,7 @@ void Chunk::updateVertexArray() {
                 break;
             case 12:  // Flowing water
                 textureRect.top += mod((textureRect.height * this->animationIndex), this->parsedAtlasData[blockID].height);
-                textureRect.left += (i % 2) * textureRect.width;
+                textureRect.left += (idx % 2) * textureRect.width;
                 break;
             case 13:  // Still lava
                 animationLength = idiv(this->parsedAtlasData[blockID].height, textureRect.height);
@@ -316,11 +312,11 @@ void Chunk::updateVertexArray() {
                 break;
             case 14:  // Flowing lava
                 textureRect.top += mod((textureRect.height * (this->animationIndex / 3)), this->parsedAtlasData[blockID].height);
-                textureRect.left += (i % 2) * textureRect.width;
+                textureRect.left += (idx % 2) * textureRect.width;
                 break;
             case 38:  // Fire
                 textureRect.top += mod((textureRect.height * this->animationIndex), this->parsedAtlasData[blockID].height);
-                textureRect.left += (i % 2) * textureRect.width;
+                textureRect.left += (idx % 2) * textureRect.width;
                 break;
             case 63:  // Nether portal
                 textureRect.top += mod((textureRect.height * this->animationIndex), this->parsedAtlasData[blockID].height);
@@ -330,12 +326,12 @@ void Chunk::updateVertexArray() {
                 break;
         }
 
-        this->vertexArray[i * 6].texCoords = sf::Vector2f(textureRect.left, textureRect.top);
-        this->vertexArray[i * 6 + 1].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
-        this->vertexArray[i * 6 + 2].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
-        this->vertexArray[i * 6 + 3].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
-        this->vertexArray[i * 6 + 4].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
-        this->vertexArray[i * 6 + 5].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top + textureRect.height);
+        this->vertexArray[idx * 6].texCoords = sf::Vector2f(textureRect.left, textureRect.top);
+        this->vertexArray[idx * 6 + 1].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
+        this->vertexArray[idx * 6 + 2].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
+        this->vertexArray[idx * 6 + 3].texCoords = sf::Vector2f(textureRect.left, textureRect.top + textureRect.height);
+        this->vertexArray[idx * 6 + 4].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top);
+        this->vertexArray[idx * 6 + 5].texCoords = sf::Vector2f(textureRect.left + textureRect.width, textureRect.top + textureRect.height);
     }
 }
 
@@ -429,12 +425,15 @@ void Chunk::initializeLightEngine() {
 }
 
 void Chunk::update() {
-    int i, blockID;
     while (!this->blockUpdateQueue.empty()) {
-        i = this->blockUpdateQueue.front();
+        int idx = this->blockUpdateQueue.front();
         this->blockUpdateQueue.pop();
-        blockID = this->blocks[i];
-        // TODO
+        int blockID = this->blocks[idx];
+        int x = idx % 16;
+        int y = idx / 16;
+        this->vertexUpdateQueue.push(x + y * 16);
+        this->skyLightUpdateQueue.push(x + y * 16);
+        this->blockLightUpdateQueue.push(x + y * 16);
     }
 }
 
@@ -540,9 +539,6 @@ void Chunk::setBlock(int x, int y, int blockID) {
     this->blocks[x + y * 16] = blockID;
     this->blockUpdateQueue.push(x + y * 16);
     this->update();
-    this->vertexUpdateQueue.push(x + y * 16);
-    this->skyLightUpdateQueue.push(x + y * 16);
-    this->blockLightUpdateQueue.push(x + y * 16);
 }
 
 bool Chunk::placeBlock(int x, int y, int itemID) {

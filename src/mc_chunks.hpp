@@ -54,6 +54,7 @@ class Chunks : public sf::Drawable {
    public:
     Chunks(int playerChunkID, int seed, int pixelPerBlock, sf::Vector2i screenSize, std::string atlasFilesPath, std::string atlasDatasPath, std::string shaderFilePath);
     void tick(int tickCount);
+    void update();
     void updateVertexArrays();
     void updateAnimatedVertexArrays();
     void updateLightLevels();

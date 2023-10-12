@@ -393,6 +393,7 @@ int main() {
 
             // TODO chunks.update();
             chunks.tick(tickCount);
+            chunks.update();
             chunks.updateVertexArrays();
             chunks.updateAnimatedVertexArrays();
 
