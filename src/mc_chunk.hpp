@@ -32,6 +32,10 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     std::array<int, 4096> blocks;
     std::array<int, 4096> skyLightLevels;
     std::array<int, 4096> blockLightLevels;
+    std::array<int, 256> leftChunkSkyLightLevels = {};
+    std::array<int, 256> rightChunkSkyLightLevels = {};
+    std::array<int, 256> leftChunkBlockLightLevels = {};
+    std::array<int, 256> rightChunkBlockLightLevels = {};
     std::array<int, 71> itemDropIDs = {0, 4, 3, 3, 4, 5, 6, 5, 8, 87, 0, 0, 0, 0, 0, 11, 12, 13, 14, 15, 49, 17, 18, 53, 0, 21, 0, 22, 23, 24, 25, 26, 27, 28, 29, 112, 31, 32, 0, 33, 34, 35, 35, 87, 87, 87, 87, 87, 87, 87, (87 << 8) + 36, 3, 3, 37, 0, 38, 0, 38, 39, 40, 41, 42, 43, 0, 44, 45, 0, 0, 0, 47, 48};
     std::array<int, 71> itemDropChances = {0, 100, 100, 100, 100, 100, 100, 15, 100, 25, 0, 0, 0, 0, 0, 100, 100, 100, 100, 100, 100, 100, 100, 100, 0, 100, 0, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 0, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 0, 100, 0, 100, 100, 100, 100, 100, 100, 0, 100, 100, 0, 0, 0, 100, 100};
     std::array<int, 71> experienceDropAmount = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -85,6 +89,14 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     int getSkyLightLevel(int x, int y);
     int getBlockLightLevel(int x, int y);
     int getLightLevel(int x, int y);
+    void setLeftChunkSkyLightLevels(std::array<int, 256> lightLevels);
+    void setRightChunkSkyLightLevels(std::array<int, 256> lightLevels);
+    void setLeftChunkBlockLightLevels(std::array<int, 256> lightLevels);
+    void setRightChunkBlockLightLevels(std::array<int, 256> lightLevels);
+    std::array<int, 256> getLeftSkyLightLevels();
+    std::array<int, 256> getRightSkyLightLevels();
+    std::array<int, 256> getLeftBlockLightLevels();
+    std::array<int, 256> getRightBlockLightLevels();
     void updateVertexArray();
     void updateAnimatedVertexArray();
     void updateLightLevels();

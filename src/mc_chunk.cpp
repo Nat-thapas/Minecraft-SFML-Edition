@@ -447,21 +447,21 @@ void Chunk::updateLightLevels() {
         int lightLevel = 0;
         bool filterLevel = 11 <= this->getBlock(x, y) && this->getBlock(x, y) < 15;
         if (!this->isBlockOpaque(x, y)) {
-            if (y > 0 && this->getSkyLightLevel(x, y - 1) - static_cast<int>(filterLevel) > lightLevel) {
+            if (this->getSkyLightLevel(x, y - 1) - static_cast<int>(filterLevel) > lightLevel) {
                 lightLevel = this->getSkyLightLevel(x, y - 1) - static_cast<int>(filterLevel);
             }
-            if (x > 0 && this->getSkyLightLevel(x - 1, y) - 1 > lightLevel) {
+            if (this->getSkyLightLevel(x - 1, y) - 1 > lightLevel) {
                 lightLevel = this->getSkyLightLevel(x - 1, y) - 1;
             }
-            if (x < 15 && this->getSkyLightLevel(x + 1, y) - 1 > lightLevel) {
+            if (this->getSkyLightLevel(x + 1, y) - 1 > lightLevel) {
                 lightLevel = this->getSkyLightLevel(x + 1, y) - 1;
             }
-            if (y < 255 && this->getSkyLightLevel(x, y + 1) - 1 > lightLevel) {
+            if (this->getSkyLightLevel(x, y + 1) - 1 > lightLevel) {
                 lightLevel = this->getSkyLightLevel(x, y + 1) - 1;
             }
             if (y == 0) {
                 lightLevel = 15;
-            }
+            } // TODO try delete this
         }
         if (oldLightLevel == lightLevel) {
             continue;
@@ -492,16 +492,16 @@ void Chunk::updateLightLevels() {
         if (this->getBlockEmissionLevel(x, y)) {
             lightLevel = this->getBlockEmissionLevel(x, y);
         } else if (!this->isBlockOpaque(x, y)) {
-            if (y > 0 && this->getBlockLightLevel(x, y - 1) - 1 > lightLevel) {
+            if (this->getBlockLightLevel(x, y - 1) - 1 > lightLevel) {
                 lightLevel = this->getBlockLightLevel(x, y - 1) - 1;
             }
-            if (x > 0 && this->getBlockLightLevel(x - 1, y) - 1 > lightLevel) {
+            if (this->getBlockLightLevel(x - 1, y) - 1 > lightLevel) {
                 lightLevel = this->getBlockLightLevel(x - 1, y) - 1;
             }
-            if (x < 15 && this->getBlockLightLevel(x + 1, y) - 1 > lightLevel) {
+            if (this->getBlockLightLevel(x + 1, y) - 1 > lightLevel) {
                 lightLevel = this->getBlockLightLevel(x + 1, y) - 1;
             }
-            if (y < 255 && this->getBlockLightLevel(x, y + 1) - 1 > lightLevel) {
+            if (this->getBlockLightLevel(x, y + 1) - 1 > lightLevel) {
                 lightLevel = this->getBlockLightLevel(x, y + 1) - 1;
             }
         }
@@ -575,6 +575,15 @@ void Chunk::tick(int tickCount) {
 }
 
 int Chunk::getSkyLightLevel(int x, int y) {
+    if (x >= 0 && x <= 15 && y == 256) {
+        return 15;
+    }
+    if (x == -1 && y >= 0 && y <= 255) {
+        return this->leftChunkSkyLightLevels[y];
+    }
+    if (x == 16 && y >= 0 && y <= 255) {
+        return this->rightChunkSkyLightLevels[y];
+    }
     if (x < 0 || x > 15 || y < 0 || y > 255) {
         return 0;
     }
@@ -582,6 +591,12 @@ int Chunk::getSkyLightLevel(int x, int y) {
 }
 
 int Chunk::getBlockLightLevel(int x, int y) {
+    if (x == -1 && y >= 0 && y <= 255) {
+        return this->leftChunkBlockLightLevels[y];
+    }
+    if (x == 16 && y >= 0 && y <= 255) {
+        return this->rightChunkBlockLightLevels[y];
+    }
     if (x < 0 || x > 15 || y < 0 || y > 255) {
         return 0;
     }
@@ -590,6 +605,74 @@ int Chunk::getBlockLightLevel(int x, int y) {
 
 int Chunk::getLightLevel(int x, int y) {
     return std::max(this->getSkyLightLevel(x, y), this->getBlockLightLevel(x, y));
+}
+
+void Chunk::setLeftChunkSkyLightLevels(std::array<int, 256> lightLevels) {
+    for (int y = 0; y < 256; y++) {
+        if (this->leftChunkSkyLightLevels[y] != lightLevels[y]) {
+            this->leftChunkSkyLightLevels[y] = lightLevels[y];
+            this->skyLightUpdateQueue.push(0 + y * 16);
+        }
+    }
+}
+
+void Chunk::setRightChunkSkyLightLevels(std::array<int, 256> lightLevels) {
+    for (int y = 0; y < 256; y++) {
+        if (this->rightChunkSkyLightLevels[y] != lightLevels[y]) {
+            this->rightChunkSkyLightLevels[y] = lightLevels[y];
+            this->skyLightUpdateQueue.push(15 + y * 16);
+        }
+    }
+}
+
+void Chunk::setLeftChunkBlockLightLevels(std::array<int, 256> lightLevels) {
+    for (int y = 0; y < 256; y++) {
+        if (this->leftChunkBlockLightLevels[y] != lightLevels[y]) {
+            this->leftChunkBlockLightLevels[y] = lightLevels[y];
+            this->blockLightUpdateQueue.push(0 + y * 16);
+        }
+    }
+}
+
+void Chunk::setRightChunkBlockLightLevels(std::array<int, 256> lightLevels) {
+    for (int y = 0; y < 256; y++) {
+        if (this->rightChunkBlockLightLevels[y] != lightLevels[y]) {
+            this->rightChunkBlockLightLevels[y] = lightLevels[y];
+            this->blockLightUpdateQueue.push(15 + y * 16);
+        }
+    }
+}
+
+std::array<int, 256> Chunk::getLeftSkyLightLevels() {
+    std::array<int, 256> output = {};
+    for (int y = 0; y < 256; y++) {
+        output[y] = this->getSkyLightLevel(0, y);
+    }
+    return output;
+}
+
+std::array<int, 256> Chunk::getRightSkyLightLevels() {
+    std::array<int, 256> output = {};
+    for (int y = 0; y < 256; y++) {
+        output[y] = this->getSkyLightLevel(15, y);
+    }
+    return output;
+}
+
+std::array<int, 256> Chunk::getLeftBlockLightLevels() {
+    std::array<int, 256> output = {};
+    for (int y = 0; y < 256; y++) {
+        output[y] = this->getBlockLightLevel(0, y);
+    }
+    return output;
+}
+
+std::array<int, 256> Chunk::getRightBlockLightLevels() {
+    std::array<int, 256> output = {};
+    for (int y = 0; y < 256; y++) {
+        output[y] = this->getBlockLightLevel(15, y);
+    }
+    return output;
 }
 
 bool Chunk::saveToFile(std::string filePath) {

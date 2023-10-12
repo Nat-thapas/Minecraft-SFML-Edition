@@ -151,8 +151,20 @@ void Chunks::updateAnimatedVertexArrays() {
 }
 
 void Chunks::updateLightLevels() {
-    for (Chunk& chunk : this->chunks) {
-        chunk.updateLightLevels();
+    // for (Chunk& chunk : this->chunks) {
+    //     chunk.updateLightLevels();
+    // }
+    int chunksCount = this->chunks.size();
+    for (size_t i = 0; i < chunksCount; i++) {
+        this->chunks[i].updateLightLevels();
+        if (chunksCount - i > 1) {
+            this->chunks[i+1].setLeftChunkSkyLightLevels(this->chunks[i].getRightSkyLightLevels());
+            this->chunks[i+1].setLeftChunkBlockLightLevels(this->chunks[i].getRightBlockLightLevels());
+            this->chunks[i+1].updateLightLevels();
+            this->chunks[i].setRightChunkSkyLightLevels(this->chunks[i+1].getLeftSkyLightLevels());
+            this->chunks[i].setRightChunkBlockLightLevels(this->chunks[i+1].getLeftBlockLightLevels());
+            this->chunks[i].updateLightLevels();
+        }
     }
 }
 
