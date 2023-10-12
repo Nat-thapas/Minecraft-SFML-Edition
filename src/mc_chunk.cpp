@@ -612,6 +612,7 @@ void Chunk::setLeftChunkSkyLightLevels(std::array<int, 256> lightLevels) {
         if (this->leftChunkSkyLightLevels[y] != lightLevels[y]) {
             this->leftChunkSkyLightLevels[y] = lightLevels[y];
             this->skyLightUpdateQueue.push(0 + y * 16);
+            this->lightingVertexUpdateQueue.push(0 + y * 16);
         }
     }
 }
@@ -621,6 +622,7 @@ void Chunk::setRightChunkSkyLightLevels(std::array<int, 256> lightLevels) {
         if (this->rightChunkSkyLightLevels[y] != lightLevels[y]) {
             this->rightChunkSkyLightLevels[y] = lightLevels[y];
             this->skyLightUpdateQueue.push(15 + y * 16);
+            this->lightingVertexUpdateQueue.push(15 + y * 16);
         }
     }
 }
@@ -630,6 +632,7 @@ void Chunk::setLeftChunkBlockLightLevels(std::array<int, 256> lightLevels) {
         if (this->leftChunkBlockLightLevels[y] != lightLevels[y]) {
             this->leftChunkBlockLightLevels[y] = lightLevels[y];
             this->blockLightUpdateQueue.push(0 + y * 16);
+            this->lightingVertexUpdateQueue.push(0 + y * 16);
         }
     }
 }
@@ -639,6 +642,7 @@ void Chunk::setRightChunkBlockLightLevels(std::array<int, 256> lightLevels) {
         if (this->rightChunkBlockLightLevels[y] != lightLevels[y]) {
             this->rightChunkBlockLightLevels[y] = lightLevels[y];
             this->blockLightUpdateQueue.push(15 + y * 16);
+            this->lightingVertexUpdateQueue.push(15 + y * 16);
         }
     }
 }

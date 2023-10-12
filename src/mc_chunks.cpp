@@ -155,7 +155,7 @@ void Chunks::updateLightLevels() {
     //     chunk.updateLightLevels();
     // }
     int chunksCount = this->chunks.size();
-    for (size_t i = 0; i < chunksCount; i++) {
+    for (int i = 0; i < chunksCount; i++) {
         this->chunks[i].updateLightLevels();
         if (chunksCount - i > 1) {
             this->chunks[i+1].setLeftChunkSkyLightLevels(this->chunks[i].getRightSkyLightLevels());
