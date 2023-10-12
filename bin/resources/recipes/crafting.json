@@ -1,0 +1,740 @@
+[
+    {
+        "width" : 1,
+        "height" : 1,
+        "shaped": false,
+        "ingredients" : [6],
+        "result_item" : 8,
+        "result_amount": 4,
+        "recipe_name": "planks"
+    },
+    {
+        "width" : 2,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [11, 11, 11, 11],
+        "result_item" : 12,
+        "result_amount": 1,
+        "recipe_name": "sandstone"
+    },
+    {
+        "width" : 2,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [12, 12, 12, 12],
+        "result_item" : 14,
+        "result_amount": 4,
+        "recipe_name": "cut_sandstone"
+    },
+    {
+        "width" : 3,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [22, 22, 22, 8, 8, 8],
+        "result_item" : 21,
+        "result_amount": 1,
+        "recipe_name": "bed"
+    },
+    {
+        "width" : 2,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [75, 75, 75, 75],
+        "result_item" : 22,
+        "result_amount": 1,
+        "recipe_name": "wool"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [49, 49, 49, 49, 49, 49, 49, 49, 49],
+        "result_item" : 25,
+        "result_amount": 1,
+        "recipe_name": "coal_block"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [51, 51, 51, 51, 51, 51, 51, 51, 51],
+        "result_item" : 26,
+        "result_amount": 1,
+        "recipe_name": "iron_block"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [52, 52, 52, 52, 52, 52, 52, 52, 52],
+        "result_item" : 27,
+        "result_amount": 1,
+        "recipe_name": "gold_block"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [53, 53, 53, 53, 53, 53, 53, 53, 53],
+        "result_item" : 28,
+        "result_amount": 1,
+        "recipe_name": "diamond_block"
+    },
+    {
+        "width" : 2,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [111, 111, 111, 111],
+        "result_item" : 29,
+        "result_amount": 1,
+        "recipe_name": "bricks"
+    },
+    {
+        "width" : 2,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [112, 112, 112, 112],
+        "result_item" : 30,
+        "result_amount": 1,
+        "recipe_name": "clay"
+    },
+    {
+        "width" : 1,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [49, 74],
+        "result_item" : 32,
+        "result_amount": 4,
+        "recipe_name": "torch_coal"
+    },
+    {
+        "width" : 1,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [50, 74],
+        "result_item" : 32,
+        "result_amount": 1,
+        "recipe_name": "torch_charcoal"
+    },
+    {
+        "width" : 2,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [8, 8, 8, 8],
+        "result_item" : 33,
+        "result_amount": 1,
+        "recipe_name": "crafting_table"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [8, 8, 8, 8, 0, 8, 8, 8, 8],
+        "result_item" : 34,
+        "result_amount": 1,
+        "recipe_name": "chest"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [4, 4, 4, 4, 0, 4, 4, 4, 4],
+        "result_item" : 35,
+        "result_amount": 1,
+        "recipe_name": "furnace"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [8, 8, 8, 8, 8, 8, 0, 74, 0],
+        "result_item" : 37,
+        "result_amount": 3,
+        "recipe_name": "sign"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [8, 8, 8, 8, 8, 8],
+        "result_item" : 38,
+        "result_amount": 3,
+        "recipe_name": "door"
+    },
+    {
+        "width" : 2,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [1, 1, 1, 1],
+        "result_item" : 39,
+        "result_amount": 4,
+        "recipe_name": "stone_bricks"
+    },
+    {
+        "width" : 2,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [39, 39, 39, 39],
+        "result_item" : 42,
+        "result_amount": 4,
+        "recipe_name": "chiseled_stone_bricks"
+    },
+    {
+        "width" : 3,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [51, 51, 51, 51, 51, 51],
+        "result_item" : 43,
+        "result_amount": 16,
+        "recipe_name": "iron_bar"
+    },
+    {
+        "width" : 2,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [121, 121, 121, 121],
+        "result_item" : 45,
+        "result_amount": 1,
+        "recipe_name": "nether_bricks"
+    },
+    {
+        "width" : 1,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [8, 8, 74],
+        "result_item" : 54,
+        "result_amount": 1,
+        "recipe_name": "wooden_sword"
+    },
+    {
+        "width" : 1,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [8, 74, 74],
+        "result_item" : 55,
+        "result_amount": 1,
+        "recipe_name": "wooden_shovel"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [8, 8, 8, 0, 74, 0, 0, 74, 0],
+        "result_item" : 56,
+        "result_amount": 1,
+        "recipe_name": "wooden_pickaxe"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [8, 8, 8, 74, 0, 74],
+        "result_item" : 57,
+        "result_amount": 1,
+        "recipe_name": "wooden_axe_left"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [8, 8, 74, 8, 74, 0],
+        "result_item" : 57,
+        "result_amount": 1,
+        "recipe_name": "wooden_axe_right"
+    },
+    {
+        "width" : 1,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [4, 4, 74],
+        "result_item" : 58,
+        "result_amount": 1,
+        "recipe_name": "stone_sword"
+    },
+    {
+        "width" : 1,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [4, 74, 74],
+        "result_item" : 59,
+        "result_amount": 1,
+        "recipe_name": "stone_shovel"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [4, 4, 4, 0, 74, 0, 0, 74, 0],
+        "result_item" : 60,
+        "result_amount": 1,
+        "recipe_name": "stone_pickaxe"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [4, 4, 4, 74, 0, 74],
+        "result_item" : 61,
+        "result_amount": 1,
+        "recipe_name": "stone_axe_left"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [4, 4, 74, 4, 74, 0],
+        "result_item" : 61,
+        "result_amount": 1,
+        "recipe_name": "stone_axe_right"
+    },
+    {
+        "width" : 1,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [51, 51, 74],
+        "result_item" : 62,
+        "result_amount": 1,
+        "recipe_name": "iron_sword"
+    },
+    {
+        "width" : 1,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [51, 74, 74],
+        "result_item" : 63,
+        "result_amount": 1,
+        "recipe_name": "iron_shovel"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [51, 51, 51, 0, 74, 0, 0, 74, 0],
+        "result_item" : 64,
+        "result_amount": 1,
+        "recipe_name": "iron_pickaxe"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [51, 51, 51, 74, 0, 74],
+        "result_item" : 65,
+        "result_amount": 1,
+        "recipe_name": "iron_axe_left"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [51, 51, 74, 51, 74, 0],
+        "result_item" : 65,
+        "result_amount": 1,
+        "recipe_name": "iron_axe_right"
+    },
+    {
+        "width" : 1,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [52, 52, 74],
+        "result_item" : 66,
+        "result_amount": 1,
+        "recipe_name": "golden_sword"
+    },
+    {
+        "width" : 1,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [52, 74, 74],
+        "result_item" : 67,
+        "result_amount": 1,
+        "recipe_name": "golden_shovel"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [52, 52, 52, 0, 74, 0, 0, 74, 0],
+        "result_item" : 68,
+        "result_amount": 1,
+        "recipe_name": "golden_pickaxe"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [52, 52, 52, 74, 0, 74],
+        "result_item" : 69,
+        "result_amount": 1,
+        "recipe_name": "golden_axe_left"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [52, 52, 74, 52, 74, 0],
+        "result_item" : 69,
+        "result_amount": 1,
+        "recipe_name": "golden_axe_right"
+    },
+    {
+        "width" : 1,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [53, 53, 74],
+        "result_item" : 70,
+        "result_amount": 1,
+        "recipe_name": "diamond_sword"
+    },
+    {
+        "width" : 1,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [53, 74, 74],
+        "result_item" : 71,
+        "result_amount": 1,
+        "recipe_name": "diamond_shovel"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [53, 53, 53, 0, 74, 0, 0, 74, 0],
+        "result_item" : 72,
+        "result_amount": 1,
+        "recipe_name": "diamond_pickaxe"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [53, 53, 53, 74, 0, 74],
+        "result_item" : 73,
+        "result_amount": 1,
+        "recipe_name": "diamond_axe_left"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [53, 53, 74, 53, 74, 0],
+        "result_item" : 73,
+        "result_amount": 1,
+        "recipe_name": "diamond_axe_right"
+    },
+    {
+        "width" : 1,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [8, 8],
+        "result_item" : 74,
+        "result_amount": 4,
+        "recipe_name": "stick"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [0, 74, 75, 74, 0, 75, 0, 74, 75],
+        "result_item" : 77,
+        "result_amount": 1,
+        "recipe_name": "bow_left"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [75, 74, 0, 75, 0, 74, 75, 74, 0],
+        "result_item" : 77,
+        "result_amount": 1,
+        "recipe_name": "bow_right"
+    },
+    {
+        "width" : 1,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [80, 74, 76],
+        "result_item" : 78,
+        "result_amount": 4,
+        "recipe_name": "arrow"
+    },
+    {
+        "width" : 2,
+        "height" : 1,
+        "shaped": false,
+        "ingredients" : [51, 80],
+        "result_item" : 81,
+        "result_amount": 1,
+        "recipe_name": "flint_and_steel"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [8, 8, 0, 74, 0, 74],
+        "result_item" : 82,
+        "result_amount": 1,
+        "recipe_name": "wooden_hoe_left"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [8, 8, 74, 0, 74, 0],
+        "result_item" : 82,
+        "result_amount": 1,
+        "recipe_name": "wooden_hoe_right"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [4, 4, 0, 74, 0, 74],
+        "result_item" : 83,
+        "result_amount": 1,
+        "recipe_name": "stone_hoe_left"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [4, 4, 74, 0, 74, 0],
+        "result_item" : 83,
+        "result_amount": 1,
+        "recipe_name": "stone_hoe_right"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [51, 51, 0, 74, 0, 74],
+        "result_item" : 84,
+        "result_amount": 1,
+        "recipe_name": "iron_hoe_left"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [51, 51, 74, 0, 74, 0],
+        "result_item" : 84,
+        "result_amount": 1,
+        "recipe_name": "iron_hoe_right"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [52, 52, 0, 74, 0, 74],
+        "result_item" : 85,
+        "result_amount": 1,
+        "recipe_name": "golden_hoe_left"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [52, 52, 74, 0, 74, 0],
+        "result_item" : 85,
+        "result_amount": 1,
+        "recipe_name": "golden_hoe_right"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [53, 53, 0, 74, 0, 74],
+        "result_item" : 86,
+        "result_amount": 1,
+        "recipe_name": "diamond_hoe_left"
+    },
+    {
+        "width" : 2,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [53, 53, 74, 0, 74, 0],
+        "result_item" : 86,
+        "result_amount": 1,
+        "recipe_name": "diamond_hoe_right"
+    },
+    {
+        "width" : 3,
+        "height" : 1,
+        "shaped": true,
+        "ingredients" : [36, 36, 36],
+        "result_item" : 88,
+        "result_amount": 1,
+        "recipe_name": "bread"
+    },
+    {
+        "width" : 3,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [89, 89, 89, 89, 0, 89],
+        "result_item" : 90,
+        "result_amount": 1,
+        "recipe_name": "leather_helmet"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [89, 0, 89, 89, 89, 89, 89, 89, 89],
+        "result_item" : 91,
+        "result_amount": 1,
+        "recipe_name": "leather_chestplate"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [89, 89, 89, 89, 0, 89, 89, 0 ,89],
+        "result_item" : 92,
+        "result_amount": 1,
+        "recipe_name": "leather_leggings"
+    },
+    {
+        "width" : 3,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [89, 0, 89, 89, 0, 89],
+        "result_item" : 93,
+        "result_amount": 1,
+        "recipe_name": "leather_boots"
+    },
+    {
+        "width" : 3,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [51, 51, 51, 51, 0, 51],
+        "result_item" : 94,
+        "result_amount": 1,
+        "recipe_name": "iron_helmet"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [51, 0, 51, 51, 51, 51, 51, 51, 51],
+        "result_item" : 95,
+        "result_amount": 1,
+        "recipe_name": "iron_chestplate"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [51, 51, 51, 51, 0, 51, 51, 0, 51],
+        "result_item" : 96,
+        "result_amount": 1,
+        "recipe_name": "iron_leggings"
+    },
+    {
+        "width" : 3,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [51, 0 ,51, 51, 0, 51],
+        "result_item" : 97,
+        "result_amount": 1,
+        "recipe_name": "iron_boots"
+    },
+    {
+        "width" : 3,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [52, 52, 52, 52, 0, 52],
+        "result_item" : 98,
+        "result_amount": 1,
+        "recipe_name": "golden_helmet"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [52, 0, 52, 52, 52, 52, 52, 52, 52],
+        "result_item" : 99,
+        "result_amount": 1,
+        "recipe_name": "golden_chestplate"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [52, 52, 52, 52, 0, 52, 52, 0, 52],
+        "result_item" : 100,
+        "result_amount": 1,
+        "recipe_name": "golden_leggins"
+    },
+    {
+        "width" : 3,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [52, 0, 52, 52, 0, 52],
+        "result_item" : 101,
+        "result_amount": 1,
+        "recipe_name": "golden_boots"
+    },
+    {
+        "width" : 3,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [53, 53, 53, 53, 0, 53],
+        "result_item" : 102,
+        "result_amount": 1,
+        "recipe_name": "diamond_helmet"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [53, 0, 53, 53, 53, 53, 53, 53, 53],
+        "result_item" : 103,
+        "result_amount": 1,
+        "recipe_name": "diamond_chestplate"
+    },
+    {
+        "width" : 3,
+        "height" : 3,
+        "shaped": true,
+        "ingredients" : [53, 53, 53, 53, 0, 53, 53, 0, 53],
+        "result_item" : 104,
+        "result_amount": 1,
+        "recipe_name": "diamond_leggings"
+    },
+    {
+        "width" : 3,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [53, 0, 53, 53, 0, 53],
+        "result_item" : 105,
+        "result_amount": 1,
+        "recipe_name": "diamond_boots"
+    },
+    {
+        "width" : 3,
+        "height" : 2,
+        "shaped": true,
+        "ingredients" : [51, 0, 51, 0, 51, 0],
+        "result_item" : 108,
+        "result_amount": 1,
+        "recipe_name": "bucket"
+    },
+    {
+        "width" : 1,
+        "height" : 1,
+        "shaped": false,
+        "ingredients" : [118],
+        "result_item" : 119,
+        "result_amount": 1,
+        "recipe_name": "blaze_powder"
+    },
+    {
+        "width" : 2,
+        "height" : 1,
+        "shaped": false,
+        "ingredients" : [119, 120],
+        "result_item" : 122,
+        "result_amount": 1,
+        "recipe_name": "ender_eye"
+    }
+]

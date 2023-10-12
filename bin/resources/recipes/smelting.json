@@ -1,0 +1,50 @@
+[
+    {
+        "ingredient": 4,
+        "result_item": 1
+    },
+    {
+        "ingredient": 12,
+        "result_item": 13
+    },
+    {
+        "ingredient": 11,
+        "result_item": 20
+    },
+    {
+        "ingredient": 39,
+        "result_item": 41
+    },
+    {
+        "ingredient": 16,
+        "result_item": 49
+    },
+    {
+        "ingredient": 6,
+        "result_item": 50
+    },
+    {
+        "ingredient": 17,
+        "result_item": 51
+    },
+    {
+        "ingredient": 18,
+        "result_item": 51
+    },
+    {
+        "ingredient": 19,
+        "result_item": 53
+    },
+    {
+        "ingredient": 106,
+        "result_item": 107
+    },
+    {
+        "ingredient": 113,
+        "result_item": 114
+    },
+    {
+        "ingredient": 116,
+        "result_item": 117
+    }
+]
