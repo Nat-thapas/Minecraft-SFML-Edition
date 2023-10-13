@@ -115,6 +115,9 @@ int main() {
     sf::Sprite mainInventorySprite(mainInventoryTexture);
     mainInventorySprite.setOrigin(sf::Vector2f(mainInventorySprite.getLocalBounds().width / 2.f, mainInventorySprite.getLocalBounds().height / 2.f));
 
+    sf::RectangleShape inventorySlotHoverHighlighter;
+    inventorySlotHoverHighlighter.setFillColor(sf::Color(255, 255, 255, 96));
+
     sf::RectangleShape menuBlackOutBackground;
     menuBlackOutBackground.setPosition(sf::Vector2f(0.f, 0.f));
     menuBlackOutBackground.setFillColor(sf::Color(7, 7, 7, 191));
@@ -153,6 +156,8 @@ int main() {
         bool ppbChanged = isFirstLoop;
         bool scalingChanged = isFirstLoop;
         bool menuChanged = isFirstLoop;
+
+        bool renderSlotHoverHighlighter = false;
 
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -350,16 +355,26 @@ int main() {
                 // TODO Drop held item
                 break;
             case MENU_PLAYERINV:
-                if (leftClick) {
-                    for (int i = 0; i < 9; i++) {
-                        if (hotbarInventory.getSlotGlobalBounds(i).contains(sf::Vector2f(mousePosition))) {
+                for (int i = 0; i < 9; i++) {
+                    sf::FloatRect bound = hotbarInventory.getSlotGlobalBounds(i);
+                    if (bound.contains(sf::Vector2f(mousePosition))) {
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        renderSlotHoverHighlighter = true;
+                        if (leftClick) {
                             mc::ItemStack tempItemStack(hotbarInventory.getItemStack(i));
                             hotbarInventory.setItemStack(i, heldInventory.getItemStack(0));
                             heldInventory.setItemStack(0, tempItemStack);
                         }
                     }
-                    for (int i = 0; i < 27; i++) {
-                        if (mainInventory.getSlotGlobalBounds(i).contains(sf::Vector2f(mousePosition))) {
+                }
+                for (int i = 0; i < 27; i++) {
+                    sf::FloatRect bound = mainInventory.getSlotGlobalBounds(i);
+                    if (bound.contains(sf::Vector2f(mousePosition))) {
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        renderSlotHoverHighlighter = true;
+                        if (leftClick) {
                             mc::ItemStack tempItemStack(mainInventory.getItemStack(i));
                             mainInventory.setItemStack(i, heldInventory.getItemStack(0));
                             heldInventory.setItemStack(0, tempItemStack);
@@ -461,6 +476,7 @@ int main() {
                 window.draw(mainInventorySprite);
                 window.draw(mainInventory);
                 window.draw(hotbarInventory);
+                if (renderSlotHoverHighlighter) window.draw(inventorySlotHoverHighlighter);
                 window.draw(heldInventory);
                 break;
             case MENU_PAUSE:
