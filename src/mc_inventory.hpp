@@ -2,11 +2,8 @@
 #define MC_INVENTORY_HPP
 
 #include <SFML/Graphics.hpp>
-#include <format>
 
-#include "../include/json.hpp"
-#include "idiv.hpp"
-#include "mod.hpp"
+#include "../include/json_fwd.hpp"
 
 using json = nlohmann::json;
 

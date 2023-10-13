@@ -1,17 +1,18 @@
 #include <SFML/Graphics.hpp>
-#include <cstdlib>
 #include <cmath>
+#include <cstdlib>
 #include <ctime>
+#include <fstream>
 #include <iostream>
 
 #include "../include/json.hpp"
 #include "idiv.hpp"
 #include "mc_chunk.hpp"
 #include "mc_chunks.hpp"
-#include "mc_player.hpp"
-#include "mc_inventory.hpp"
 #include "mc_gameDebugInfo.hpp"
+#include "mc_inventory.hpp"
 #include "mc_perfDebugInfo.hpp"
+#include "mc_player.hpp"
 #include "mod.hpp"
 
 #define MENU_NONE 0
@@ -73,12 +74,12 @@ int main() {
     sf::Time frameTime;
 
     // friction, drag = speed * coefficient
-    float playerMaxSpeed = 4.317f;  // block/second
-    float playerFromStillAcceleration = 40.f;  // m/s^2
-    float playerTerminalVelocity = 80.f;  // m/s
-    float playerMass = 75.f;  // kg
+    float playerMaxSpeed = 4.317f;                                         // block/second
+    float playerFromStillAcceleration = 40.f;                              // m/s^2
+    float playerTerminalVelocity = 80.f;                                   // m/s
+    float playerMass = 75.f;                                               // kg
     float playerMovementForce = playerFromStillAcceleration * playerMass;  // F = ma; N
-    float gravity = 25.f;  // m/s^2
+    float gravity = 25.f;                                                  // m/s^2
     float playerFrictionCoefficient = playerMovementForce / playerMaxSpeed;
     float playerAirDragCoefficient = playerMass * gravity / playerTerminalVelocity;
 
@@ -343,7 +344,7 @@ int main() {
 
         gameDebugInfo.setPlayerLightLevel(chunks.getPlayerLightLevel());
         gameDebugInfo.setMouseLightLevel(chunks.getMouseLightLevel());
-        
+
         switch (openMenuType) {
             case MENU_NONE:
                 // TODO Drop held item
@@ -445,7 +446,7 @@ int main() {
                     break;
             }
         }
-        
+
         selectedHotbarSlotSprite.setPosition(sf::Vector2f(hotbarInventory.getSlotGlobalBounds(selectedHotbarSlot).left - static_cast<float>(uiScaling) * 2.f, hotbarInventory.getSlotGlobalBounds(selectedHotbarSlot).top - static_cast<float>(uiScaling) * 2.f));
 
         switch (openMenuType) {

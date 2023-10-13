@@ -2,8 +2,6 @@
 #define MC_GAMEDEBUGINFO_HPP
 
 #include <SFML/Graphics.hpp>
-#include <format>
-#include <algorithm>
 
 namespace mc {
 

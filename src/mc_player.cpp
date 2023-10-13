@@ -1,12 +1,12 @@
-#include "mc_player.hpp"
-
 #include <SFML/Graphics.hpp>
-#include <string>
 #include <algorithm>
+#include <string>
 
-#include "mc_chunks.hpp"
 #include "idiv.hpp"
 #include "mod.hpp"
+
+#include "mc_chunks.hpp"
+#include "mc_player.hpp"
 
 namespace mc {
 

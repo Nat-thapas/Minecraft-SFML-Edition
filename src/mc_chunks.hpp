@@ -2,19 +2,14 @@
 #define MC_CHUNKS_HPP
 
 #include <SFML/Graphics.hpp>
-#include <cstdlib>
-#include <filesystem>
-#include <format>
-#include <fstream>
+#include <array>
 #include <queue>
 #include <string>
-#include <vector>
 
 #include "../include/json.hpp"
 #include "../include/perlin.hpp"
-#include "idiv.hpp"
+
 #include "mc_chunk.hpp"
-#include "mod.hpp"
 
 using json = nlohmann::json;
 using Perlin = siv::PerlinNoise;

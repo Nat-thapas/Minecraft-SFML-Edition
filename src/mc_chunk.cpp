@@ -1,21 +1,17 @@
-#include "mc_chunk.hpp"
-
 #include <SFML/Graphics.hpp>
 #include <algorithm>
 #include <array>
 #include <cstdlib>
-#include <format>
 #include <fstream>
 #include <queue>
 #include <string>
-#include <vector>
 
-#include "../include/json.hpp"
 #include "../include/perlin.hpp"
 #include "idiv.hpp"
 #include "mod.hpp"
 
-using json = nlohmann::json;
+#include "mc_chunk.hpp"
+
 using Perlin = siv::PerlinNoise;
 
 namespace mc {

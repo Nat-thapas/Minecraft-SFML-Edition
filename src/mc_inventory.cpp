@@ -1,5 +1,3 @@
-#include "mc_inventory.hpp"
-
 #include <SFML/Graphics.hpp>
 #include <format>
 
@@ -7,7 +5,7 @@
 #include "idiv.hpp"
 #include "mod.hpp"
 
-#include <iostream>
+#include "mc_inventory.hpp"
 
 using json = nlohmann::json;
 
@@ -133,7 +131,7 @@ sf::FloatRect Inventory::getGlobalBounds() {
     sf::FloatRect globalBounds;
     globalBounds.left = this->getPosition().x;
     globalBounds.top = this->getPosition().y;
-    globalBounds.width = static_cast<float>(this->size % this->width * (this->scaling * (16 + this->margin * 2))); 
+    globalBounds.width = static_cast<float>(this->size % this->width * (this->scaling * (16 + this->margin * 2)));
     globalBounds.height = static_cast<float>((this->size / this->width + (this->size % this->width > 0)) * (this->scaling * (16 + this->margin * 2)));
     return globalBounds;
 }
@@ -142,7 +140,7 @@ sf::FloatRect Inventory::getLocalBounds() {
     sf::FloatRect localBounds;
     localBounds.left = 0.f;
     localBounds.top = 0.f;
-    localBounds.width = static_cast<float>(std::min(this->width, this->size) * (this->scaling * (16 + this->margin * 2))); 
+    localBounds.width = static_cast<float>(std::min(this->width, this->size) * (this->scaling * (16 + this->margin * 2)));
     localBounds.height = static_cast<float>((this->size / this->width + (this->size % this->width != 0)) * (this->scaling * (16 + this->margin * 2)));
     return localBounds;
 }
@@ -155,7 +153,6 @@ sf::FloatRect Inventory::getSlotGlobalBounds(int slotID) {
     globalBounds.height = static_cast<float>(this->scaling * (16 + this->margin * 2));
     return globalBounds;
 }
-
 
 sf::FloatRect Inventory::getSlotLocalBounds(int slotID) {
     sf::FloatRect localBounds;
