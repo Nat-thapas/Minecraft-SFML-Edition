@@ -194,9 +194,35 @@ ItemStack Inventory::addItemStack(ItemStack itemStack) {
     this->updateAllVertexArray();
     this->updateAllAmountLabels();
     if (itemStack.amount == 0) {
-        return ItemStack(0, 0);
+        itemStack.id = 0;
     }
     return itemStack;
+}
+
+ItemStack Inventory::addItemStack(int slotID, ItemStack itemStack) {
+    if (this->itemStacks[slotID].id != 0 && this->itemStacks[slotID].id != itemStack.id) {
+        return itemStack;
+    }
+    int addAmount;
+    bool updateVertexArray = false;
+    if (this->itemStacks[slotID].id == 0) {
+        this->itemStacks[slotID].id = itemStack.id;
+        addAmount = std::min(64, itemStack.amount);
+        updateVertexArray = true;
+    } else {
+        int addAmount = std::min(this->stackSizes[this->itemStacks[slotID].id] - this->getItemStack(slotID).amount, itemStack.amount);
+    }
+    this->itemStacks[slotID].amount += addAmount;
+    if (updateVertexArray) {
+        this->updateAllVertexArray();
+    }
+    this->updateAllAmountLabels();
+    itemStack.amount -= addAmount;
+    if (itemStack.amount == 0) {
+        itemStack.id = 0;
+    }
+    return itemStack;
+    
 }
 
 int Inventory::subtractItem(int slotID, int amount) {
