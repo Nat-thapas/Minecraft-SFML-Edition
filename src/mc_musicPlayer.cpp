@@ -11,13 +11,13 @@ MusicPlayer::MusicPlayer(std::string musicFilesBasePath, std::vector<std::string
     for (size_t i = 0; i < musicFileNames.size(); i++) {
         this->musicFilePaths[i] = musicFilesBasePath + musicFileNames[i];
     }
-    this->currentMusicIdx = -1;
-    this->playing = false;
-    this->waitTime = 0;
-    this->clock.restart();
+    this->shouldBePlaying = false;
 }
 
 void MusicPlayer::update() {
+    if (!this->shouldBePlaying) {
+        return;
+    }
     if (this->music.getStatus() == sf::Music::Status::Playing) {
         return;
     }
@@ -39,6 +39,23 @@ void MusicPlayer::update() {
     this->music.openFromFile(this->musicFilePaths[this->currentMusicIdx]);
     this->music.play();
     this->playing = true;
+}
+
+void MusicPlayer::start() {
+    this->currentMusicIdx = -1;
+    this->playing = false;
+    this->waitTime = 0;
+    this->clock.restart();
+    this->shouldBePlaying = true;
+}
+
+void MusicPlayer::stop() {
+    this->music.stop();
+    this->currentMusicIdx = -1;
+    this->playing = false;
+    this->waitTime = 0;
+    this->clock.restart();
+    this->shouldBePlaying = false;
 }
 
 }  // namespace mc

@@ -13,11 +13,14 @@ class MusicPlayer {
     int currentMusicIdx;
     sf::Clock clock;
     bool playing;
+    bool shouldBePlaying;
     int waitTime;
 
    public:
     MusicPlayer(std::string musicFilesBasePath, std::vector<std::string> musicFileNames);
     void update();
+    void start();
+    void stop();
 };
 
 }  // namespace mc
