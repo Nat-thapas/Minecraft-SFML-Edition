@@ -528,6 +528,9 @@ void Chunk::setPixelPerBlock(int pixelPerBlock) {
 }
 
 int Chunk::getBlock(int x, int y) {
+    if (x < 0 || x > 15 || y < 0 || y > 255) {
+        return 0;
+    }
     return this->blocks[x + y * 16];
 }
 
