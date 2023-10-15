@@ -10,8 +10,8 @@ using json = nlohmann::json;
 namespace mc {
 
 struct ItemStack {
-    int amount;
     int id;
+    int amount;
 };
     
 class Inventory : public sf::Drawable, public sf::Transformable {
@@ -44,6 +44,7 @@ class Inventory : public sf::Drawable, public sf::Transformable {
     sf::FloatRect getSlotGlobalBounds(int slotID);
     sf::FloatRect getSlotLocalBounds(int slotID);
     ItemStack getItemStack(int slotID);
+    int getEmptySpace(int slotID);
     void setItemStack(int slotID, ItemStack itemStack);
     ItemStack addItemStack(ItemStack itemStack);
     ItemStack addItemStack(int slotID, ItemStack itemStack);

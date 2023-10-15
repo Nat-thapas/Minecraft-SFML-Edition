@@ -168,6 +168,12 @@ ItemStack Inventory::getItemStack(int slotID) {
     return this->itemStacks[slotID];
 }
 
+int Inventory::getEmptySpace(int slotID) {
+    if (slotID < 0 || slotID >= this->size) return 0;
+    if (this->itemStacks[slotID].id == 0) return 64;
+    return this->stackSizes[this->itemStacks[slotID].id] - this->itemStacks[slotID].amount;
+}
+
 void Inventory::setItemStack(int slotID, ItemStack itemStack) {
     if (slotID < 0 || slotID >= this->size) return;
     this->itemStacks[slotID] = itemStack;
@@ -210,7 +216,7 @@ ItemStack Inventory::addItemStack(int slotID, ItemStack itemStack) {
         addAmount = std::min(64, itemStack.amount);
         updateVertexArray = true;
     } else {
-        int addAmount = std::min(this->stackSizes[this->itemStacks[slotID].id] - this->getItemStack(slotID).amount, itemStack.amount);
+        addAmount = std::min(this->stackSizes[this->itemStacks[slotID].id] - this->getItemStack(slotID).amount, itemStack.amount);
     }
     this->itemStacks[slotID].amount += addAmount;
     if (updateVertexArray) {

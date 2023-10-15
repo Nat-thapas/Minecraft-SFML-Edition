@@ -21,6 +21,7 @@ CraftingInterface::CraftingInterface(int size, int scaling, int margin, sf::Font
    outputInventory(1, 1, scaling, margin, font, textureAtlas, atlasData), 
    recipesData(recipesData) {
     this->size = size;
+    this->parseRecipesData();
 }
 
 void CraftingInterface::setInputPosition(sf::Vector2f position) {
@@ -51,7 +52,7 @@ void CraftingInterface::parseRecipesData() {
         size_t ingredientsCount = this->recipesData[i]["ingredients"].size();
         this->parsedRecipesData[i].ingredients.resize(ingredientsCount);
         for (size_t j = 0; j < ingredientsCount; j++) {
-            this->parsedRecipesData[i].ingredients[j] = this->recipesData[i]["ingredients"][i];
+            this->parsedRecipesData[i].ingredients[j] = this->recipesData[i]["ingredients"][j];
         }
         this->parsedRecipesData[i].resultItemStack = ItemStack(this->recipesData[i]["result_item"], this->recipesData[i]["result_amount"]);
     }
@@ -70,7 +71,7 @@ sf::IntRect CraftingInterface::getRecipeRect() {
                 minX = std::min(minX, x);
                 minY = std::min(minY, y);
                 maxX = std::max(maxX, x);
-                maxY = std::min(maxY, y);
+                maxY = std::max(maxY, y);
             }
         }
     }
@@ -92,10 +93,22 @@ std::vector<int> CraftingInterface::getMatchVector() {
     return matchVector;
 }
 
+std::vector<int> CraftingInterface::getShapelessMatchVector(std::vector<int> matchVector) {
+    int zerosCount = std::count(matchVector.cbegin(), matchVector.cend(), 0);
+    std::sort(matchVector.begin(), matchVector.end());
+    return std::vector<int>(matchVector.cbegin() + zerosCount, matchVector.cend());
+}
+
 void CraftingInterface::updateOutput() {
+    // TODO support shapeless recipes
+    sf::IntRect recipeRect = this->getRecipeRect();
     std::vector<int> matchVector = this->getMatchVector();
     for (size_t i = 0; i < this->parsedRecipesData.size(); i++) {
-        if (matchVector == this->parsedRecipesData[i].ingredients) {
+        if (matchVector == this->parsedRecipesData[i].ingredients && recipeRect.width == this->parsedRecipesData[i].width && recipeRect.height == this->parsedRecipesData[i].height) {
+            this->setOutputItemStack(0, this->parsedRecipesData[i].resultItemStack);
+            return;
+        }
+        if (this->parsedRecipesData[i].shaped == false && this->getShapelessMatchVector(matchVector) == this->parsedRecipesData[i].ingredients) {
             this->setOutputItemStack(0, this->parsedRecipesData[i].resultItemStack);
             return;
         }
@@ -147,6 +160,10 @@ ItemStack CraftingInterface::getOutputItemStack(int slotID) {
     return this->outputInventory.getItemStack(slotID);
 }
 
+int CraftingInterface::getInputEmptySpace(int slotID) {
+    return this->inputInventory.getEmptySpace(slotID);
+}
+
 void CraftingInterface::setInputItemStack(int slotID, ItemStack itemStack) {
     this->inputInventory.setItemStack(slotID, itemStack);
     this->updateOutput();
@@ -162,10 +179,16 @@ ItemStack CraftingInterface::takeOutputItem(int slotID) {
     if (slotID != 0) {
         return ItemStack(0, 0);
     }
+    ItemStack returnVal = this->outputInventory.getItemStack(0);
     for (int i = 0; i < this->size * this->size; i++) {
-        this->setInputItemStack(i, ItemStack(this->getInputItemStack(i).amount - 1 > 0 ? this->getInputItemStack(i).id : 0, this->getInputItemStack(i).amount - 1));
+        if (this->inputInventory.getItemStack(i).amount > 1) {
+            this->inputInventory.setItemStack(i, ItemStack(this->inputInventory.getItemStack(i).id, this->inputInventory.getItemStack(i).amount - 1));
+        } else {
+            this->inputInventory.setItemStack(i, ItemStack(0, 0));
+        }
     }
-    return this->outputInventory.getItemStack(0);
+    this->updateOutput();
+    return returnVal;
 }
  
 }  //namespace mc

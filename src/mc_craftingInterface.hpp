@@ -29,6 +29,7 @@ class CraftingInterface : public sf::Drawable {
     void parseRecipesData();
     sf::IntRect getRecipeRect();
     std::vector<int> getMatchVector();
+    std::vector<int> getShapelessMatchVector(std::vector<int> matchVector);
     void updateOutput();
     void setOutputItemStack(int slotID, ItemStack itemStack);
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
@@ -49,6 +50,7 @@ class CraftingInterface : public sf::Drawable {
     sf::FloatRect getOutputSlotLocalBounds(int slotID);
     ItemStack getInputItemStack(int slotID);
     ItemStack getOutputItemStack(int slotID);
+    int getInputEmptySpace(int slotID);
     void setInputItemStack(int slotID, ItemStack itemStack);
     ItemStack addInputItemStack(int slotID, ItemStack itemStack);
     ItemStack takeOutputItem(int slotID);
