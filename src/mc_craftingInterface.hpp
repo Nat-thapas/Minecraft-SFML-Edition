@@ -2,6 +2,7 @@
 #define MC_CRAFTINGINTERFACE_HPP
 
 #include <SFML/Graphics.hpp>
+#include <vector>
 
 #include "../include/json_fwd.hpp"
 #include "mc_inventory.hpp"
@@ -10,14 +11,30 @@ using json = nlohmann::json;
 
 namespace mc {
 
+struct RecipeData {
+    int width;
+    int height;
+    bool shaped;
+    std::vector<int> ingredients;
+    ItemStack resultItemStack;
+};
+
 class CraftingInterface : public sf::Drawable {
+    int size;
     Inventory inputInventory;
     Inventory outputInventory;
+    json& recipesData;
+    std::vector<RecipeData> parsedRecipesData;
 
+    void parseRecipesData();
+    sf::IntRect getRecipeRect();
+    std::vector<int> getMatchVector();
+    void updateOutput();
+    void setOutputItemStack(int slotID, ItemStack itemStack);
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
-    CraftingInterface(int size, int scaling, int margin, sf::Font& font, sf::Texture& textureAtlas, json& atlasData);
+    CraftingInterface(int size, int scaling, int margin, sf::Font& font, sf::Texture& textureAtlas, json& atlasData, json& recipesData);
     void setInputPosition(sf::Vector2f position);
     void setOutputPosition(sf::Vector2f position);
     void setScaling(int scaling);
@@ -34,7 +51,7 @@ class CraftingInterface : public sf::Drawable {
     ItemStack getOutputItemStack(int slotID);
     void setInputItemStack(int slotID, ItemStack itemStack);
     ItemStack addInputItemStack(int slotID, ItemStack itemStack);
-    int subtractOutputItem(int slotID, int amount);
+    ItemStack takeOutputItem(int slotID);
 };
 
 }  // namespace mc

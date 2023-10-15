@@ -1,4 +1,6 @@
 #include <SFML/Graphics.hpp>
+#include <vector>
+#include <algorithm>
 
 #include "../include/json.hpp"
 #include "mc_inventory.hpp"
@@ -14,10 +16,11 @@ void CraftingInterface::draw(sf::RenderTarget& target, sf::RenderStates states) 
     target.draw(this->outputInventory, states);
 }
 
-CraftingInterface::CraftingInterface(int size, int scaling, int margin, sf::Font& font, sf::Texture& textureAtlas, json& atlasData)
+CraftingInterface::CraftingInterface(int size, int scaling, int margin, sf::Font& font, sf::Texture& textureAtlas, json& atlasData, json& recipesData)
    : inputInventory(size*size, size, scaling, margin, font, textureAtlas, atlasData),
-   outputInventory(1, 1, scaling, margin, font, textureAtlas, atlasData) {
-
+   outputInventory(1, 1, scaling, margin, font, textureAtlas, atlasData), 
+   recipesData(recipesData) {
+    this->size = size;
 }
 
 void CraftingInterface::setInputPosition(sf::Vector2f position) {
@@ -36,6 +39,72 @@ void CraftingInterface::setScaling(int scaling) {
 void CraftingInterface::setMargin(int margin) {
     this->inputInventory.setMargin(margin);
     this->outputInventory.setMargin(margin);
+}
+
+void CraftingInterface::parseRecipesData() {
+    size_t recipesCount = this->recipesData.size();
+    this->parsedRecipesData.resize(recipesCount);
+    for (size_t i = 0; i < recipesCount; i++) {
+        this->parsedRecipesData[i].width = this->recipesData[i]["width"];
+        this->parsedRecipesData[i].height = this->recipesData[i]["height"];
+        this->parsedRecipesData[i].shaped = this->recipesData[i]["shaped"];
+        size_t ingredientsCount = this->recipesData[i]["ingredients"].size();
+        this->parsedRecipesData[i].ingredients.resize(ingredientsCount);
+        for (size_t j = 0; j < ingredientsCount; j++) {
+            this->parsedRecipesData[i].ingredients[j] = this->recipesData[i]["ingredients"][i];
+        }
+        this->parsedRecipesData[i].resultItemStack = ItemStack(this->recipesData[i]["result_item"], this->recipesData[i]["result_amount"]);
+    }
+}
+
+sf::IntRect CraftingInterface::getRecipeRect() {
+    int minX = this->size;
+    int minY = this->size;
+    int maxX = -1;
+    int maxY = -1;
+    bool itemExist = false;
+    for (int x = 0; x < size; x++) {
+        for (int y = 0; y < size; y++) {
+            if (this->getInputItemStack(x + y * size).id != 0) {
+                itemExist = true;
+                minX = std::min(minX, x);
+                minY = std::min(minY, y);
+                maxX = std::max(maxX, x);
+                maxY = std::min(maxY, y);
+            }
+        }
+    }
+    if (itemExist) {
+        return sf::IntRect(minX, minY, maxX - minX + 1, maxY - minY + 1);
+    }
+    return sf::IntRect(0, 0, 0, 0);
+}
+
+std::vector<int> CraftingInterface::getMatchVector() {
+    sf::IntRect recipeRect = this->getRecipeRect();
+    std::vector<int> matchVector;
+    matchVector.resize(recipeRect.width * recipeRect.height);
+    for (int x = recipeRect.left; x < recipeRect.left + recipeRect.width; x++) {
+        for (int y = recipeRect.top; y < recipeRect.top + recipeRect.height; y++) {
+            matchVector[(x - recipeRect.left) + (y - recipeRect.top) * recipeRect.width] = this->getInputItemStack(x + y * this->size).id;
+        }
+    }
+    return matchVector;
+}
+
+void CraftingInterface::updateOutput() {
+    std::vector<int> matchVector = this->getMatchVector();
+    for (size_t i = 0; i < this->parsedRecipesData.size(); i++) {
+        if (matchVector == this->parsedRecipesData[i].ingredients) {
+            this->setOutputItemStack(0, this->parsedRecipesData[i].resultItemStack);
+            return;
+        }
+    }
+    this->setOutputItemStack(0, ItemStack(0, 0));
+}
+
+void CraftingInterface::setOutputItemStack(int slotID, ItemStack itemStack) {
+    this->outputInventory.setItemStack(slotID, itemStack);
 }
 
 sf::FloatRect CraftingInterface::getInputGlobalBounds() {
@@ -80,15 +149,23 @@ ItemStack CraftingInterface::getOutputItemStack(int slotID) {
 
 void CraftingInterface::setInputItemStack(int slotID, ItemStack itemStack) {
     this->inputInventory.setItemStack(slotID, itemStack);
+    this->updateOutput();
 }
 
 ItemStack CraftingInterface::addInputItemStack(int slotID, ItemStack itemStack) {
-    return this->inputInventory.addItemStack(slotID, itemStack);
+    ItemStack returnVal = this->inputInventory.addItemStack(slotID, itemStack);
+    this->updateOutput();
+    return returnVal;
 }
 
-int CraftingInterface::subtractOutputItem(int slotID, int amount) {
-    // TODO
-    return 0;
+ItemStack CraftingInterface::takeOutputItem(int slotID) {
+    if (slotID != 0) {
+        return ItemStack(0, 0);
+    }
+    for (int i = 0; i < this->size * this->size; i++) {
+        this->setInputItemStack(i, ItemStack(this->getInputItemStack(i).amount - 1 > 0 ? this->getInputItemStack(i).id : 0, this->getInputItemStack(i).amount - 1));
+    }
+    return this->outputInventory.getItemStack(0);
 }
  
 }  //namespace mc

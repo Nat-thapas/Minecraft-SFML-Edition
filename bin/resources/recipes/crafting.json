@@ -2,7 +2,7 @@
     {
         "width" : 1,
         "height" : 1,
-        "shaped": false,
+        "shaped": true,
         "ingredients" : [6],
         "result_item" : 8,
         "result_amount": 4,
@@ -722,7 +722,7 @@
     {
         "width" : 1,
         "height" : 1,
-        "shaped": false,
+        "shaped": true,
         "ingredients" : [118],
         "result_item" : 119,
         "result_amount": 1,
