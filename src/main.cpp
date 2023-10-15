@@ -23,6 +23,7 @@
 #define MENU_PLAYERINV 3
 #define MENU_CRAFTINGTABLE 4
 #define MENU_CHEST 5
+#define MENU_FURNACE 6
 
 using json = nlohmann::json;
 
@@ -207,6 +208,7 @@ int main() {
                                 case MENU_PLAYERINV:
                                 case MENU_CRAFTINGTABLE:
                                 case MENU_CHEST:
+                                case MENU_FURNACE:
                                     openMenuType = MENU_NONE;
                                     break;
                                 default:
@@ -219,6 +221,7 @@ int main() {
                                 case MENU_PLAYERINV:
                                 case MENU_CRAFTINGTABLE:
                                 case MENU_CHEST:
+                                case MENU_FURNACE:
                                     openMenuType = MENU_NONE;
                                     break;
                                 default:
@@ -674,6 +677,8 @@ int main() {
                     break;
                 case MENU_CHEST:
                     break;
+                case MENU_FURNACE:
+                    break;
                 default:
                     break;
             }
@@ -712,6 +717,8 @@ int main() {
                 window.draw(heldInventory);
                 break;
             case MENU_CHEST:
+                break;
+            case MENU_FURNACE:
                 break;
             default:
                 break;
