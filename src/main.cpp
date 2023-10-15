@@ -695,7 +695,7 @@ int main() {
                     hotbarInventory.setMargin(1);
                     hotbarInventory.setPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), craftingTableInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(uiScaling)));
                     crafting3x3_table.setInputPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 29.f * static_cast<float>(uiScaling), craftingTableInventorySprite.getGlobalBounds().top + 16.f * static_cast<float>(uiScaling)));
-                    crafting3x3_table.setOutputPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 123.f * static_cast<float>(uiScaling), mainInventorySprite.getGlobalBounds().top + 34.f * static_cast<float>(uiScaling)));
+                    crafting3x3_table.setOutputPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 123.f * static_cast<float>(uiScaling), craftingTableInventorySprite.getGlobalBounds().top + 34.f * static_cast<float>(uiScaling)));
                     menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
                     window.setMouseCursor(arrowCursor);
                     break;
