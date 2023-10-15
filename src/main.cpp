@@ -101,7 +101,7 @@ int main() {
     std::ifstream invAtlasDataFile("resources/textures/atlases/itemsAtlas.json");
     json invAtlasData = json::parse(invAtlasDataFile);
 
-    int uiScaling = 2;
+    int uiScaling = 3;
 
     mc::Inventory hotbarInventory(9, 9, uiScaling, 2, robotoMonoRegular, invTextureAtlas, invAtlasData);
     mc::Inventory mainInventory(27, 9, uiScaling, 1, robotoMonoRegular, invTextureAtlas, invAtlasData);
@@ -134,7 +134,7 @@ int main() {
     craftingTableInventorySprite.setOrigin(sf::Vector2f(craftingTableInventorySprite.getLocalBounds().width / 2.f, craftingTableInventorySprite.getLocalBounds().height / 2.f));
 
     sf::RectangleShape inventorySlotHoverHighlighter;
-    inventorySlotHoverHighlighter.setFillColor(sf::Color(255, 255, 255, 96));
+    inventorySlotHoverHighlighter.setFillColor(sf::Color(255, 255, 255, 127));
 
     sf::RectangleShape menuBlackOutBackground;
     menuBlackOutBackground.setPosition(sf::Vector2f(0.f, 0.f));
@@ -437,7 +437,11 @@ int main() {
                                 heldInventory.setItemStack(0, tempItemStack);
                             }
                         } else if (rightClick) {
-                            if (hotbarInventory.getEmptySpace(i) > 0 && heldInventory.getItemStack(0).id != 0) {
+                            if (heldInventory.getItemStack(0).id == 0) {
+                                mc::ItemStack movedItemStack(hotbarInventory.getItemStack(i).id, hotbarInventory.getItemStack(i).amount / 2 + hotbarInventory.getItemStack(i).amount % 2);
+                                hotbarInventory.subtractItem(i, movedItemStack.amount);
+                                heldInventory.setItemStack(0, movedItemStack);
+                            } else if (hotbarInventory.getEmptySpace(i) > 0 && heldInventory.getItemStack(0).id != 0 && (hotbarInventory.getItemStack(i).id == heldInventory.getItemStack(0).id || hotbarInventory.getItemStack(i).id == 0)) {
                                 hotbarInventory.addItemStack(i, mc::ItemStack(heldInventory.getItemStack(0).id, 1));
                                 heldInventory.subtractItem(0, 1);
                             }
@@ -460,7 +464,11 @@ int main() {
                                 heldInventory.setItemStack(0, tempItemStack);
                             }
                         } else if (rightClick) {
-                            if (mainInventory.getEmptySpace(i) > 0 && heldInventory.getItemStack(0).id != 0) {
+                            if (heldInventory.getItemStack(0).id == 0) {
+                                mc::ItemStack movedItemStack(mainInventory.getItemStack(i).id, mainInventory.getItemStack(i).amount / 2 + mainInventory.getItemStack(i).amount % 2);
+                                mainInventory.subtractItem(i, movedItemStack.amount);
+                                heldInventory.setItemStack(0, movedItemStack);
+                            } else if (mainInventory.getEmptySpace(i) > 0 && heldInventory.getItemStack(0).id != 0 && (mainInventory.getItemStack(i).id == heldInventory.getItemStack(0).id || mainInventory.getItemStack(i).id == 0)) {
                                 mainInventory.addItemStack(i, mc::ItemStack(heldInventory.getItemStack(0).id, 1));
                                 heldInventory.subtractItem(0, 1);
                             }
@@ -483,7 +491,11 @@ int main() {
                                 heldInventory.setItemStack(0, tempItemStack);
                             }
                         } else if (rightClick) {
-                            if (crafting2x2_inventory.getInputEmptySpace(i) > 0 && heldInventory.getItemStack(0).id != 0) {
+                            if (heldInventory.getItemStack(0).id == 0) {
+                                mc::ItemStack movedItemStack(crafting2x2_inventory.getInputItemStack(i).id, crafting2x2_inventory.getInputItemStack(i).amount / 2 + crafting2x2_inventory.getInputItemStack(i).amount % 2);
+                                crafting2x2_inventory.subtractInputItem(i, movedItemStack.amount);
+                                heldInventory.setItemStack(0, movedItemStack);
+                            } else if (crafting2x2_inventory.getInputEmptySpace(i) > 0 && heldInventory.getItemStack(0).id != 0 && (crafting2x2_inventory.getInputItemStack(i).id == heldInventory.getItemStack(0).id || crafting2x2_inventory.getInputItemStack(i).id == 0)) {
                                 crafting2x2_inventory.addInputItemStack(i, mc::ItemStack(heldInventory.getItemStack(0).id, 1));
                                 heldInventory.subtractItem(0, 1);
                             }
@@ -520,7 +532,11 @@ int main() {
                                 heldInventory.setItemStack(0, tempItemStack);
                             }
                         } else if (rightClick) {
-                            if (hotbarInventory.getEmptySpace(i) > 0 && heldInventory.getItemStack(0).id != 0) {
+                            if (heldInventory.getItemStack(0).id == 0) {
+                                mc::ItemStack movedItemStack(hotbarInventory.getItemStack(i).id, hotbarInventory.getItemStack(i).amount / 2 + hotbarInventory.getItemStack(i).amount % 2);
+                                hotbarInventory.subtractItem(i, movedItemStack.amount);
+                                heldInventory.setItemStack(0, movedItemStack);
+                            } else if (hotbarInventory.getEmptySpace(i) > 0 && heldInventory.getItemStack(0).id != 0 && (hotbarInventory.getItemStack(i).id == heldInventory.getItemStack(0).id || hotbarInventory.getItemStack(i).id == 0)) {
                                 hotbarInventory.addItemStack(i, mc::ItemStack(heldInventory.getItemStack(0).id, 1));
                                 heldInventory.subtractItem(0, 1);
                             }
@@ -543,7 +559,11 @@ int main() {
                                 heldInventory.setItemStack(0, tempItemStack);
                             }
                         } else if (rightClick) {
-                            if (mainInventory.getEmptySpace(i) > 0 && heldInventory.getItemStack(0).id != 0) {
+                            if (heldInventory.getItemStack(0).id == 0) {
+                                mc::ItemStack movedItemStack(mainInventory.getItemStack(i).id, mainInventory.getItemStack(i).amount / 2 + mainInventory.getItemStack(i).amount % 2);
+                                mainInventory.subtractItem(i, movedItemStack.amount);
+                                heldInventory.setItemStack(0, movedItemStack);
+                            } else if (mainInventory.getEmptySpace(i) > 0 && heldInventory.getItemStack(0).id != 0 && (mainInventory.getItemStack(i).id == heldInventory.getItemStack(0).id || mainInventory.getItemStack(i).id == 0)) {
                                 mainInventory.addItemStack(i, mc::ItemStack(heldInventory.getItemStack(0).id, 1));
                                 heldInventory.subtractItem(0, 1);
                             }
@@ -566,14 +586,18 @@ int main() {
                                 heldInventory.setItemStack(0, tempItemStack);
                             }
                         } else if (rightClick) {
-                            if (crafting3x3_table.getInputEmptySpace(i) > 0 && heldInventory.getItemStack(0).id != 0) {
+                            if (heldInventory.getItemStack(0).id == 0) {
+                                mc::ItemStack movedItemStack(crafting3x3_table.getInputItemStack(i).id, crafting3x3_table.getInputItemStack(i).amount / 2 + crafting3x3_table.getInputItemStack(i).amount % 2);
+                                crafting3x3_table.subtractInputItem(i, movedItemStack.amount);
+                                heldInventory.setItemStack(0, movedItemStack);
+                            } else if (crafting3x3_table.getInputEmptySpace(i) > 0 && heldInventory.getItemStack(0).id != 0 && (crafting3x3_table.getInputItemStack(i).id == heldInventory.getItemStack(0).id || crafting3x3_table.getInputItemStack(i).id == 0)) {
                                 crafting3x3_table.addInputItemStack(i, mc::ItemStack(heldInventory.getItemStack(0).id, 1));
                                 heldInventory.subtractItem(0, 1);
                             }
                         }
                     }
                 }
-                // 2x2 crafting output
+                // 3x3 crafting output
                 for (int i = 0; i < 1; i++) {
                     sf::FloatRect bound = crafting3x3_table.getOutputSlotGlobalBounds(i);
                     if (bound.contains(sf::Vector2f(mousePosition))) {

@@ -51,6 +51,7 @@ class CraftingInterface : public sf::Drawable {
     ItemStack getInputItemStack(int slotID);
     ItemStack getOutputItemStack(int slotID);
     int getInputEmptySpace(int slotID);
+    int subtractInputItem(int slotID, int amount);
     void setInputItemStack(int slotID, ItemStack itemStack);
     ItemStack addInputItemStack(int slotID, ItemStack itemStack);
     ItemStack takeOutputItem(int slotID);

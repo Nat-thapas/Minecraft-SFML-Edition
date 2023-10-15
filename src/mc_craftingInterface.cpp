@@ -164,6 +164,10 @@ int CraftingInterface::getInputEmptySpace(int slotID) {
     return this->inputInventory.getEmptySpace(slotID);
 }
 
+int CraftingInterface::subtractInputItem(int slotID, int amount) {
+    return this->inputInventory.subtractItem(slotID, amount);
+}
+
 void CraftingInterface::setInputItemStack(int slotID, ItemStack itemStack) {
     this->inputInventory.setItemStack(slotID, itemStack);
     this->updateOutput();
