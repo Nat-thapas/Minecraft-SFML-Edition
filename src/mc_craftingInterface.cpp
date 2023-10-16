@@ -1,6 +1,6 @@
 #include <SFML/Graphics.hpp>
-#include <vector>
 #include <algorithm>
+#include <vector>
 
 #include "../include/json.hpp"
 #include "mc_inventory.hpp"
