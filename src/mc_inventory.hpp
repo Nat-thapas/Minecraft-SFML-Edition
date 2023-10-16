@@ -2,6 +2,9 @@
 #define MC_INVENTORY_HPP
 
 #include <SFML/Graphics.hpp>
+#include <array>
+#include <string>
+#include <vector>
 
 #include "../include/json_fwd.hpp"
 
@@ -37,6 +40,9 @@ class Inventory : public sf::Drawable, public sf::Transformable {
 
    public:
     Inventory(int size, int width, int scaling, int margin, sf::Font& font, sf::Texture& textureAtlas, json& atlasData);
+    void loadFromFile(std::string filePath);
+    bool saveToFile(std::string filePath);
+    void clear();
     void setScaling(int scaling);
     void setMargin(int margin);
     sf::FloatRect getGlobalBounds();

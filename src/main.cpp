@@ -2,6 +2,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <filesystem>
+#include <format>
 #include <fstream>
 #include <iostream>
 
@@ -53,6 +55,7 @@ int main() {
     icon.loadFromFile("resources/icon.png");
     window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 
+    std::string worldName = "test";
     int initialPlayerChunkID = 16;
     int pixelPerBlock = 32;
 
@@ -165,6 +168,10 @@ int main() {
 
     bool isFirstLoop = true;
     bool isFullScreen = false;
+
+    bool unsavedChestEdit = false;
+    int openedChestChunkID = 0;
+    sf::Vector2i openedChestPos(0, 0);
 
     while (window.isOpen()) {
         perfDebugInfo.startFrame();
@@ -421,12 +428,27 @@ int main() {
         switch (openMenuType) {
             case MENU_NONE:
                 // TODO Drop held item
+                if (unsavedChestEdit) {
+                    std::string filePath = std::format("saves/{}/inventories/chests/{}.{}.{}", worldName, openedChestChunkID, openedChestPos.x, openedChestPos.y);
+                    chestInventory.saveToFile(filePath);
+                    chestInventory.clear();
+                    unsavedChestEdit = false;
+                }
                 if (rightClick && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 39) {
                     menuChanged = true;
                     openMenuType = MENU_CRAFTINGTABLE;
                 }
                 if (rightClick && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 40) {
                     menuChanged = true;
+                    std::string filePath = std::format("saves/{}/inventories/chests/{}.{}.{}", worldName, chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y);
+                    if (std::filesystem::exists(filePath)) {
+                        chestInventory.loadFromFile(filePath);
+                    } else {
+                        chestInventory.clear();
+                    }
+                    openedChestChunkID = chunks.getMouseChunkID();
+                    openedChestPos = chunks.getMousePos();
+                    unsavedChestEdit = true;
                     openMenuType = MENU_CHEST;
                 }
                 break;
@@ -710,6 +732,7 @@ int main() {
         perfDebugInfo.endPlayerInputProcessing();
         perfDebugInfo.endRandomTick();
 
+        // Drop items from inventories (furnaces, chests)
         if (elapsedTime.asMilliseconds() - lastTickTimeMs >= 50) {
             lastTickTimeMs += 50 + std::max(idiv(elapsedTime.asMilliseconds() - lastTickTimeMs, 50) - 100, 0) * 50;
             if (leftClickHeld && openMenuType == MENU_NONE) {

@@ -1,5 +1,9 @@
 #include <SFML/Graphics.hpp>
+#include <array>
 #include <format>
+#include <fstream>
+#include <string>
+#include <vector>
 
 #include "../include/json.hpp"
 #include "idiv.hpp"
@@ -38,6 +42,27 @@ Inventory::Inventory(int size, int width, int scaling, int margin, sf::Font& fon
     this->parseAtlasData();
     this->initializeVertexArray();
     this->initializeAmountLabels();
+    this->updateAllVertexArray();
+    this->updateAllAmountLabels();
+}
+
+void Inventory::loadFromFile(std::string filePath) {
+    std::ifstream inFile(filePath, std::ios::binary);
+    inFile.read(reinterpret_cast<char*>(this->itemStacks.data()), this->itemStacks.size() * sizeof(ItemStack));
+    inFile.close();
+    this->updateAllVertexArray();
+    this->updateAllAmountLabels();
+}
+
+bool Inventory::saveToFile(std::string filePath) {
+    std::ofstream outFile(filePath, std::ios::binary);
+    outFile.write(reinterpret_cast<char*>(this->itemStacks.data()), this->itemStacks.size() * sizeof(ItemStack));
+    outFile.close();
+    return true;
+}
+
+void Inventory::clear() {
+    std::fill(this->itemStacks.begin(), this->itemStacks.end(), ItemStack(0, 0));
     this->updateAllVertexArray();
     this->updateAllAmountLabels();
 }
