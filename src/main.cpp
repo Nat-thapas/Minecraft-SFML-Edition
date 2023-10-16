@@ -107,7 +107,7 @@ int main() {
     mc::Inventory mainInventory(27, 9, uiScaling, 1, robotoMonoRegular, invTextureAtlas, invAtlasData);
     mc::Inventory heldInventory(1, 1, uiScaling, 0, robotoMonoRegular, invTextureAtlas, invAtlasData);
 
-    mainInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - mainInventory.getLocalBounds().width / 2.f, screenRect.height / 2.f - mainInventory.getLocalBounds().height / 2.f));
+    mc::Inventory chestInventory(27, 9, uiScaling, 1, robotoMonoRegular, invTextureAtlas, invAtlasData);
 
     std::ifstream recipesDataFile("resources/recipes/crafting.json");
     json recipesData = json::parse(recipesDataFile);
@@ -127,6 +127,11 @@ int main() {
     mainInventoryTexture.loadFromFile("resources/textures/gui/inventory.png");
     sf::Sprite mainInventorySprite(mainInventoryTexture);
     mainInventorySprite.setOrigin(sf::Vector2f(mainInventorySprite.getLocalBounds().width / 2.f, mainInventorySprite.getLocalBounds().height / 2.f));
+
+    sf::Texture chestInventoryTexture;
+    chestInventoryTexture.loadFromFile("resources/textures/gui/chest.png");
+    sf::Sprite chestInventorySprite(chestInventoryTexture);
+    chestInventorySprite.setOrigin(sf::Vector2f(chestInventorySprite.getLocalBounds().width / 2.f, chestInventorySprite.getLocalBounds().height / 2.f));
 
     sf::Texture craftingTableInventoryTexture;
     craftingTableInventoryTexture.loadFromFile("resources/textures/gui/crafting_table.png");
@@ -381,6 +386,7 @@ int main() {
             hotbarInventory.setScaling(uiScaling);
             mainInventory.setScaling(uiScaling);
             mainInventorySprite.setScale(sf::Vector2f(uiScaling, uiScaling));
+            chestInventorySprite.setScale(sf::Vector2f(uiScaling, uiScaling));
             craftingTableInventorySprite.setScale(sf::Vector2f(uiScaling, uiScaling));
             crafting2x2_inventory.setScaling(uiScaling);
             crafting3x3_table.setScaling(uiScaling);
@@ -418,6 +424,10 @@ int main() {
                 if (rightClick && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 39) {
                     menuChanged = true;
                     openMenuType = MENU_CRAFTINGTABLE;
+                }
+                if (rightClick && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 40) {
+                    menuChanged = true;
+                    openMenuType = MENU_CHEST;
                 }
                 break;
             case MENU_PLAYERINV:
@@ -511,6 +521,89 @@ int main() {
                         renderSlotHoverHighlighter = true;
                         if (leftClick && (heldInventory.getItemStack(0).id == 0 || (heldInventory.getItemStack(0).id == crafting2x2_inventory.getOutputItemStack(0).id && heldInventory.getEmptySpace(0) >= crafting2x2_inventory.getOutputItemStack(0).amount))) {
                             heldInventory.addItemStack(0, crafting2x2_inventory.takeOutputItem(0));
+                        }
+                    }
+                }
+                break;
+            case MENU_CHEST:
+                // Hotbar
+                for (int i = 0; i < 9; i++) {
+                    sf::FloatRect bound = hotbarInventory.getSlotGlobalBounds(i);
+                    if (bound.contains(sf::Vector2f(mousePosition))) {
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        renderSlotHoverHighlighter = true;
+                        if (leftClick) {
+                            if (hotbarInventory.getItemStack(i).id == heldInventory.getItemStack(0).id) {
+                                heldInventory.setItemStack(0, hotbarInventory.addItemStack(i, heldInventory.getItemStack(0)));
+                            } else {
+                                mc::ItemStack tempItemStack(hotbarInventory.getItemStack(i));
+                                hotbarInventory.setItemStack(i, heldInventory.getItemStack(0));
+                                heldInventory.setItemStack(0, tempItemStack);
+                            }
+                        } else if (rightClick) {
+                            if (heldInventory.getItemStack(0).id == 0) {
+                                mc::ItemStack movedItemStack(hotbarInventory.getItemStack(i).id, hotbarInventory.getItemStack(i).amount / 2 + hotbarInventory.getItemStack(i).amount % 2);
+                                hotbarInventory.subtractItem(i, movedItemStack.amount);
+                                heldInventory.setItemStack(0, movedItemStack);
+                            } else if (hotbarInventory.getEmptySpace(i) > 0 && heldInventory.getItemStack(0).id != 0 && (hotbarInventory.getItemStack(i).id == heldInventory.getItemStack(0).id || hotbarInventory.getItemStack(i).id == 0)) {
+                                hotbarInventory.addItemStack(i, mc::ItemStack(heldInventory.getItemStack(0).id, 1));
+                                heldInventory.subtractItem(0, 1);
+                            }
+                        }
+                    }
+                }
+                // Main inv
+                for (int i = 0; i < 27; i++) {
+                    sf::FloatRect bound = mainInventory.getSlotGlobalBounds(i);
+                    if (bound.contains(sf::Vector2f(mousePosition))) {
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        renderSlotHoverHighlighter = true;
+                        if (leftClick) {
+                            if (mainInventory.getItemStack(i).id == heldInventory.getItemStack(0).id) {
+                                heldInventory.setItemStack(0, mainInventory.addItemStack(i, heldInventory.getItemStack(0)));
+                            } else {
+                                mc::ItemStack tempItemStack(mainInventory.getItemStack(i));
+                                mainInventory.setItemStack(i, heldInventory.getItemStack(0));
+                                heldInventory.setItemStack(0, tempItemStack);
+                            }
+                        } else if (rightClick) {
+                            if (heldInventory.getItemStack(0).id == 0) {
+                                mc::ItemStack movedItemStack(mainInventory.getItemStack(i).id, mainInventory.getItemStack(i).amount / 2 + mainInventory.getItemStack(i).amount % 2);
+                                mainInventory.subtractItem(i, movedItemStack.amount);
+                                heldInventory.setItemStack(0, movedItemStack);
+                            } else if (mainInventory.getEmptySpace(i) > 0 && heldInventory.getItemStack(0).id != 0 && (mainInventory.getItemStack(i).id == heldInventory.getItemStack(0).id || mainInventory.getItemStack(i).id == 0)) {
+                                mainInventory.addItemStack(i, mc::ItemStack(heldInventory.getItemStack(0).id, 1));
+                                heldInventory.subtractItem(0, 1);
+                            }
+                        }
+                    }
+                }
+                // Chest inventory
+                for (int i = 0; i < 27; i++) {
+                    sf::FloatRect bound = chestInventory.getSlotGlobalBounds(i);
+                    if (bound.contains(sf::Vector2f(mousePosition))) {
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        renderSlotHoverHighlighter = true;
+                        if (leftClick) {
+                            if (chestInventory.getItemStack(i).id == heldInventory.getItemStack(0).id) {
+                                heldInventory.setItemStack(0, chestInventory.addItemStack(i, heldInventory.getItemStack(0)));
+                            } else {
+                                mc::ItemStack tempItemStack(chestInventory.getItemStack(i));
+                                chestInventory.setItemStack(i, heldInventory.getItemStack(0));
+                                heldInventory.setItemStack(0, tempItemStack);
+                            }
+                        } else if (rightClick) {
+                            if (heldInventory.getItemStack(0).id == 0) {
+                                mc::ItemStack movedItemStack(chestInventory.getItemStack(i).id, chestInventory.getItemStack(i).amount / 2 + chestInventory.getItemStack(i).amount % 2);
+                                chestInventory.subtractItem(i, movedItemStack.amount);
+                                heldInventory.setItemStack(0, movedItemStack);
+                            } else if (chestInventory.getEmptySpace(i) > 0 && heldInventory.getItemStack(0).id != 0 && (chestInventory.getItemStack(i).id == heldInventory.getItemStack(0).id || chestInventory.getItemStack(i).id == 0)) {
+                                chestInventory.addItemStack(i, mc::ItemStack(heldInventory.getItemStack(0).id, 1));
+                                heldInventory.subtractItem(0, 1);
+                            }
                         }
                     }
                 }
@@ -700,6 +793,13 @@ int main() {
                     window.setMouseCursor(arrowCursor);
                     break;
                 case MENU_CHEST:
+                    chestInventorySprite.setPosition(sf::Vector2f(screenRect.width / 2.f, screenRect.height / 2.f));
+                    mainInventory.setPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), mainInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(uiScaling)));
+                    hotbarInventory.setMargin(1);
+                    hotbarInventory.setPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), mainInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(uiScaling)));
+                    chestInventory.setPosition(sf::Vector2f(chestInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), chestInventorySprite.getGlobalBounds().top + 17.f * static_cast<float>(uiScaling)));
+                    menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
+                    window.setMouseCursor(arrowCursor);
                     break;
                 case MENU_FURNACE:
                     break;
@@ -741,6 +841,14 @@ int main() {
                 window.draw(heldInventory);
                 break;
             case MENU_CHEST:
+                heldInventory.setPosition(sf::Vector2f(mousePosition));
+                window.draw(menuBlackOutBackground);
+                window.draw(chestInventorySprite);
+                window.draw(mainInventory);
+                window.draw(hotbarInventory);
+                window.draw(chestInventory);
+                if (renderSlotHoverHighlighter) window.draw(inventorySlotHoverHighlighter);
+                window.draw(heldInventory);
                 break;
             case MENU_FURNACE:
                 break;
