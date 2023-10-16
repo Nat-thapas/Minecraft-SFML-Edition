@@ -429,7 +429,7 @@ int main() {
             case MENU_NONE:
                 // TODO Drop held item
                 if (unsavedChestEdit) {
-                    std::string filePath = std::format("saves/{}/inventories/chests/{}.{}.{}", worldName, openedChestChunkID, openedChestPos.x, openedChestPos.y);
+                    std::string filePath = std::format("saves/{}/inventories/chests/{}.{}.{}.dat", worldName, openedChestChunkID, openedChestPos.x, openedChestPos.y);
                     chestInventory.saveToFile(filePath);
                     chestInventory.clear();
                     unsavedChestEdit = false;
@@ -440,7 +440,7 @@ int main() {
                 }
                 if (rightClick && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 40) {
                     menuChanged = true;
-                    std::string filePath = std::format("saves/{}/inventories/chests/{}.{}.{}", worldName, chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y);
+                    std::string filePath = std::format("saves/{}/inventories/chests/{}.{}.{}.dat", worldName, chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y);
                     if (std::filesystem::exists(filePath)) {
                         chestInventory.loadFromFile(filePath);
                     } else {
