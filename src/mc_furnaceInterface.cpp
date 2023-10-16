@@ -17,7 +17,7 @@ void FurnaceInterface::draw(sf::RenderTarget& target, sf::RenderStates states) c
     target.draw(this->outputInventory, states);
 }
 
-FurnaceInterface::FurnaceInterface(int scaling, sf::Font& font, sf::Texture& textureAtlas, json& atlasData, json& SmeltingRecipeData) :
+FurnaceInterface::FurnaceInterface(int scaling, sf::Font& font, sf::Texture& textureAtlas, json& atlasData, json& smeltingRecipesData) :
    inputInventory(1, 1, scaling, 1, font, textureAtlas, atlasData),
    fuelInventory(1, 1, scaling, 1, font, textureAtlas, atlasData),
    outputInventory(1, 1, scaling, 1, font, textureAtlas, atlasData),
