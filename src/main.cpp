@@ -12,6 +12,7 @@
 #include "mc_chunk.hpp"
 #include "mc_chunks.hpp"
 #include "mc_craftingInterface.hpp"
+#include "mc_furnaceInterface.hpp"
 #include "mc_gameDebugInfo.hpp"
 #include "mc_inventory.hpp"
 #include "mc_musicPlayer.hpp"
@@ -59,7 +60,11 @@ int main() {
     int initialPlayerChunkID = 16;
     int pixelPerBlock = 32;
 
-    mc::Chunks chunks(initialPlayerChunkID, 123654789, pixelPerBlock, sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/", "resources/shaders/chunk.frag");
+    std::ifstream smeltingRecipesDataFile("resources/recipes/smelting.json");
+    json smeltingRecipesData = json::parse(smeltingRecipesDataFile);
+    smeltingRecipesDataFile.close();
+
+    mc::Chunks chunks(initialPlayerChunkID, 123654789, pixelPerBlock, sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/", "resources/shaders/chunk.frag", smeltingRecipesData);
 
     sf::Vector2f initialPlayerPos(0.5f, 0.f);
     while (!chunks.getBlock(initialPlayerChunkID, static_cast<int>(initialPlayerPos.x), static_cast<int>(initialPlayerPos.y))) {
@@ -103,6 +108,7 @@ int main() {
 
     std::ifstream invAtlasDataFile("resources/textures/atlases/itemsAtlas.json");
     json invAtlasData = json::parse(invAtlasDataFile);
+    invAtlasDataFile.close();
 
     int uiScaling = 3;
 
@@ -114,6 +120,7 @@ int main() {
 
     std::ifstream recipesDataFile("resources/recipes/crafting.json");
     json recipesData = json::parse(recipesDataFile);
+    recipesDataFile.close();
 
     mc::CraftingInterface crafting2x2_inventory(2, uiScaling, 1, robotoMonoRegular, invTextureAtlas, invAtlasData, recipesData);
     mc::CraftingInterface crafting3x3_table(3, uiScaling, 1, robotoMonoRegular, invTextureAtlas, invAtlasData, recipesData);
@@ -137,9 +144,22 @@ int main() {
     chestInventorySprite.setOrigin(sf::Vector2f(chestInventorySprite.getLocalBounds().width / 2.f, chestInventorySprite.getLocalBounds().height / 2.f));
 
     sf::Texture craftingTableInventoryTexture;
-    craftingTableInventoryTexture.loadFromFile("resources/textures/gui/crafting_table.png");
+    craftingTableInventoryTexture.loadFromFile("resources/textures/gui/craftingTable.png");
     sf::Sprite craftingTableInventorySprite(craftingTableInventoryTexture);
     craftingTableInventorySprite.setOrigin(sf::Vector2f(craftingTableInventorySprite.getLocalBounds().width / 2.f, craftingTableInventorySprite.getLocalBounds().height / 2.f));
+
+    sf::Texture furnaceProgressBarTexture;
+    furnaceProgressBarTexture.loadFromFile("resources/textures/gui/furnaceArrowIcon.png");
+
+    sf::Texture furnaceFuelBarTexture;
+    furnaceFuelBarTexture.loadFromFile("resources/textures/gui/furnacefireIcon.png");
+
+    mc::FurnaceInterface furnaceInterface(uiScaling, robotoMonoRegular, invTextureAtlas, invAtlasData, smeltingRecipesData, furnaceProgressBarTexture, furnaceFuelBarTexture);
+
+    sf::Texture furnaceInventoryTexture;
+    furnaceInventoryTexture.loadFromFile("resources/textures/gui/furnace.png");
+    sf::Sprite furnaceInventorySprite(furnaceInventoryTexture);
+    furnaceInventorySprite.setOrigin(sf::Vector2f(furnaceInventorySprite.getLocalBounds().width / 2.f, furnaceInventorySprite.getLocalBounds().height / 2.f));
 
     sf::RectangleShape inventorySlotHoverHighlighter;
     inventorySlotHoverHighlighter.setFillColor(sf::Color(255, 255, 255, 127));
@@ -172,6 +192,9 @@ int main() {
     bool unsavedChestEdit = false;
     int openedChestChunkID = 0;
     sf::Vector2i openedChestPos(0, 0);
+
+    int openedFurnaceChunkID = 0;
+    sf::Vector2i openedFurnacePos(0, 0);
 
     while (window.isOpen()) {
         perfDebugInfo.startFrame();
@@ -395,6 +418,7 @@ int main() {
             mainInventorySprite.setScale(sf::Vector2f(uiScaling, uiScaling));
             chestInventorySprite.setScale(sf::Vector2f(uiScaling, uiScaling));
             craftingTableInventorySprite.setScale(sf::Vector2f(uiScaling, uiScaling));
+            furnaceInventorySprite.setScale(sf::Vector2f(uiScaling, uiScaling));
             crafting2x2_inventory.setScaling(uiScaling);
             crafting3x3_table.setScaling(uiScaling);
             heldInventory.setScaling(uiScaling);
@@ -437,8 +461,7 @@ int main() {
                 if (rightClick && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 39) {
                     menuChanged = true;
                     openMenuType = MENU_CRAFTINGTABLE;
-                }
-                if (rightClick && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 40) {
+                } else if (rightClick && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 40) {
                     menuChanged = true;
                     std::string filePath = std::format("saves/{}/inventories/chests/{}.{}.{}.dat", worldName, chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y);
                     if (std::filesystem::exists(filePath)) {
@@ -450,6 +473,9 @@ int main() {
                     openedChestPos = chunks.getMousePos();
                     unsavedChestEdit = true;
                     openMenuType = MENU_CHEST;
+                } else if (rightClick && (chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 41 || chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 42)) {
+                    menuChanged = true;
+                    // Do more stuff
                 }
                 break;
             case MENU_PLAYERINV:
@@ -817,14 +843,25 @@ int main() {
                     break;
                 case MENU_CHEST:
                     chestInventorySprite.setPosition(sf::Vector2f(screenRect.width / 2.f, screenRect.height / 2.f));
-                    mainInventory.setPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), mainInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(uiScaling)));
+                    mainInventory.setPosition(sf::Vector2f(chestInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), chestInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(uiScaling)));
                     hotbarInventory.setMargin(1);
-                    hotbarInventory.setPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), mainInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(uiScaling)));
+                    hotbarInventory.setPosition(sf::Vector2f(chestInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), chestInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(uiScaling)));
                     chestInventory.setPosition(sf::Vector2f(chestInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), chestInventorySprite.getGlobalBounds().top + 17.f * static_cast<float>(uiScaling)));
                     menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
                     window.setMouseCursor(arrowCursor);
                     break;
                 case MENU_FURNACE:
+                    furnaceInventorySprite.setPosition(sf::Vector2f(screenRect.width / 2.f, screenRect.height / 2.f));
+                    mainInventory.setPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), furnaceInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(uiScaling)));
+                    hotbarInventory.setMargin(1);
+                    hotbarInventory.setPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), furnaceInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(uiScaling)));
+                    furnaceInterface.setInputPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 55.f * static_cast<float>(uiScaling), furnaceInventorySprite.getGlobalBounds().top + 16.f * static_cast<float>(uiScaling)));
+                    furnaceInterface.setFuelPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 55.f * static_cast<float>(uiScaling), furnaceInventorySprite.getGlobalBounds().top + 52.f * static_cast<float>(uiScaling)));
+                    furnaceInterface.setOutputPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 115.f * static_cast<float>(uiScaling), furnaceInventorySprite.getGlobalBounds().top + 34.f * static_cast<float>(uiScaling)));
+                    furnaceInterface.setProgressBarPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 79.f * static_cast<float>(uiScaling), furnaceInventorySprite.getGlobalBounds().top + 34.f * static_cast<float>(uiScaling)));
+                    furnaceInterface.setFuelBarPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 56.f * static_cast<float>(uiScaling), furnaceInventorySprite.getGlobalBounds().top + 36.f * static_cast<float>(uiScaling)));
+                    menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
+                    window.setMouseCursor(arrowCursor);
                     break;
                 default:
                     break;
@@ -874,6 +911,14 @@ int main() {
                 window.draw(heldInventory);
                 break;
             case MENU_FURNACE:
+                heldInventory.setPosition(sf::Vector2f(mousePosition));
+                window.draw(menuBlackOutBackground);
+                window.draw(furnaceInventorySprite);
+                window.draw(mainInventory);
+                window.draw(hotbarInventory);
+                window.draw(furnaceInterface);
+                if (renderSlotHoverHighlighter) window.draw(inventorySlotHoverHighlighter);
+                window.draw(heldInventory);
                 break;
             default:
                 break;

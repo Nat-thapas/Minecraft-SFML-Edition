@@ -7,6 +7,7 @@
 
 #include "../include/json_fwd.hpp"
 #include "mc_inventory.hpp"
+#include "mc_progressBar.hpp"
 
 using json = nlohmann::json;
 
@@ -23,19 +24,24 @@ class FurnaceInterface : public sf::Drawable {
     Inventory outputInventory;
     json& smeltingRecipesData;
     std::vector<SmeltingRecipeData> parsedSmeltingRecipesData;
+    ProgressBar progressBar;
+    ProgressBar fuelBar;
 
     void parseSmeltingRecipesData();
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
-    FurnaceInterface(int scaling, sf::Font& font, sf::Texture& textureAtlas, json& atlasData, json& smeltingRecipesData);
+    FurnaceInterface(int scaling, sf::Font& font, sf::Texture& textureAtlas, json& atlasData, json& smeltingRecipesData, sf::Texture& progressBarTexture, sf::Texture& fuelBarTexture);
     void loadFromVector(std::vector<ItemStack> itemStacks);
     std::vector<ItemStack> exportToVector();
     void setInputPosition(sf::Vector2f position);
     void setFuelPosition(sf::Vector2f position);
     void setOutputPosition(sf::Vector2f position);
+    void setProgressBarPosition(sf::Vector2f position);
+    void setFuelBarPosition(sf::Vector2f position);
     void setScaling(int scaling);
     void setProgess(float progress);
+    void setFuelVal(float fuelVal);
     sf::FloatRect getInputGlobalBounds();
     sf::FloatRect getInputLocalBounds();
     sf::FloatRect getInputSlotGlobalBounds(int slotID);

@@ -2,11 +2,15 @@
 #include <algorithm>
 #include <array>
 #include <cstdlib>
+#include <filesystem>
+#include <format>
 #include <fstream>
 #include <queue>
 #include <string>
+#include <unordered_map>
 
 #include "../include/perlin.hpp"
+#include "mc_inventory.hpp"
 #include "idiv.hpp"
 #include "mod.hpp"
 
@@ -21,9 +25,10 @@ void Chunk::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     target.draw(this->vertexArray, states);
 }
 
-Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, std::array<sf::IntRect, 71>& parsedAtlasData) : parsedAtlasData(parsedAtlasData) {
+Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData) : parsedAtlasData(parsedAtlasData), parsedSmeltingRecipesData(parsedSmeltingRecipesData) {
     this->chunkID = chunkID;
     this->pixelPerBlock = pixelPerBlock;
+    this->worldName = worldName;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
     for (int i = 0; i < 4096; i++) {
@@ -36,24 +41,31 @@ Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, std::array<sf::In
     this->updateAllLightingVertexArray();
 }
 
-Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, std::array<sf::IntRect, 71>& parsedAtlasData) : parsedAtlasData(parsedAtlasData) {
+Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData) : parsedAtlasData(parsedAtlasData), parsedSmeltingRecipesData(parsedSmeltingRecipesData) {
     this->chunkID = chunkID;
     this->pixelPerBlock = pixelPerBlock;
+    this->worldName = worldName;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
     std::ifstream inFile(filePath, std::ios::binary);
     inFile.read(reinterpret_cast<char*>(this->blocks.data()), this->blocks.size() * sizeof(int));
     inFile.close();
     this->animationIndex = 0;
+    for (int idx = 0; idx < 4096; idx++) {
+        if (this->blocks[idx] == 41 || this->blocks[idx] == 42) {
+            this->furnacesData[idx] = this->loadFurnaceDataFromFile(idx % 16, idx / 16);
+        } 
+    }
     this->initializeVertexArrays();
     this->updateAllVertexArray();
     this->initializeLightEngine();
     this->updateAllLightingVertexArray();
 }
 
-Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, std::array<sf::IntRect, 71>& parsedAtlasData) : parsedAtlasData(parsedAtlasData) {
+Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData) : parsedAtlasData(parsedAtlasData), parsedSmeltingRecipesData(parsedSmeltingRecipesData) {
     this->chunkID = chunkID;
     this->pixelPerBlock = pixelPerBlock;
+    this->worldName = worldName;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
     int plantType;
@@ -570,6 +582,33 @@ int Chunk::breakBlock(int x, int y, int& xp) {
 
 void Chunk::tick(int tickCount) {
     this->animationIndex = tickCount;
+    for (auto& [furnaceIdx, furnaceData] : this->furnacesData) {
+        bool running = false;
+        if (furnaceData.fuelLeft > 0) {
+            furnaceData.fuelLeft--;
+            running = true;
+        } else {
+            if (this->burnTimes[furnaceData.fuelItemStack.id] && this->isSmeltable[furnaceData.inputItemStack.id]) {
+                furnaceData.fuelLeft += this->burnTimes[furnaceData.fuelItemStack.id];
+                furnaceData.fuelItemStack.amount--;
+                if (furnaceData.fuelItemStack.amount <= 0) {
+                    furnaceData.fuelItemStack.id = 0;
+                }
+                running = true;
+            }
+        }
+        if (running && this->parsedSmeltingRecipesData.contains(furnaceData.inputItemStack.id)) {
+            furnaceData.progress++;
+        }
+        furnaceData.progress = std::min(furnaceData.progress, 200);
+        if (furnaceData.progress == 200 && (this->parsedSmeltingRecipesData[furnaceData.inputItemStack.id] == furnaceData.outputItemStack.id || furnaceData.outputItemStack.id == 0) && this->stackSizes[furnaceData.outputItemStack.id] - furnaceData.outputItemStack.amount > 0) {
+            furnaceData.inputItemStack.amount--;
+            if (furnaceData.inputItemStack.amount <= 0) {
+                furnaceData.inputItemStack.id = 0;
+            }
+            furnaceData.outputItemStack.amount++;
+        }
+    }
     // TODO random tick
 }
 
@@ -678,10 +717,39 @@ std::array<int, 256> Chunk::getRightBlockLightLevels() {
     return output;
 }
 
+FurnaceData Chunk::loadFurnaceDataFromFile(int x, int y) {
+    if (!std::filesystem::exists(std::format("saves/{}/inventories/furnaces/{}.{}.{}.dat", this->worldName, this->chunkID, x, y))) {
+        return FurnaceData(ItemStack(0, 0), ItemStack(0, 0), ItemStack(0, 0), 0, 0, 0);
+    }
+    std::ifstream inFile(std::format("saves/{}/inventories/furnaces/{}.{}.{}.dat", this->worldName, this->chunkID, x, y), std::ios::binary);
+    FurnaceData furnaceData;
+    inFile.read(reinterpret_cast<char*>(&furnaceData), sizeof(FurnaceData));
+    inFile.close();
+    return furnaceData;
+}
+
+bool Chunk::saveAllFurnaceDataToFile() {
+    for (auto& [furnaceIdx, furnaceData] : this->furnacesData) {
+        int x = furnaceIdx % 16;
+        int y = furnaceIdx / 16;
+        std::ofstream outFile(std::format("saves/{}/inventories/furnaces/{}.{}.{}.dat", this->worldName, this->chunkID, x, y), std::ios::binary);
+        outFile.write(reinterpret_cast<char*>(&furnaceData), sizeof(FurnaceData));
+        outFile.close();
+    }
+}
+
+FurnaceData Chunk::getFurnaceData(int x, int y) {
+    if (!this->furnacesData.contains(x + y * 16)) {
+        this->furnacesData[x + y * 16] = loadFurnaceDataFromFile(x, y);   
+    }
+    return this->furnacesData[x + y * 16];
+}
+
 bool Chunk::saveToFile(std::string filePath) {
     std::ofstream outFile(filePath, std::ios::binary);
     outFile.write(reinterpret_cast<char*>(this->blocks.data()), this->blocks.size() * sizeof(int));
     outFile.close();
+    this->saveAllFurnaceDataToFile();
     return true;
 }
 

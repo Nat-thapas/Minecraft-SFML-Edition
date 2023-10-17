@@ -4,6 +4,7 @@
 
 #include "../include/json.hpp"
 #include "mc_inventory.hpp"
+#include "mc_progressBar.hpp"
 
 #include "mc_furnaceInterface.hpp"
 
@@ -17,11 +18,13 @@ void FurnaceInterface::draw(sf::RenderTarget& target, sf::RenderStates states) c
     target.draw(this->outputInventory, states);
 }
 
-FurnaceInterface::FurnaceInterface(int scaling, sf::Font& font, sf::Texture& textureAtlas, json& atlasData, json& smeltingRecipesData) :
+FurnaceInterface::FurnaceInterface(int scaling, sf::Font& font, sf::Texture& textureAtlas, json& atlasData, json& smeltingRecipesData, sf::Texture& progressBarTexture, sf::Texture& fuelBarTexture) :
    inputInventory(1, 1, scaling, 1, font, textureAtlas, atlasData),
    fuelInventory(1, 1, scaling, 1, font, textureAtlas, atlasData),
    outputInventory(1, 1, scaling, 1, font, textureAtlas, atlasData),
-   smeltingRecipesData(smeltingRecipesData) {
+   smeltingRecipesData(smeltingRecipesData),
+   progressBar(progressBarTexture, false),
+   fuelBar(fuelBarTexture, true) {
     this->parseSmeltingRecipesData();
 }
 
@@ -52,14 +55,28 @@ void FurnaceInterface::setOutputPosition(sf::Vector2f position) {
     this->outputInventory.setPosition(position);
 }
 
+void FurnaceInterface::setProgressBarPosition(sf::Vector2f position) {
+    this->progressBar.setPosition(position);
+}
+
+void FurnaceInterface::setFuelBarPosition(sf::Vector2f position) {
+    this->fuelBar.setPosition(position);
+}
+
 void FurnaceInterface::setScaling(int scaling) {
     this->inputInventory.setScaling(scaling);
     this->fuelInventory.setScaling(scaling);
     this->outputInventory.setScaling(scaling);
+    this->progressBar.setScale(sf::Vector2f(scaling, scaling));
+    this->fuelBar.setScale(sf::Vector2f(scaling, scaling));
 }
 
 void FurnaceInterface::setProgess(float progress) {
-    // TODO Implement mc_progressBar
+    this->progressBar.setProgress(progress);
+}
+
+void FurnaceInterface::setFuelVal(float fuelVal) {
+    this->fuelBar.setProgress(fuelVal);
 }
 
 void FurnaceInterface::parseSmeltingRecipesData() {

@@ -5,18 +5,35 @@
 #include <array>
 #include <queue>
 #include <string>
+#include <unordered_map>
 
 #include "../include/perlin.hpp"
+#include "mc_inventory.hpp"
 
 using Perlin = siv::PerlinNoise;
 
 namespace mc {
+
+struct FurnaceData {
+    ItemStack inputItemStack;
+    ItemStack fuelItemStack;
+    ItemStack outputItemStack;
+    int progress;
+    int fuelLeft;
+    int fuelMax;
+};
+
+struct SmeltingRecipeData {
+    int ingredientID;
+    int resultID;
+};
 
 class Chunk : public sf::Drawable, public sf::Transformable {
     int chunkID;
     std::array<sf::IntRect, 71>& parsedAtlasData;
     sf::VertexArray vertexArray;
     int pixelPerBlock;
+    std::string worldName;
     std::queue<int> vertexUpdateQueue;
     std::queue<int> blockUpdateQueue;
     std::queue<int> skyLightUpdateQueue;
@@ -29,6 +46,11 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     std::array<int, 256> rightChunkSkyLightLevels = {};
     std::array<int, 256> leftChunkBlockLightLevels = {};
     std::array<int, 256> rightChunkBlockLightLevels = {};
+    std::unordered_map<int, FurnaceData> furnacesData;
+    std::unordered_map<int, int>& parsedSmeltingRecipesData;
+    std::array<bool, 123> isSmeltable = {0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0};
+    std::array<int, 123> stackSizes = {0, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 1, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 16, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 64, 64, 64, 1, 64, 64, 64, 1, 1, 1, 1, 1, 1, 64, 64, 64, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 64, 64, 16, 1, 1, 64, 64, 64, 64, 16, 64, 64, 64, 64, 16, 64, 64};
+    std::array<int, 123> burnTimes = {0, 0, 0, 0, 0, 100, 300, 0, 300, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 16000, 0, 0, 0, 0, 0, 0, 0, 300, 300, 0, 0, 200, 200, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1600, 1600, 0, 0, 0, 200, 200, 200, 200, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 300, 0, 0, 0, 0, 200, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20000, 0, 0, 0, 0, 0, 0, 0, 2400, 0, 0, 0, 0};
     std::array<int, 71> itemDropIDs = {0, 4, 3, 3, 4, 5, 6, 5, 8, 87, 0, 0, 0, 0, 0, 11, 12, 13, 14, 15, 49, 17, 18, 53, 0, 21, 0, 22, 23, 24, 25, 26, 27, 28, 29, 112, 31, 32, 0, 33, 34, 35, 35, 87, 87, 87, 87, 87, 87, 87, (87 << 8) + 36, 3, 3, 37, 0, 38, 0, 38, 39, 40, 41, 42, 43, 0, 44, 45, 0, 0, 0, 47, 48};
     std::array<int, 71> itemDropChances = {0, 100, 100, 100, 100, 100, 100, 15, 100, 25, 0, 0, 0, 0, 0, 100, 100, 100, 100, 100, 100, 100, 100, 100, 0, 100, 0, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 0, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 0, 100, 0, 100, 100, 100, 100, 100, 100, 0, 100, 100, 0, 0, 0, 100, 100};
     std::array<int, 71> experienceDropAmount = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -66,12 +88,14 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     bool isBlockOpaque(int x, int y);
     int getBlockEmissionLevel(int x, int y);
     void initializeLightEngine();
+    FurnaceData loadFurnaceDataFromFile(int x, int y);
+    bool saveAllFurnaceDataToFile();
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
-    Chunk(int blocks[4096], int chunkID, int pixelPerBlock, std::array<sf::IntRect, 71>& parsedAtlasData);
-    Chunk(std::string, int chunkID, int pixelPerBlock, std::array<sf::IntRect, 71>& parsedAtlasData);
-    Chunk(Perlin& noise, int chunkID, int pixelPerBlock, std::array<sf::IntRect, 71>& parsedAtlasData);
+    Chunk(int blocks[4096], int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData);
+    Chunk(std::string, int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData);
+    Chunk(Perlin& noise, int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData);
     void update();
     void setPixelPerBlock(int pixelPerBlock);
     int getBlock(int x, int y);
@@ -90,6 +114,7 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     std::array<int, 256> getRightSkyLightLevels();
     std::array<int, 256> getLeftBlockLightLevels();
     std::array<int, 256> getRightBlockLightLevels();
+    FurnaceData getFurnaceData(int x, int y);
     void updateVertexArray();
     void updateAnimatedVertexArray();
     void updateLightLevels();

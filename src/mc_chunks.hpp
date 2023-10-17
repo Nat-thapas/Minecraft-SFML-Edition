@@ -5,6 +5,7 @@
 #include <array>
 #include <queue>
 #include <string>
+#include <unordered_map>
 
 #include "../include/json.hpp"
 #include "../include/perlin.hpp"
@@ -18,9 +19,12 @@ namespace mc {
 
 class Chunks : public sf::Drawable {
     int seed;
+    std::string worldName;
     std::string atlasFilesPath;
     std::string atlasDatasPath;
     std::array<sf::IntRect, 71> parsedAtlasData;
+    json& smeltingRecipesData;
+    std::unordered_map<int, int> parsedSmeltingRecipesData;
     sf::Texture textureAtlas;
     sf::Shader shader;
     json atlasData;
@@ -40,6 +44,7 @@ class Chunks : public sf::Drawable {
 
     void updateTexture();
     void parseAtlasData();
+    void parseSmeltingRecipesData();
     void updateChunksPosition();
     void initializeChunks();
     void updateMousePosition();
@@ -47,7 +52,7 @@ class Chunks : public sf::Drawable {
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
-    Chunks(int playerChunkID, int seed, int pixelPerBlock, sf::Vector2i screenSize, std::string atlasFilesPath, std::string atlasDatasPath, std::string shaderFilePath);
+    Chunks(int playerChunkID, int seed, int pixelPerBlock, std::string worldName, sf::Vector2i screenSize, std::string atlasFilesPath, std::string atlasDatasPath, std::string shaderFilePath, json& smeltingRecipesData);
     void tick(int tickCount);
     void update();
     void updateVertexArrays();
