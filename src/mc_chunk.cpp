@@ -583,14 +583,10 @@ int Chunk::breakBlock(int x, int y, int& xp) {
 }
 
 void Chunk::tick(int tickCount) {
-    for (auto& [furnaceIdx, furnaceData] : this->furnacesData) {
-        std::cout << "I: " << this->chunkID << " " << furnaceIdx << " A: " << furnaceData.inputItemStack.amount << " " << this->furnacesData[2925].inputItemStack.amount <<  std::endl;
-    }
     this->animationIndex = tickCount;
     for (auto& [furnaceIdx, furnaceData] : this->furnacesData) {
-        std::cout << "Seg: " << this->chunkID << " " << furnaceIdx << std::endl;
+        std::cout << furnaceData.progress << " " << furnaceData.fuelLeft << std::endl;
         if (this->blocks[furnaceIdx] != 41 && this->blocks[furnaceIdx] != 42) {
-            std::cout << "Help" << std::endl;
             this->furnacesData.erase(furnaceIdx);
             continue;
         }
@@ -617,12 +613,13 @@ void Chunk::tick(int tickCount) {
             furnaceData.progress++;
         }
         furnaceData.progress = std::min(furnaceData.progress, 200);
-        if (furnaceData.progress == 200 && (this->parsedSmeltingRecipesData[furnaceData.inputItemStack.id] == furnaceData.outputItemStack.id || furnaceData.outputItemStack.id == 0) && this->stackSizes[furnaceData.outputItemStack.id] - furnaceData.outputItemStack.amount > 0) {
+        if (furnaceData.progress == 200 && ((this->parsedSmeltingRecipesData[furnaceData.inputItemStack.id] == furnaceData.outputItemStack.id && this->stackSizes[furnaceData.outputItemStack.id] - furnaceData.outputItemStack.amount > 0) || furnaceData.outputItemStack.id == 0)) {
             furnaceData.inputItemStack.amount--;
             if (furnaceData.inputItemStack.amount <= 0) {
                 furnaceData.inputItemStack.id = 0;
             }
             furnaceData.outputItemStack.amount++;
+            furnaceData.progress = 0;
         }
     }
     // TODO random tick
@@ -756,18 +753,14 @@ bool Chunk::saveAllFurnaceDataToFile() {
 }
 
 FurnaceData Chunk::getFurnaceData(int x, int y) {
-    std::cout << "Get: " << this->chunkID << " " << x + y * 16 << std::endl;
     if (!this->furnacesData.contains(x + y * 16)) {
-        std::cout << "Help---------------------------------------" << std::endl;
         this->furnacesData[x + y * 16] = loadFurnaceDataFromFile(x, y);   
     }
     return this->furnacesData[x + y * 16];
 }
 
 void Chunk::setFurnaceData(int x, int y, FurnaceData furnaceData) {
-    std::cout << "Set: " << this->chunkID << " " << x + y * 16 << " " << furnaceData.inputItemStack.amount;
     this->furnacesData[x + y * 16] = furnaceData;
-    std::cout << " " << this->furnacesData[x + y * 16].inputItemStack.amount << std::endl;
 }
 
 bool Chunk::saveToFile(std::string filePath) {

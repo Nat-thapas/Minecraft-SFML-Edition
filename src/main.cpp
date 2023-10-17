@@ -477,9 +477,6 @@ int main() {
                     openMenuType = MENU_CHEST;
                 } else if (rightClick && (chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 41 || chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 42)) {
                     menuChanged = true;
-                    mc::Chunk chunk = chunks.getChunk(chunks.getMouseChunkID());
-                    mc::FurnaceData furnaceData = chunk.getFurnaceData(chunks.getMousePos().x, chunks.getMousePos().y);
-                    furnaceInterface.setFurnaceData(furnaceData);
                     openedFurnaceChunkID = chunks.getMouseChunkID();
                     openedFurnacePos = chunks.getMousePos();
                     openMenuType = MENU_FURNACE;
@@ -759,6 +756,7 @@ int main() {
                 }
                 break;
             case MENU_FURNACE:
+                furnaceInterface.setFurnaceData(chunks.getChunk(chunks.getMouseChunkID()).getFurnaceData(chunks.getMousePos().x, chunks.getMousePos().y));
                 // Hotbar
                 for (int i = 0; i < 9; i++) {
                     sf::FloatRect bound = hotbarInventory.getSlotGlobalBounds(i);
@@ -879,9 +877,7 @@ int main() {
                         }
                     }
                 }
-                std::cout << "S1: " << furnaceInterface.getFurnaceData().inputItemStack.amount << std::endl;
                 chunks.getChunk(openedFurnaceChunkID).setFurnaceData(openedFurnacePos.x, openedFurnacePos.y, furnaceInterface.getFurnaceData());
-                std::cout << "S2: " << chunks.getChunk(openedFurnaceChunkID).getFurnaceData(openedFurnacePos.x, openedFurnacePos.y).inputItemStack.amount << std::endl;
                 break;
             default:
                 break;
