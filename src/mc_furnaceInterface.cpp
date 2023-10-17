@@ -16,6 +16,8 @@ void FurnaceInterface::draw(sf::RenderTarget& target, sf::RenderStates states) c
     target.draw(this->inputInventory, states);
     target.draw(this->fuelInventory, states);
     target.draw(this->outputInventory, states);
+    target.draw(this->progressBar, states);
+    target.draw(this->fuelBar, states);
 }
 
 FurnaceInterface::FurnaceInterface(int scaling, sf::Font& font, sf::Texture& textureAtlas, json& atlasData, json& smeltingRecipesData, sf::Texture& progressBarTexture, sf::Texture& fuelBarTexture) :
@@ -25,6 +27,8 @@ FurnaceInterface::FurnaceInterface(int scaling, sf::Font& font, sf::Texture& tex
    smeltingRecipesData(smeltingRecipesData),
    progressBar(progressBarTexture, false),
    fuelBar(fuelBarTexture, true) {
+    this->progressBar.setScale(sf::Vector2f(scaling, scaling));
+    this->fuelBar.setScale(sf::Vector2f(scaling, scaling));
     this->parseSmeltingRecipesData();
 }
 
@@ -196,7 +200,11 @@ void FurnaceInterface::setFurnaceData(FurnaceData furnaceData) {
     this->fuelInventory.setItemStack(0, this->furnaceData.fuelItemStack);
     this->outputInventory.setItemStack(0, this->furnaceData.outputItemStack);
     this->setProgess(static_cast<float>(this->furnaceData.progress) / 200.f);
-    this->setFuelVal(static_cast<float>(this->furnaceData.fuelLeft) / static_cast<float>(furnaceData.fuelMax));
+    if (furnaceData.fuelMax != 0) {
+        this->setFuelVal(static_cast<float>(this->furnaceData.fuelLeft) / static_cast<float>(furnaceData.fuelMax));
+    } else {
+        this->setFuelVal(0.f);
+    }
 }
 
 FurnaceData FurnaceInterface::getFurnaceData() {

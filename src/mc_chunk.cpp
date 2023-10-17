@@ -585,7 +585,6 @@ int Chunk::breakBlock(int x, int y, int& xp) {
 void Chunk::tick(int tickCount) {
     this->animationIndex = tickCount;
     for (auto& [furnaceIdx, furnaceData] : this->furnacesData) {
-        std::cout << furnaceData.progress << " " << furnaceData.fuelLeft << std::endl;
         if (this->blocks[furnaceIdx] != 41 && this->blocks[furnaceIdx] != 42) {
             this->furnacesData.erase(furnaceIdx);
             continue;
@@ -595,8 +594,9 @@ void Chunk::tick(int tickCount) {
             furnaceData.fuelLeft--;
             running = true;
         } else {
-            if (this->burnTimes[furnaceData.fuelItemStack.id] && this->isSmeltable[furnaceData.inputItemStack.id]) {
-                furnaceData.fuelLeft += this->burnTimes[furnaceData.fuelItemStack.id];
+            if (this->burnTimes[furnaceData.fuelItemStack.id] && this->parsedSmeltingRecipesData.contains(furnaceData.inputItemStack.id)) {
+                furnaceData.fuelMax = this->burnTimes[furnaceData.fuelItemStack.id];
+                furnaceData.fuelLeft += this->burnTimes[furnaceData.fuelItemStack.id] - 1;
                 furnaceData.fuelItemStack.amount--;
                 if (furnaceData.fuelItemStack.amount <= 0) {
                     furnaceData.fuelItemStack.id = 0;
@@ -608,12 +608,21 @@ void Chunk::tick(int tickCount) {
             this->blocks[furnaceIdx] = 42;
         } else {
             this->blocks[furnaceIdx] = 41;
+            furnaceData.progress = 0;
         }
-        if (running && this->parsedSmeltingRecipesData.contains(furnaceData.inputItemStack.id)) {
+        this->vertexUpdateQueue.push(furnaceIdx);
+        this->blockLightUpdateQueue.push(furnaceIdx);
+        if (running && this->parsedSmeltingRecipesData.contains(furnaceData.inputItemStack.id) && ((this->parsedSmeltingRecipesData[furnaceData.inputItemStack.id] == furnaceData.outputItemStack.id && this->stackSizes[furnaceData.outputItemStack.id] - furnaceData.outputItemStack.amount > 0) || furnaceData.outputItemStack.id == 0)) {
             furnaceData.progress++;
+        } else {
+            furnaceData.progress = 0;
         }
         furnaceData.progress = std::min(furnaceData.progress, 200);
         if (furnaceData.progress == 200 && ((this->parsedSmeltingRecipesData[furnaceData.inputItemStack.id] == furnaceData.outputItemStack.id && this->stackSizes[furnaceData.outputItemStack.id] - furnaceData.outputItemStack.amount > 0) || furnaceData.outputItemStack.id == 0)) {
+            if (furnaceData.outputItemStack.id == 0) {
+                furnaceData.outputItemStack.id = this->parsedSmeltingRecipesData[furnaceData.inputItemStack.id];
+                furnaceData.outputItemStack.amount = 0;
+            }
             furnaceData.inputItemStack.amount--;
             if (furnaceData.inputItemStack.amount <= 0) {
                 furnaceData.inputItemStack.id = 0;

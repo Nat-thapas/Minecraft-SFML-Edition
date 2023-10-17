@@ -756,7 +756,7 @@ int main() {
                 }
                 break;
             case MENU_FURNACE:
-                furnaceInterface.setFurnaceData(chunks.getChunk(chunks.getMouseChunkID()).getFurnaceData(chunks.getMousePos().x, chunks.getMousePos().y));
+                furnaceInterface.setFurnaceData(chunks.getChunk(openedFurnaceChunkID).getFurnaceData(openedFurnacePos.x, openedFurnacePos.y));
                 // Hotbar
                 for (int i = 0; i < 9; i++) {
                     sf::FloatRect bound = hotbarInventory.getSlotGlobalBounds(i);
