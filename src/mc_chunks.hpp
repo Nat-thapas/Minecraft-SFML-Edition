@@ -74,6 +74,7 @@ class Chunks : public sf::Drawable {
     int getBlock(int chunkID, int x, int y);
     int breakBlock(int& xp);
     bool placeBlock(int blockID);
+    Chunk& getChunk(int chunkID);
     bool saveAll();
 };
 

@@ -64,7 +64,7 @@ int main() {
     json smeltingRecipesData = json::parse(smeltingRecipesDataFile);
     smeltingRecipesDataFile.close();
 
-    mc::Chunks chunks(initialPlayerChunkID, 123654789, pixelPerBlock, sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/", "resources/shaders/chunk.frag", smeltingRecipesData);
+    mc::Chunks chunks(initialPlayerChunkID, 123654789, pixelPerBlock, "test", sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/", "resources/shaders/chunk.frag", smeltingRecipesData);
 
     sf::Vector2f initialPlayerPos(0.5f, 0.f);
     while (!chunks.getBlock(initialPlayerChunkID, static_cast<int>(initialPlayerPos.x), static_cast<int>(initialPlayerPos.y))) {
@@ -257,6 +257,8 @@ int main() {
                                 case MENU_CRAFTINGTABLE:
                                 case MENU_CHEST:
                                 case MENU_FURNACE:
+                                case MENU_PAUSE:
+                                case MENU_SETTINGS:
                                     openMenuType = MENU_NONE;
                                     break;
                                 default:
@@ -475,7 +477,12 @@ int main() {
                     openMenuType = MENU_CHEST;
                 } else if (rightClick && (chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 41 || chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 42)) {
                     menuChanged = true;
-                    // Do more stuff
+                    mc::Chunk chunk = chunks.getChunk(chunks.getMouseChunkID());
+                    mc::FurnaceData furnaceData = chunk.getFurnaceData(chunks.getMousePos().x, chunks.getMousePos().y);
+                    furnaceInterface.setFurnaceData(furnaceData);
+                    openedFurnaceChunkID = chunks.getMouseChunkID();
+                    openedFurnacePos = chunks.getMousePos();
+                    openMenuType = MENU_FURNACE;
                 }
                 break;
             case MENU_PLAYERINV:
@@ -750,6 +757,131 @@ int main() {
                         }
                     }
                 }
+                break;
+            case MENU_FURNACE:
+                // Hotbar
+                for (int i = 0; i < 9; i++) {
+                    sf::FloatRect bound = hotbarInventory.getSlotGlobalBounds(i);
+                    if (bound.contains(sf::Vector2f(mousePosition))) {
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        renderSlotHoverHighlighter = true;
+                        if (leftClick) {
+                            if (hotbarInventory.getItemStack(i).id == heldInventory.getItemStack(0).id) {
+                                heldInventory.setItemStack(0, hotbarInventory.addItemStack(i, heldInventory.getItemStack(0)));
+                            } else {
+                                mc::ItemStack tempItemStack(hotbarInventory.getItemStack(i));
+                                hotbarInventory.setItemStack(i, heldInventory.getItemStack(0));
+                                heldInventory.setItemStack(0, tempItemStack);
+                            }
+                        } else if (rightClick) {
+                            if (heldInventory.getItemStack(0).id == 0) {
+                                mc::ItemStack movedItemStack(hotbarInventory.getItemStack(i).id, hotbarInventory.getItemStack(i).amount / 2 + hotbarInventory.getItemStack(i).amount % 2);
+                                hotbarInventory.subtractItem(i, movedItemStack.amount);
+                                heldInventory.setItemStack(0, movedItemStack);
+                            } else if (hotbarInventory.getEmptySpace(i) > 0 && heldInventory.getItemStack(0).id != 0 && (hotbarInventory.getItemStack(i).id == heldInventory.getItemStack(0).id || hotbarInventory.getItemStack(i).id == 0)) {
+                                hotbarInventory.addItemStack(i, mc::ItemStack(heldInventory.getItemStack(0).id, 1));
+                                heldInventory.subtractItem(0, 1);
+                            }
+                        }
+                    }
+                }
+                // Main inv
+                for (int i = 0; i < 27; i++) {
+                    sf::FloatRect bound = mainInventory.getSlotGlobalBounds(i);
+                    if (bound.contains(sf::Vector2f(mousePosition))) {
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        renderSlotHoverHighlighter = true;
+                        if (leftClick) {
+                            if (mainInventory.getItemStack(i).id == heldInventory.getItemStack(0).id) {
+                                heldInventory.setItemStack(0, mainInventory.addItemStack(i, heldInventory.getItemStack(0)));
+                            } else {
+                                mc::ItemStack tempItemStack(mainInventory.getItemStack(i));
+                                mainInventory.setItemStack(i, heldInventory.getItemStack(0));
+                                heldInventory.setItemStack(0, tempItemStack);
+                            }
+                        } else if (rightClick) {
+                            if (heldInventory.getItemStack(0).id == 0) {
+                                mc::ItemStack movedItemStack(mainInventory.getItemStack(i).id, mainInventory.getItemStack(i).amount / 2 + mainInventory.getItemStack(i).amount % 2);
+                                mainInventory.subtractItem(i, movedItemStack.amount);
+                                heldInventory.setItemStack(0, movedItemStack);
+                            } else if (mainInventory.getEmptySpace(i) > 0 && heldInventory.getItemStack(0).id != 0 && (mainInventory.getItemStack(i).id == heldInventory.getItemStack(0).id || mainInventory.getItemStack(i).id == 0)) {
+                                mainInventory.addItemStack(i, mc::ItemStack(heldInventory.getItemStack(0).id, 1));
+                                heldInventory.subtractItem(0, 1);
+                            }
+                        }
+                    }
+                }
+                // Furnace input
+                for (int i = 0; i < 1; i++) {
+                    sf::FloatRect bound = furnaceInterface.getInputSlotGlobalBounds(i);
+                    if (bound.contains(sf::Vector2f(mousePosition))) {
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        renderSlotHoverHighlighter = true;
+                        if (leftClick) {
+                            if (furnaceInterface.getInputItemStack(i).id == heldInventory.getItemStack(0).id) {
+                                heldInventory.setItemStack(0, furnaceInterface.addInputItemStack(i, heldInventory.getItemStack(0)));
+                            } else {
+                                mc::ItemStack tempItemStack(furnaceInterface.getInputItemStack(i));
+                                furnaceInterface.setInputItemStack(i, heldInventory.getItemStack(0));
+                                heldInventory.setItemStack(0, tempItemStack);
+                            }
+                        } else if (rightClick) {
+                            if (heldInventory.getItemStack(0).id == 0) {
+                                mc::ItemStack movedItemStack(furnaceInterface.getInputItemStack(i).id, furnaceInterface.getInputItemStack(i).amount / 2 + furnaceInterface.getInputItemStack(i).amount % 2);
+                                furnaceInterface.subtractInputItem(i, movedItemStack.amount);
+                                heldInventory.setItemStack(0, movedItemStack);
+                            } else if (furnaceInterface.getInputEmptySpace(i) > 0 && heldInventory.getItemStack(0).id != 0 && (furnaceInterface.getInputItemStack(i).id == heldInventory.getItemStack(0).id || furnaceInterface.getInputItemStack(i).id == 0)) {
+                                furnaceInterface.addInputItemStack(i, mc::ItemStack(heldInventory.getItemStack(0).id, 1));
+                                heldInventory.subtractItem(0, 1);
+                            }
+                        }
+                    }
+                }
+                // Furnace fuel
+                for (int i = 0; i < 1; i++) {
+                    sf::FloatRect bound = furnaceInterface.getFuelSlotGlobalBounds(i);
+                    if (bound.contains(sf::Vector2f(mousePosition))) {
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        renderSlotHoverHighlighter = true;
+                        if (leftClick) {
+                            if (furnaceInterface.getFuelItemStack(i).id == heldInventory.getItemStack(0).id) {
+                                heldInventory.setItemStack(0, furnaceInterface.addFuelItemStack(i, heldInventory.getItemStack(0)));
+                            } else {
+                                mc::ItemStack tempItemStack(furnaceInterface.getFuelItemStack(i));
+                                furnaceInterface.setFuelItemStack(i, heldInventory.getItemStack(0));
+                                heldInventory.setItemStack(0, tempItemStack);
+                            }
+                        } else if (rightClick) {
+                            if (heldInventory.getItemStack(0).id == 0) {
+                                mc::ItemStack movedItemStack(furnaceInterface.getFuelItemStack(i).id, furnaceInterface.getFuelItemStack(i).amount / 2 + furnaceInterface.getFuelItemStack(i).amount % 2);
+                                furnaceInterface.subtractFuelItem(i, movedItemStack.amount);
+                                heldInventory.setItemStack(0, movedItemStack);
+                            } else if (furnaceInterface.getFuelEmptySpace(i) > 0 && heldInventory.getItemStack(0).id != 0 && (furnaceInterface.getFuelItemStack(i).id == heldInventory.getItemStack(0).id || furnaceInterface.getFuelItemStack(i).id == 0)) {
+                                furnaceInterface.addFuelItemStack(i, mc::ItemStack(heldInventory.getItemStack(0).id, 1));
+                                heldInventory.subtractItem(0, 1);
+                            }
+                        }
+                    }
+                }
+                // Furnace output
+                for (int i = 0; i < 1; i++) {
+                    sf::FloatRect bound = furnaceInterface.getOutputSlotGlobalBounds(i);
+                    if (bound.contains(sf::Vector2f(mousePosition))) {
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        renderSlotHoverHighlighter = true;
+                        if (leftClick && (heldInventory.getItemStack(0).id == 0 || (heldInventory.getItemStack(0).id == furnaceInterface.getOutputItemStack(0).id && heldInventory.getEmptySpace(0) >= furnaceInterface.getOutputItemStack(0).amount))) {
+                            heldInventory.addItemStack(0, furnaceInterface.takeOutputItem(0));
+                        }
+                    }
+                }
+                std::cout << "S1: " << furnaceInterface.getFurnaceData().inputItemStack.amount << std::endl;
+                chunks.getChunk(openedFurnaceChunkID).setFurnaceData(openedFurnacePos.x, openedFurnacePos.y, furnaceInterface.getFurnaceData());
+                std::cout << "S2: " << chunks.getChunk(openedFurnaceChunkID).getFurnaceData(openedFurnacePos.x, openedFurnacePos.y).inputItemStack.amount << std::endl;
                 break;
             default:
                 break;

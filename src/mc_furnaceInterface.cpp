@@ -190,4 +190,20 @@ ItemStack FurnaceInterface::takeOutputItem(int slotID) {
     return returnVal;
 }
 
+void FurnaceInterface::setFurnaceData(FurnaceData furnaceData) {
+    this->furnaceData = furnaceData;
+    this->inputInventory.setItemStack(0, this->furnaceData.inputItemStack);
+    this->fuelInventory.setItemStack(0, this->furnaceData.fuelItemStack);
+    this->outputInventory.setItemStack(0, this->furnaceData.outputItemStack);
+    this->setProgess(static_cast<float>(this->furnaceData.progress) / 200.f);
+    this->setFuelVal(static_cast<float>(this->furnaceData.fuelLeft) / static_cast<float>(furnaceData.fuelMax));
+}
+
+FurnaceData FurnaceInterface::getFurnaceData() {
+    this->furnaceData.inputItemStack = this->inputInventory.getItemStack(0);
+    this->furnaceData.fuelItemStack = this->fuelInventory.getItemStack(0);
+    this->furnaceData.outputItemStack = this->outputInventory.getItemStack(0);
+    return this->furnaceData;
+}
+
 }  // namespace mc

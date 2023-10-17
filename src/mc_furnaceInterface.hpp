@@ -13,6 +13,15 @@ using json = nlohmann::json;
 
 namespace mc {
 
+struct FurnaceData {
+    ItemStack inputItemStack;
+    ItemStack fuelItemStack;
+    ItemStack outputItemStack;
+    int progress;
+    int fuelLeft;
+    int fuelMax;
+};
+
 struct SmeltingRecipeData {
     int ingredientID;
     int resultID;
@@ -26,6 +35,8 @@ class FurnaceInterface : public sf::Drawable {
     std::vector<SmeltingRecipeData> parsedSmeltingRecipesData;
     ProgressBar progressBar;
     ProgressBar fuelBar;
+
+    FurnaceData furnaceData;
 
     void parseSmeltingRecipesData();
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
@@ -67,6 +78,8 @@ class FurnaceInterface : public sf::Drawable {
     ItemStack addInputItemStack(int slotID, ItemStack itemStack);
     ItemStack addFuelItemStack(int slotID, ItemStack itemStack);
     ItemStack takeOutputItem(int slotID);
+    void setFurnaceData(FurnaceData furnaceData);
+    FurnaceData getFurnaceData();
 };
 
 }  // namespace mc

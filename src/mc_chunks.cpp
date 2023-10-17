@@ -402,6 +402,11 @@ int Chunks::breakBlock(int& xp) {
     return this->chunks[breakChunkIndex].breakBlock(mousePos.x, mousePos.y, xp);
 }
 
+Chunk& Chunks::getChunk(int chunkID) {
+    assert(chunkID >= this->chunksStartID && chunkID <= this->chunksEndID);
+    return this->chunks[chunkID - this->chunksStartID];
+}
+
 bool Chunks::placeBlock(int blockID) {
     if (this->mouseChunkID < this->chunksStartID || this->mouseChunkID > this->chunksEndID) {
         return 0;

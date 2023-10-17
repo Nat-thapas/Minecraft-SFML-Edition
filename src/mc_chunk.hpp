@@ -9,24 +9,11 @@
 
 #include "../include/perlin.hpp"
 #include "mc_inventory.hpp"
+#include "mc_furnaceInterface.hpp"
 
 using Perlin = siv::PerlinNoise;
 
 namespace mc {
-
-struct FurnaceData {
-    ItemStack inputItemStack;
-    ItemStack fuelItemStack;
-    ItemStack outputItemStack;
-    int progress;
-    int fuelLeft;
-    int fuelMax;
-};
-
-struct SmeltingRecipeData {
-    int ingredientID;
-    int resultID;
-};
 
 class Chunk : public sf::Drawable, public sf::Transformable {
     int chunkID;
@@ -115,6 +102,7 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     std::array<int, 256> getLeftBlockLightLevels();
     std::array<int, 256> getRightBlockLightLevels();
     FurnaceData getFurnaceData(int x, int y);
+    void setFurnaceData(int x, int y, FurnaceData furnaceData);
     void updateVertexArray();
     void updateAnimatedVertexArray();
     void updateLightLevels();
