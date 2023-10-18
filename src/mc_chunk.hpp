@@ -80,7 +80,7 @@ class Chunk : public sf::Drawable, public sf::Transformable {
 
    public:
     Chunk(int blocks[4096], int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData);
-    Chunk(std::string, int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData);
+    Chunk(std::string filePath, int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData);
     Chunk(Perlin& noise, int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData);
     void update();
     void setPixelPerBlock(int pixelPerBlock);
@@ -107,7 +107,7 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     void updateLightLevels();
     void updateAllLightingVertexArray();
     void updateLightingVertexArray();
-    bool saveToFile(std::string filePath);
+    bool saveToFile();
 };
 
 }  // namespace mc

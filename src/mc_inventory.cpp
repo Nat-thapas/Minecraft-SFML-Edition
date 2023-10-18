@@ -1,9 +1,9 @@
 #include <SFML/Graphics.hpp>
 #include <array>
 #include <format>
-#include <fstream>
 #include <string>
 #include <vector>
+#include <zlib.h>
 
 #include "../include/json.hpp"
 #include "idiv.hpp"
@@ -47,17 +47,17 @@ Inventory::Inventory(int size, int width, int scaling, int margin, sf::Font& fon
 }
 
 void Inventory::loadFromFile(std::string filePath) {
-    std::ifstream inFile(filePath, std::ios::binary);
-    inFile.read(reinterpret_cast<char*>(this->itemStacks.data()), this->itemStacks.size() * sizeof(ItemStack));
-    inFile.close();
+    gzFile inFileZ = gzopen(filePath.c_str(), "rb");
+    gzread(inFileZ, reinterpret_cast<char*>(this->itemStacks.data()), this->itemStacks.size() * sizeof(ItemStack));
+    gzclose(inFileZ);
     this->updateAllVertexArray();
     this->updateAllAmountLabels();
 }
 
 bool Inventory::saveToFile(std::string filePath) {
-    std::ofstream outFile(filePath, std::ios::binary);
-    outFile.write(reinterpret_cast<char*>(this->itemStacks.data()), this->itemStacks.size() * sizeof(ItemStack));
-    outFile.close();
+    gzFile outFileZ = gzopen(filePath.c_str(), "wb");
+    gzwrite(outFileZ, reinterpret_cast<char*>(this->itemStacks.data()), this->itemStacks.size() * sizeof(ItemStack));
+    gzclose(outFileZ);
     return true;
 }
 

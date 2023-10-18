@@ -4,12 +4,10 @@
 #include <cstdlib>
 #include <filesystem>
 #include <format>
-#include <fstream>
 #include <queue>
 #include <string>
 #include <unordered_map>
-
-#include <iostream>
+#include <zlib.h>
 
 #include "../include/perlin.hpp"
 #include "mc_inventory.hpp"
@@ -49,9 +47,9 @@ Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, std::string w
     this->worldName = worldName;
     this->vertexArray.setPrimitiveType(sf::Triangles);
     this->vertexArray.resize(256 * 16 * 6);  // 256 blocks high, 16 blocks wide, 6 vertices per block
-    std::ifstream inFile(filePath, std::ios::binary);
-    inFile.read(reinterpret_cast<char*>(this->blocks.data()), this->blocks.size() * sizeof(int));
-    inFile.close();
+    gzFile inFileZ = gzopen(filePath.c_str(), "rb");
+    gzread(inFileZ, reinterpret_cast<char*>(this->blocks.data()), this->blocks.size() * sizeof(int));
+    gzclose(inFileZ);
     this->animationIndex = 0;
     for (int idx = 0; idx < 4096; idx++) {
         if (this->blocks[idx] == 41 || this->blocks[idx] == 42) {
@@ -740,13 +738,13 @@ std::array<int, 256> Chunk::getRightBlockLightLevels() {
 }
 
 FurnaceData Chunk::loadFurnaceDataFromFile(int x, int y) {
-    if (!std::filesystem::exists(std::format("saves/{}/inventories/furnaces/{}.{}.{}.dat", this->worldName, this->chunkID, x, y))) {
+    if (!std::filesystem::exists(std::format("saves/{}/inventories/furnaces/{}.{}.{}.dat.gz", this->worldName, this->chunkID, x, y))) {
         return FurnaceData(ItemStack(0, 0), ItemStack(0, 0), ItemStack(0, 0), 0, 0, 0);
     }
-    std::ifstream inFile(std::format("saves/{}/inventories/furnaces/{}.{}.{}.dat", this->worldName, this->chunkID, x, y), std::ios::binary);
     FurnaceData furnaceData;
-    inFile.read(reinterpret_cast<char*>(&furnaceData), sizeof(FurnaceData));
-    inFile.close();
+    gzFile inFileZ = gzopen(std::format("saves/{}/inventories/furnaces/{}.{}.{}.dat.gz", this->worldName, this->chunkID, x, y).c_str(), "rb");
+    gzread(inFileZ, reinterpret_cast<char*>(&furnaceData), sizeof(FurnaceData));
+    gzclose(inFileZ);
     return furnaceData;
 }
 
@@ -754,9 +752,9 @@ bool Chunk::saveAllFurnaceDataToFile() {
     for (auto& [furnaceIdx, furnaceData] : this->furnacesData) {
         int x = furnaceIdx % 16;
         int y = furnaceIdx / 16;
-        std::ofstream outFile(std::format("saves/{}/inventories/furnaces/{}.{}.{}.dat", this->worldName, this->chunkID, x, y), std::ios::binary);
-        outFile.write(reinterpret_cast<char*>(&furnaceData), sizeof(FurnaceData));
-        outFile.close();
+        gzFile outFileZ = gzopen(std::format("saves/{}/inventories/furnaces/{}.{}.{}.dat.gz", this->worldName, this->chunkID, x, y).c_str(), "wb");
+        gzwrite(outFileZ, reinterpret_cast<char*>(&furnaceData), sizeof(FurnaceData));
+        gzclose(outFileZ);
     }
     return true;
 }
@@ -772,10 +770,10 @@ void Chunk::setFurnaceData(int x, int y, FurnaceData furnaceData) {
     this->furnacesData[x + y * 16] = furnaceData;
 }
 
-bool Chunk::saveToFile(std::string filePath) {
-    std::ofstream outFile(filePath, std::ios::binary);
-    outFile.write(reinterpret_cast<char*>(this->blocks.data()), this->blocks.size() * sizeof(int));
-    outFile.close();
+bool Chunk::saveToFile() {
+    gzFile outFileZ = gzopen(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, this->chunkID).c_str(), "wb");
+    gzwrite(outFileZ, reinterpret_cast<char*>(this->blocks.data()), this->blocks.size() * sizeof(int));
+    gzclose(outFileZ);
     this->saveAllFurnaceDataToFile();
     return true;
 }

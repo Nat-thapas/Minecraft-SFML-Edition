@@ -32,7 +32,8 @@
                 "-lsfml-window-d",
                 "-lsfml-audio-d",
                 "-lsfml-network-d",
-                "-lsfml-system-d"
+                "-lsfml-system-d",
+                "-lz"
             ],
             "options": {
                 "cwd": "${fileDirname}"
@@ -80,7 +81,8 @@
                 "-lsfml-window",
                 "-lsfml-audio",
                 "-lsfml-network",
-                "-lsfml-system"
+                "-lsfml-system",
+                "-lz"
             ],
             "options": {
                 "cwd": "${fileDirname}"
@@ -130,7 +132,8 @@
                 "-lsfml-window",
                 "-lsfml-audio",
                 "-lsfml-network",
-                "-lsfml-system"
+                "-lsfml-system",
+                "-lz"
             ],
             "options": {
                 "cwd": "${fileDirname}"

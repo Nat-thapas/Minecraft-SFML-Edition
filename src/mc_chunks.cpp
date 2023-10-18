@@ -64,8 +64,8 @@ void Chunks::parseSmeltingRecipesData() {
 
 void Chunks::initializeChunks() {
     for (int i = 0; i < this->chunkCountOnScreen; i++) {
-        if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat", this->worldName, this->chunksStartID + i))) {
-            this->chunks.push_back(Chunk(std::format("saves/{}/chunks/{}.dat", this->worldName, this->chunksStartID + i), this->chunksStartID + i, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+        if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, this->chunksStartID + i))) {
+            this->chunks.push_back(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, this->chunksStartID + i), this->chunksStartID + i, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
         } else {
             this->chunks.push_back(Chunk(this->noise, this->chunksStartID + i, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
         }
@@ -108,7 +108,7 @@ Chunks::Chunks(int playerChunkID, int seed, int pixelPerBlock, std::string world
 bool Chunks::saveAll() {
     int i = chunksStartID;
     for (Chunk& chunk : this->chunks) {
-        chunk.saveToFile(std::format("saves/{}/chunks/{}.dat", this->worldName, i));
+        chunk.saveToFile();
         i++;
     }
     return true;
@@ -215,29 +215,29 @@ void Chunks::setPixelPerBlock(int pixelPerBlock) {
     this->chunkCountOnScreen = this->chunksEndID - this->chunksStartID + 1;
     if (this->chunksEndID > oldChunksEndID) {
         for (int i = 0; i < this->chunksEndID - oldChunksEndID; i++) {
-            if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat", this->worldName, oldChunksEndID + i + 1))) {
-                this->chunks.push_back(Chunk(std::format("saves/{}/chunks/{}.dat", this->worldName, oldChunksEndID + i + 1), oldChunksEndID + i + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+            if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksEndID + i + 1))) {
+                this->chunks.push_back(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksEndID + i + 1), oldChunksEndID + i + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
             } else {
                 this->chunks.push_back(Chunk(this->noise, oldChunksEndID + i + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
             }
         }
     } else if (this->chunksEndID < oldChunksEndID) {
         for (int i = 0; i < oldChunksEndID - this->chunksEndID; i++) {
-            this->chunks.back().saveToFile(std::format("saves/{}/chunks/{}.dat", this->worldName, oldChunksEndID - i));
+            this->chunks.back().saveToFile();
             this->chunks.pop_back();
         }
     }
     if (this->chunksStartID < oldChunksStartID) {
         for (int i = 0; i < oldChunksStartID - this->chunksStartID; i++) {
-            if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat", this->worldName, oldChunksStartID - i - 1))) {
-                this->chunks.push_front(Chunk(std::format("saves/{}/chunks/{}.dat", this->worldName, oldChunksStartID - i - 1), oldChunksStartID - i - 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+            if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksStartID - i - 1))) {
+                this->chunks.push_front(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksStartID - i - 1), oldChunksStartID - i - 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
             } else {
                 this->chunks.push_front(Chunk(this->noise, oldChunksStartID - i - 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
             }
         }
     } else if (this->chunksStartID > oldChunksStartID) {
         for (int i = 0; i < this->chunksStartID - oldChunksStartID; i++) {
-            this->chunks.front().saveToFile(std::format("saves/{}/chunks/{}.dat", this->worldName, oldChunksStartID + i));
+            this->chunks.front().saveToFile();
             this->chunks.pop_front();
         }
     }
@@ -257,29 +257,29 @@ void Chunks::setScreenSize(sf::Vector2i screenSize) {
     this->chunkCountOnScreen = this->chunksEndID - this->chunksStartID + 1;
     if (this->chunksEndID > oldChunksEndID) {
         for (int i = 0; i < this->chunksEndID - oldChunksEndID; i++) {
-            if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat", this->worldName, oldChunksEndID + i + 1))) {
-                this->chunks.push_back(Chunk(std::format("saves/{}/chunks/{}.dat", this->worldName, oldChunksEndID + i + 1), oldChunksEndID + i + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+            if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksEndID + i + 1))) {
+                this->chunks.push_back(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksEndID + i + 1), oldChunksEndID + i + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
             } else {
                 this->chunks.push_back(Chunk(this->noise, oldChunksEndID + i + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
             }
         }
     } else if (this->chunksEndID < oldChunksEndID) {
         for (int i = 0; i < oldChunksEndID - this->chunksEndID; i++) {
-            this->chunks.back().saveToFile(std::format("saves/{}/chunks/{}.dat", this->worldName, oldChunksEndID - i));
+            this->chunks.back().saveToFile();
             this->chunks.pop_back();
         }
     }
     if (this->chunksStartID < oldChunksStartID) {
         for (int i = 0; i < oldChunksStartID - this->chunksStartID; i++) {
-            if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat", this->worldName, oldChunksStartID - i - 1))) {
-                this->chunks.push_front(Chunk(std::format("saves/{}/chunks/{}.dat", this->worldName, oldChunksStartID - i - 1), oldChunksStartID - i - 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+            if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksStartID - i - 1))) {
+                this->chunks.push_front(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksStartID - i - 1), oldChunksStartID - i - 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
             } else {
                 this->chunks.push_front(Chunk(this->noise, oldChunksStartID - i - 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
             }
         }
     } else if (this->chunksStartID > oldChunksStartID) {
         for (int i = 0; i < this->chunksStartID - oldChunksStartID; i++) {
-            this->chunks.front().saveToFile(std::format("saves/{}/chunks/{}.dat", this->worldName, oldChunksStartID + i));
+            this->chunks.front().saveToFile();
             this->chunks.pop_front();
         }
     }
@@ -297,24 +297,24 @@ void Chunks::setPlayerChunkID(int chunkID) {
     }
     if (chunkID > this->playerChunkID) {
         for (int i = 0; i < chunkID - this->playerChunkID; i++) {
-            if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat", this->worldName, this->chunksEndID + 1))) {
-                this->chunks.push_back(Chunk(std::format("saves/{}/chunks/{}.dat", this->worldName, this->chunksEndID + 1), this->chunksEndID + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+            if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, this->chunksEndID + 1))) {
+                this->chunks.push_back(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, this->chunksEndID + 1), this->chunksEndID + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
             } else {
                 this->chunks.push_back(Chunk(this->noise, this->chunksEndID + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
             }
-            this->chunks.front().saveToFile(std::format("saves/{}/chunks/{}.dat", this->worldName, this->chunksStartID));
+            this->chunks.front().saveToFile();
             this->chunks.pop_front();
             this->chunksStartID++;
             this->chunksEndID++;
         }
     } else {
         for (int i = 0; i < this->playerChunkID - chunkID; i++) {
-            if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat", this->worldName, this->chunksStartID - 1))) {
-                this->chunks.push_front(Chunk(std::format("saves/{}/chunks/{}.dat", this->worldName, this->chunksStartID - 1), this->chunksStartID + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+            if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, this->chunksStartID - 1))) {
+                this->chunks.push_front(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, this->chunksStartID - 1), this->chunksStartID + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
             } else {
                 this->chunks.push_front(Chunk(this->noise, this->chunksStartID - 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
             }
-            this->chunks.back().saveToFile(std::format("saves/{}/chunks/{}.dat", this->worldName, this->chunksEndID));
+            this->chunks.back().saveToFile();
             this->chunks.pop_back();
             this->chunksStartID--;
             this->chunksEndID--;
