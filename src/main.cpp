@@ -196,6 +196,8 @@ int main() {
     int openedFurnaceChunkID = 0;
     sf::Vector2i openedFurnacePos(0, 0);
 
+    int lastPlaceTickCount = 0;
+
     while (window.isOpen()) {
         perfDebugInfo.startFrame();
 
@@ -216,6 +218,10 @@ int main() {
         while (window.pollEvent(event)) {
             switch (event.type) {
                 case sf::Event::Closed:
+                    if (openMenuType == MENU_CHEST) {
+                        std::string filePath = std::format("saves/{}/inventories/chests/{}.{}.{}.dat.gz", worldName, openedChestChunkID, openedChestPos.x, openedChestPos.y);
+                        chestInventory.saveToFile(filePath);
+                    }
                     chunks.saveAll();
                     window.close();
                     break;
@@ -480,9 +486,10 @@ int main() {
                     openedFurnaceChunkID = chunks.getMouseChunkID();
                     openedFurnacePos = chunks.getMousePos();
                     openMenuType = MENU_FURNACE;
-                } else if (rightClick && (chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 2 || chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 3) && hotbarInventory.getItemStack(selectedHotbarSlot).id >= 82 && hotbarInventory.getItemStack(selectedHotbarSlot).id < 87) {
+                } else if (rightClickHeld && tickCount - lastPlaceTickCount >= 4 && (chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 2 || chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 3) && hotbarInventory.getItemStack(selectedHotbarSlot).id >= 82 && hotbarInventory.getItemStack(selectedHotbarSlot).id < 87) {
                     chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 51);
-                } else if (rightClick && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 11 && hotbarInventory.getItemStack(selectedHotbarSlot).id == 108) {
+                } else if (rightClickHeld && tickCount - lastPlaceTickCount >= 4 && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 11 && hotbarInventory.getItemStack(selectedHotbarSlot).id == 108) {
+                    lastPlaceTickCount = tickCount;
                     chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 0);
                     hotbarInventory.subtractItem(selectedHotbarSlot, 1);
                     mc::ItemStack droppedItemStack(109, 1);
@@ -491,7 +498,8 @@ int main() {
                     if (droppedItemStack.amount > 0) {
                         // TODO Drop item on the ground
                     }
-                } else if (rightClick && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 13 && hotbarInventory.getItemStack(selectedHotbarSlot).id == 108) {
+                } else if (rightClickHeld && tickCount - lastPlaceTickCount >= 4 && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 13 && hotbarInventory.getItemStack(selectedHotbarSlot).id == 108) {
+                    lastPlaceTickCount = tickCount;
                     chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 0);
                     hotbarInventory.subtractItem(selectedHotbarSlot, 1);
                     mc::ItemStack droppedItemStack(110, 1);
@@ -920,9 +928,21 @@ int main() {
                 }
             }
 
-            if (rightClickHeld && openMenuType == MENU_NONE) {
-                if (chunks.placeBlock(hotbarInventory.getItemStack(selectedHotbarSlot).id)) {
-                    hotbarInventory.subtractItem(selectedHotbarSlot, 1);
+            if (rightClickHeld && openMenuType == MENU_NONE && tickCount - lastPlaceTickCount >= 4) {
+                int itemID = hotbarInventory.getItemStack(selectedHotbarSlot).id;
+                if (chunks.placeBlock(itemID)) {
+                    lastPlaceTickCount = tickCount;
+                    if (itemID != 81) {
+                        hotbarInventory.subtractItem(selectedHotbarSlot, 1);
+                        if (itemID == 109 || itemID == 110) {
+                            mc::ItemStack droppedItemStack(108, 1);
+                            droppedItemStack = hotbarInventory.addItemStack(droppedItemStack);
+                            if (droppedItemStack.amount > 0) droppedItemStack = mainInventory.addItemStack(droppedItemStack);
+                            if (droppedItemStack.amount > 0) {
+                                // TODO Drop item on the ground
+                            }
+                        }
+                    }
                 }
             }
 

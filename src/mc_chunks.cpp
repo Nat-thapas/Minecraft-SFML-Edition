@@ -485,7 +485,7 @@ ItemStack Chunks::breakBlock(int& xp, int itemID) {
     } else {
         harvestable = true;
     }
-    if (harvestable) {
+    if (toolBreakGroup && blockBreakGroup && blockBreakGroup == toolBreakGroup) {
         speedMultiplier *= static_cast<float>(toolSpeedMultiplier);
     }
     this->breakProgress += speedMultiplier / blockHardness / (harvestable ? 30.f : 100.f);
@@ -520,7 +520,7 @@ Chunk& Chunks::getChunk(int chunkID) {
     return this->chunks[chunkID - this->chunksStartID];
 }
 
-bool Chunks::placeBlock(int blockID) {
+bool Chunks::placeBlock(int itemID) {
     if (this->mouseChunkID < this->chunksStartID || this->mouseChunkID > this->chunksEndID) {
         return 0;
     }
@@ -528,7 +528,7 @@ bool Chunks::placeBlock(int blockID) {
         return 0;
     }
     int placeChunkIndex = this->mouseChunkID - this->chunksStartID;
-    return this->chunks[placeChunkIndex].placeBlock(mousePos.x, mousePos.y, blockID);
+    return this->chunks[placeChunkIndex].placeBlock(mousePos.x, mousePos.y, itemID);
 }
 
 }  // namespace mc
