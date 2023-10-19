@@ -7,7 +7,10 @@
 #include <queue>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <zlib.h>
+
+#include <iostream>
 
 #include "../include/perlin.hpp"
 #include "mc_inventory.hpp"
@@ -192,6 +195,9 @@ void Chunk::updateAnimatedVertexArray() {
         textureRect.left = this->parsedAtlasData[blockID].left;
         textureRect.top = this->parsedAtlasData[blockID].top;
         textureRect.width = this->parsedAtlasData[blockID].width;
+        if (blockID == 12 || blockID == 38) {
+            textureRect.width /= 2;
+        }
         textureRect.height = textureRect.width;
         switch (blockID) {
             case 11:  // Still water
@@ -245,6 +251,9 @@ void Chunk::updateAllVertexArray() {
         textureRect.left = this->parsedAtlasData[blockID].left;
         textureRect.top = this->parsedAtlasData[blockID].top;
         textureRect.width = this->parsedAtlasData[blockID].width;
+        if (blockID == 12 || blockID == 38) {
+            textureRect.width /= 2;
+        }
         textureRect.height = textureRect.width;
         switch (blockID) {
             case 11:  // Still water
@@ -301,6 +310,9 @@ void Chunk::updateVertexArray() {
         textureRect.left = this->parsedAtlasData[blockID].left;
         textureRect.top = this->parsedAtlasData[blockID].top;
         textureRect.width = this->parsedAtlasData[blockID].width;
+        if (blockID == 12 || blockID == 38) {
+            textureRect.width /= 2;
+        }
         textureRect.height = textureRect.width;
         switch (blockID) {
             case 11:  // Still water
@@ -442,6 +454,21 @@ void Chunk::update() {
         this->vertexUpdateQueue.push(x + y * 16);
         this->skyLightUpdateQueue.push(x + y * 16);
         this->blockLightUpdateQueue.push(x + y * 16);
+        if (y < 255 && this->blocksRequireBase[blockID] && (this->blocks[x + (y + 1) * 16] == 0 || (this->blocks[x + (y + 1) * 16] >= 12 && this->blocks[x + (y + 1) * 16] < 15))) {
+            int temp;
+            this->breakBlock(x, y, temp);
+        } else if (y > 0 && this->blocks[idx] == 0 && (this->blocks[x + (y - 1) * 16] == 11 || this->blocks[x + (y - 1) * 16] == 12)) {
+            this->setBlock(x, y, 12);
+        } else if (y > 0 && this->blocks[idx] == 12 && (this->blocks[x + (y - 1) * 16] != 11 && this->blocks[x + (y - 1) * 16] != 12)) {
+            this->setBlock(x, y, 0);
+        } else if (y > 0 && this->blocks[idx] == 0 && (this->blocks[x + (y - 1) * 16] == 13 || this->blocks[x + (y - 1) * 16] == 14)) {
+            this->setBlock(x, y, 14);
+        } else if (y > 0 && this->blocks[idx] == 14 && (this->blocks[x + (y - 1) * 16] != 13 && this->blocks[x + (y - 1) * 16] != 14)) {
+            this->setBlock(x, y, 0);
+        } else if (y < 255 && (blockID == 15 || blockID == 19) && this->blocks[x + (y + 1) * 16] == 0) {
+            this->setBlock(x, y, 0);
+            this->setBlock(x, y + 1, blockID);
+        }
     }
 }
 
@@ -549,7 +576,18 @@ int Chunk::getBlock(int x, int y) {
 void Chunk::setBlock(int x, int y, int blockID) {
     this->blocks[x + y * 16] = blockID;
     this->blockUpdateQueue.push(x + y * 16);
-    this->update();
+    if (x > 0) {
+        this->blockUpdateQueue.push((x - 1) + y * 16);
+    }
+    if (x < 15) {
+        this->blockUpdateQueue.push((x + 1) + y * 16);
+    }
+    if (y > 0) {
+        this->blockUpdateQueue.push(x + (y - 1) * 16);
+    }
+    if (y < 255) {
+        this->blockUpdateQueue.push(x + (y + 1) * 16);
+    }
 }
 
 bool Chunk::placeBlock(int x, int y, int itemID) {
@@ -557,7 +595,18 @@ bool Chunk::placeBlock(int x, int y, int itemID) {
     if (blockID == 0) {
         return false;
     }
-    if (this->getBlock(x, y)) {
+    if (this->blocksRequireBase[blockID] && (y == 255 || this->blocks[x + (y + 1) * 16] == 0 || (this->blocks[x + (y + 1) * 16] >= 12 && this->blocks[x + (y + 1) * 16] < 15))) {
+        return false;
+    }
+    if (this->blocksRequireSpecial[blockID]) {
+        if (this->blocksRequireDirt.contains(blockID) && (y == 255 || (this->blocks[x + (y + 1) * 16] != 2 && this->blocks[x + (y + 1) * 16] != 3))) {
+            return false;
+        }
+        if (this->blocksRequireFarmland.contains(blockID) && (y == 255 || (this->blocks[x + (y + 1) * 16] != 51 && this->blocks[x + (y + 1) * 16] != 52))) {
+            return false;
+        }
+    }
+    if (!this->isBlocksReplacable[this->getBlock(x, y)]) {
         return false;
     }
     this->setBlock(x, y, blockID);
@@ -629,7 +678,87 @@ void Chunk::tick(int tickCount) {
             furnaceData.progress = 0;
         }
     }
-    // TODO random tick
+    this->randomTick();
+}
+
+void Chunk::randomTick() {
+    // TODO set rate to 3
+    for (int i = 0; i < 300; i++) {
+        int idx = rand() % 4096;
+        int blockID = this->blocks[idx];
+        int x = idx % 16;
+        int y = idx / 16;
+        if (x > 1 && x < 14 && blockID == 5 && rand() % 3 == 0) {
+            int plantType = rand() % 3;
+            for (int ox = 0; ox < 5; ox++) {
+                for (int oy = 0; oy < 7; oy++) {
+                    if (this->oakTrees[plantType][ox + oy * 5] && this->blocks[(x + ox - 2) + (y + oy - 6) * 16] != 6) {
+                        this->blocks[(x + ox - 2) + (y + oy - 6) * 16] = this->oakTrees[plantType][ox + oy * 5];
+                        this->blockUpdateQueue.push((x + ox - 2) + (y + oy - 6) * 16);
+                    }
+                }
+            }
+        } else if (blockID == 7) {
+            bool shouldDecay = true;
+            for (int ox = -2; ox < 3; ox++) {
+                for (int oy = -2; oy < 3; oy++) {
+                    int X = x + ox;
+                    int Y = y + oy;
+                    if (X < 0 || X > 15 || Y < 0 || Y > 255) {
+                        continue;
+                    }
+                    if (this->blocks[X + Y * 16] == 6) {
+                        shouldDecay = false;
+                    }
+                }
+            }
+            if (shouldDecay) {
+                int temp;
+                this->breakBlock(x, y, temp);
+            }
+        } else if (blockID == 51) {
+            bool waterFound = false;
+            for (int ox = -4; ox < 5; ox++) {
+                for (int oy = -4; oy < 5; oy++) {
+                    int X = x + ox;
+                    int Y = y + oy;
+                    if (X < 0 || X > 15 || Y < 0 || Y > 255) {
+                        continue;
+                    }
+                    if (this->blocks[X + Y * 16] == 11 || this->blocks[X + Y * 16] == 12) {
+                        waterFound = true;
+                    }
+                }
+            }
+            if (waterFound) {
+                this->setBlock(x, y, 52);
+            } else {
+                this->setBlock(x, y, 3);
+            }
+        } else if (blockID == 52) {
+            bool waterFound = false;
+            for (int ox = -4; ox < 5; ox++) {
+                for (int oy = -4; oy < 5; oy++) {
+                    int X = x + ox;
+                    int Y = y + oy;
+                    if (X < 0 || X > 15 || Y < 0 || Y > 255) {
+                        continue;
+                    }
+                    if (this->blocks[X + Y * 16] == 11 || this->blocks[X + Y * 16] == 12) {
+                        waterFound = true;
+                    }
+                }
+            }
+            if (!waterFound) {
+                this->setBlock(x, y, 51);
+            }
+        } else if (blockID >= 43 && blockID < 51 && (y == 255 || (this->blocks[x + (y + 1) * 16] != 51 && this->blocks[x + (y + 1) * 16] != 52))) {
+            int temp;
+            this->breakBlock(x, y, temp);
+        } else if (blockID >= 43 && blockID < 50) {
+            this->setBlock(x, y, blockID + 1);
+        }
+    }
 }
 
 int Chunk::getSkyLightLevel(int x, int y) {

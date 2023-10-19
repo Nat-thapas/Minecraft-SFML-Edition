@@ -445,6 +445,16 @@ int Chunks::getBlock(int chunkID, int x, int y) {
     return this->chunks[chunkID - this->chunksStartID].getBlock(x, y);
 }
 
+void Chunks::setBlock(int chunkID, int x, int y, int blockID) {
+    if (chunkID < this->chunksStartID || chunkID > this->chunksEndID) {
+        return;
+    }
+    if (x < 0 || x > 15 || y < 0 || y > 255) {
+        return;
+    }
+    this->chunks[chunkID - this->chunksStartID].setBlock(x, y, blockID);
+}
+
 ItemStack Chunks::breakBlock(int& xp, int itemID) {
     if (this->mouseChunkID < this->chunksStartID || this->mouseChunkID > this->chunksEndID) {
         return ItemStack(0, 0);

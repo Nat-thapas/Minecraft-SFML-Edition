@@ -480,6 +480,26 @@ int main() {
                     openedFurnaceChunkID = chunks.getMouseChunkID();
                     openedFurnacePos = chunks.getMousePos();
                     openMenuType = MENU_FURNACE;
+                } else if (rightClick && (chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 2 || chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 3) && hotbarInventory.getItemStack(selectedHotbarSlot).id >= 82 && hotbarInventory.getItemStack(selectedHotbarSlot).id < 87) {
+                    chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 51);
+                } else if (rightClick && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 11 && hotbarInventory.getItemStack(selectedHotbarSlot).id == 108) {
+                    chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 0);
+                    hotbarInventory.subtractItem(selectedHotbarSlot, 1);
+                    mc::ItemStack droppedItemStack(109, 1);
+                    droppedItemStack = hotbarInventory.addItemStack(droppedItemStack);
+                    if (droppedItemStack.amount > 0) droppedItemStack = mainInventory.addItemStack(droppedItemStack);
+                    if (droppedItemStack.amount > 0) {
+                        // TODO Drop item on the ground
+                    }
+                } else if (rightClick && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 13 && hotbarInventory.getItemStack(selectedHotbarSlot).id == 108) {
+                    chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 0);
+                    hotbarInventory.subtractItem(selectedHotbarSlot, 1);
+                    mc::ItemStack droppedItemStack(110, 1);
+                    droppedItemStack = hotbarInventory.addItemStack(droppedItemStack);
+                    if (droppedItemStack.amount > 0) droppedItemStack = mainInventory.addItemStack(droppedItemStack);
+                    if (droppedItemStack.amount > 0) {
+                        // TODO Drop item on the ground
+                    }
                 }
                 break;
             case MENU_PLAYERINV:
@@ -906,7 +926,6 @@ int main() {
                 }
             }
 
-            // TODO chunks.update();
             chunks.tick(tickCount);
             chunks.update();
             chunks.updateVertexArrays();
