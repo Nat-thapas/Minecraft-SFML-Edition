@@ -2,6 +2,7 @@
 #define MC_PLAYER_HPP
 
 #include <SFML/Graphics.hpp>
+#include <unordered_map>
 
 #include "idiv.hpp"
 #include "mod.hpp"
@@ -26,7 +27,7 @@ class Player : public sf::Drawable {
     float targetPhysicsRate = 480.f;
     int chunkID;
     sf::Vector2f position;
-    std::array<bool, 71> blockSolidity = {0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1};
+    std::array<bool, 71> blocksSolidity = {0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1};
 
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
     bool isOnGround();

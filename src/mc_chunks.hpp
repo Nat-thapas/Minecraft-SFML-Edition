@@ -26,7 +26,7 @@ class Chunks : public sf::Drawable {
     json& smeltingRecipesData;
     std::unordered_map<int, int> parsedSmeltingRecipesData;
     sf::Texture textureAtlas;
-    sf::Shader shader;
+    sf::Shader chunkShader;
     json atlasData;
     std::deque<mc::Chunk> chunks;
     Perlin noise;
@@ -41,6 +41,20 @@ class Chunks : public sf::Drawable {
     int mouseChunkID;
     sf::Vector2i mousePos;
     sf::RectangleShape highlighter;
+    int breakingChunkID;
+    sf::Vector2i breakingPos;
+    float breakProgress;
+    sf::Sprite breakProgressOverlay;
+    sf::Texture breakProgressOverlayTexture;
+    sf::Shader overlayShader;
+    std::array<bool, 71> isBlockBreakable = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    std::array<int, 123> breakSpeedMultipliers = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 4, 4, 4, 1, 6, 6, 6, 1, 12, 12, 12, 1, 8, 8, 8, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    std::unordered_map<int, int> toolsBreakGroup;
+    std::unordered_map<int, int> toolsMiningLevel;
+    std::array<int, 71> blocksBreakGroup = {0, 2, 1, 1, 2, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 1, 2, 2, 2, 2, 2, 3, 3, 0, 0, 0, 2, 2, 2, 2, 2, 1, 2, 0, 0, 3, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 0, 2, 2, 0, 0, 0, 2, 0};
+    std::array<int, 71> blocksMiningLevel = {0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 255, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 2, 3, 3, 0, 0, 0, 0, 0, 0, 1, 2, 3, 3, 1, 0, 4, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 255, 1, 1, 255, 255, 255, 1, 0};
+    std::array<float, 71> blocksHardness = {0, 1.5, 0.6, 0.5, 2, 0, 2, 0.2, 2, 0, 65536, 0, 0, 0, 0, 0.5, 0.8, 0.8, 0.8, 0.6, 5, 5, 5, 5, 0.3, 0.2, 0.2, 0.8, 0, 0, 5, 5, 3, 5, 2, 0.6, 50, 0, 0, 2.5, 2.5, 3.5, 3.5, 0, 0, 0, 0, 0, 0, 0, 0, 0.6, 0.6, 1, 3, 3, 3, 3, 1.5, 1.5, 1.5, 1.5, 5, 65536, 0.4, 2, 65536, 65536, 65536, 3, 25};
+
 
     void updateTexture();
     void parseAtlasData();
@@ -49,10 +63,11 @@ class Chunks : public sf::Drawable {
     void initializeChunks();
     void updateMousePosition();
     void updateHighlighterPosition();
+    void updateBreakOverlayPosition();
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
-    Chunks(int playerChunkID, int seed, int pixelPerBlock, std::string worldName, sf::Vector2i screenSize, std::string atlasFilesPath, std::string atlasDatasPath, std::string shaderFilePath, json& smeltingRecipesData);
+    Chunks(int playerChunkID, int seed, int pixelPerBlock, std::string worldName, sf::Vector2i screenSize, std::string atlasFilesPath, std::string atlasDatasPath, std::string chunkShaderFilePath, std::string overlayShaderFilePath, json& smeltingRecipesData, std::string breakProgressOverlayTextureFilePath);
     void tick(int tickCount);
     void update();
     void updateVertexArrays();
@@ -72,7 +87,7 @@ class Chunks : public sf::Drawable {
     sf::Vector2i getPlayerLightLevel();
     sf::Vector2i getMouseLightLevel();
     int getBlock(int chunkID, int x, int y);
-    int breakBlock(int& xp);
+    ItemStack breakBlock(int& xp, int itemID);
     bool placeBlock(int blockID);
     Chunk& getChunk(int chunkID);
     bool saveAll();

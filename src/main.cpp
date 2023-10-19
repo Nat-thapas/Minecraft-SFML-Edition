@@ -64,7 +64,7 @@ int main() {
     json smeltingRecipesData = json::parse(smeltingRecipesDataFile);
     smeltingRecipesDataFile.close();
 
-    mc::Chunks chunks(initialPlayerChunkID, 123654789, pixelPerBlock, "test", sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/", "resources/shaders/chunk.frag", smeltingRecipesData);
+    mc::Chunks chunks(initialPlayerChunkID, 123654789, pixelPerBlock, "test", sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/", "resources/shaders/chunk.frag", "resources/shaders/breakOverlay.frag", smeltingRecipesData, "resources/textures/overlays/breakProgress.png");
 
     sf::Vector2f initialPlayerPos(0.5f, 0.f);
     while (!chunks.getBlock(initialPlayerChunkID, static_cast<int>(initialPlayerPos.x), static_cast<int>(initialPlayerPos.y))) {
@@ -890,12 +890,13 @@ int main() {
         if (elapsedTime.asMilliseconds() - lastTickTimeMs >= 50) {
             lastTickTimeMs += 50 + std::max(idiv(elapsedTime.asMilliseconds() - lastTickTimeMs, 50) - 100, 0) * 50;
             if (leftClickHeld && openMenuType == MENU_NONE) {
-                int droppedItemID = chunks.breakBlock(player.xp);
-                mc::ItemStack itemStack(droppedItemID, 1);
-                itemStack = hotbarInventory.addItemStack(itemStack);
-                if (itemStack.amount > 0) itemStack = mainInventory.addItemStack(itemStack);
-                if (itemStack.amount > 0) {
-                    // TODO Drop item on the ground
+                mc::ItemStack droppedItemStack = chunks.breakBlock(player.xp, hotbarInventory.getItemStack(selectedHotbarSlot).id);
+                if (droppedItemStack.id != 0) {
+                    droppedItemStack = hotbarInventory.addItemStack(droppedItemStack);
+                    if (droppedItemStack.amount > 0) droppedItemStack = mainInventory.addItemStack(droppedItemStack);
+                    if (droppedItemStack.amount > 0) {
+                        // TODO Drop item on the ground
+                    }
                 }
             }
 

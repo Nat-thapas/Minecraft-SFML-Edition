@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <algorithm>
 #include <string>
+#include <unordered_map>
 
 #include "idiv.hpp"
 #include "mod.hpp"
@@ -97,7 +98,7 @@ int Player::getAbsoluteBlock(int chunkID, sf::Vector2f position) {
 }
 
 bool Player::isBlockSolid(int blockID) {
-    return this->blockSolidity[blockID];
+    return this->blocksSolidity[blockID];
 }
 
 void Player::setLateralForce(int force, bool sprint) {

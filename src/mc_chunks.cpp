@@ -8,6 +8,8 @@
 #include <string>
 #include <unordered_map>
 
+#include <iostream>
+
 #include "../include/json.hpp"
 #include "../include/perlin.hpp"
 #include "idiv.hpp"
@@ -23,11 +25,16 @@ namespace mc {
 
 void Chunks::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     states.texture = &this->textureAtlas;
-    states.shader = &this->shader;
+    states.shader = &this->chunkShader;
     for (const Chunk& chunk : this->chunks) {
         target.draw(chunk, states);
     }
-    target.draw(highlighter, states);
+    target.draw(this->highlighter, states);
+    if (this->breakProgress > 0.f) {
+        states.blendMode = sf::BlendMultiply;
+        states.shader = &this->overlayShader;
+        target.draw(this->breakProgressOverlay, states);
+    }
 }
 
 void Chunks::updateTexture() {
@@ -72,9 +79,10 @@ void Chunks::initializeChunks() {
     }
 }
 
-Chunks::Chunks(int playerChunkID, int seed, int pixelPerBlock, std::string worldName, sf::Vector2i screenSize, std::string atlasFilesPath, std::string atlasDatasPath, std::string shaderFilePath, json& smeltingRecipesData) : smeltingRecipesData(smeltingRecipesData) {
-    this->shader.loadFromFile(shaderFilePath, sf::Shader::Fragment);
-    this->shader.setUniform("time", 1.f);
+Chunks::Chunks(int playerChunkID, int seed, int pixelPerBlock, std::string worldName, sf::Vector2i screenSize, std::string atlasFilesPath, std::string atlasDatasPath, std::string chunkShaderFilePath, std::string overlayShaderFilePath, json& smeltingRecipesData, std::string breakProgressOverlayTextureFilePath) : smeltingRecipesData(smeltingRecipesData) {
+    this->chunkShader.loadFromFile(chunkShaderFilePath, sf::Shader::Fragment);
+    this->chunkShader.setUniform("time", 1.f);
+    this->overlayShader.loadFromFile(overlayShaderFilePath, sf::Shader::Fragment);
     this->seed = seed;
     this->playerChunkID = playerChunkID;
     this->pixelPerBlock = pixelPerBlock;
@@ -87,11 +95,44 @@ Chunks::Chunks(int playerChunkID, int seed, int pixelPerBlock, std::string world
     this->chunkCountOnScreen = this->chunksEndID - this->chunksStartID + 1;
     Perlin noise(this->seed);
     this->noise = noise;
+    this->breakProgressOverlayTexture.loadFromFile(breakProgressOverlayTextureFilePath);
+    this->breakProgressOverlay.setTexture(this->breakProgressOverlayTexture);
+    this->toolsBreakGroup[55] = 1;
+    this->toolsBreakGroup[56] = 2;
+    this->toolsBreakGroup[57] = 3;
+    this->toolsBreakGroup[59] = 1;
+    this->toolsBreakGroup[60] = 2;
+    this->toolsBreakGroup[61] = 3;
+    this->toolsBreakGroup[63] = 1;
+    this->toolsBreakGroup[64] = 2;
+    this->toolsBreakGroup[65] = 3;
+    this->toolsBreakGroup[67] = 1;
+    this->toolsBreakGroup[68] = 2;
+    this->toolsBreakGroup[69] = 3;
+    this->toolsBreakGroup[71] = 1;
+    this->toolsBreakGroup[72] = 2;
+    this->toolsBreakGroup[73] = 3;
+    this->toolsMiningLevel[55] = 1;
+    this->toolsMiningLevel[56] = 1;
+    this->toolsMiningLevel[57] = 1;
+    this->toolsMiningLevel[59] = 2;
+    this->toolsMiningLevel[60] = 2;
+    this->toolsMiningLevel[61] = 2;
+    this->toolsMiningLevel[63] = 3;
+    this->toolsMiningLevel[64] = 3;
+    this->toolsMiningLevel[65] = 3;
+    this->toolsMiningLevel[67] = 1;
+    this->toolsMiningLevel[68] = 1;
+    this->toolsMiningLevel[69] = 1;
+    this->toolsMiningLevel[71] = 4;
+    this->toolsMiningLevel[72] = 4;
+    this->toolsMiningLevel[73] = 4;
     this->highlighter.setSize(sf::Vector2f(static_cast<float>(pixelPerBlock - 2), static_cast<float>(pixelPerBlock - 2)));
     this->highlighter.setOrigin(-1.f, -1.f);
     this->highlighter.setFillColor(sf::Color(0, 0, 0, 0));
     this->highlighter.setOutlineThickness(2.f);
     this->highlighter.setOutlineColor(sf::Color::Black);
+    this->breakProgressOverlay.setScale(sf::Vector2f(static_cast<float>(this->pixelPerBlock) / static_cast<float>(this->breakProgressOverlayTexture.getSize().y), static_cast<float>(this->pixelPerBlock) / static_cast<float>(this->breakProgressOverlayTexture.getSize().y)));
     if (!std::filesystem::exists(std::format("saves/{}", this->worldName))) {
         std::filesystem::create_directory(std::format("saves/{}", this->worldName));
         std::filesystem::create_directory(std::format("saves/{}/chunks", this->worldName));
@@ -141,8 +182,16 @@ void Chunks::updateHighlighterPosition() {
     int lChunkDistance = this->playerChunkID - this->chunksStartID;
     float fChunkXPos = (this->screenSize.x / 2.f) - lChunkDistance * this->pixelPerBlock * 16.f - this->playerPos.x * this->pixelPerBlock;
     float chunkYPos = (this->screenSize.y / 2.f) - (this->playerPos.y * this->pixelPerBlock) + this->pixelPerBlock;
-    int i = this->mouseChunkID - this->chunksStartID;
-    this->highlighter.setPosition(fChunkXPos + i * this->pixelPerBlock * 16.f + mousePos.x * this->pixelPerBlock, chunkYPos + static_cast<float>(mousePos.y * this->pixelPerBlock));
+    int chunkDist = this->mouseChunkID - this->chunksStartID;
+    this->highlighter.setPosition(fChunkXPos + chunkDist * this->pixelPerBlock * 16.f + mousePos.x * this->pixelPerBlock, chunkYPos + static_cast<float>(mousePos.y * this->pixelPerBlock));
+}
+
+void Chunks::updateBreakOverlayPosition() {
+    int lChunkDistance = this->playerChunkID - this->chunksStartID;
+    float fChunkXPos = (this->screenSize.x / 2.f) - lChunkDistance * this->pixelPerBlock * 16.f - this->playerPos.x * this->pixelPerBlock;
+    float chunkYPos = (this->screenSize.y / 2.f) - (this->playerPos.y * this->pixelPerBlock) + this->pixelPerBlock;
+    int chunkDist = this->breakingChunkID - this->chunksStartID;
+    this->breakProgressOverlay.setPosition(fChunkXPos + chunkDist * this->pixelPerBlock * 16.f + breakingPos.x * this->pixelPerBlock, chunkYPos + static_cast<float>(breakingPos.y * this->pixelPerBlock));
 }
 
 void Chunks::tick(int tickCount) {
@@ -205,6 +254,7 @@ void Chunks::setPixelPerBlock(int pixelPerBlock) {
     } else {
         this->highlighter.setSize(sf::Vector2f(static_cast<float>(this->pixelPerBlock), static_cast<float>(this->pixelPerBlock)));
     }
+    this->breakProgressOverlay.setScale(sf::Vector2f(static_cast<float>(this->pixelPerBlock) / static_cast<float>(this->breakProgressOverlayTexture.getSize().y), static_cast<float>(this->pixelPerBlock) / static_cast<float>(this->breakProgressOverlayTexture.getSize().y)));
     for (Chunk& chunk : this->chunks) {
         chunk.setPixelPerBlock(this->pixelPerBlock);
     }
@@ -243,6 +293,7 @@ void Chunks::setPixelPerBlock(int pixelPerBlock) {
     }
     this->updateChunksPosition();
     this->updateMousePosition();
+    this->updateBreakOverlayPosition();
 }
 
 void Chunks::setScreenSize(sf::Vector2i screenSize) {
@@ -285,6 +336,7 @@ void Chunks::setScreenSize(sf::Vector2i screenSize) {
     }
     this->updateChunksPosition();
     this->updateMousePosition();
+    this->updateBreakOverlayPosition();
 }
 
 int Chunks::getPlayerChunkID() {
@@ -323,6 +375,7 @@ void Chunks::setPlayerChunkID(int chunkID) {
     this->playerChunkID = chunkID;
     this->updateChunksPosition();
     this->updateMousePosition();
+    this->updateBreakOverlayPosition();
 }
 
 sf::Vector2f Chunks::getPlayerPos() {
@@ -336,6 +389,7 @@ void Chunks::setPlayerPos(sf::Vector2f pos) {
     this->playerPos = pos;
     this->updateChunksPosition();
     this->updateMousePosition();
+    this->updateBreakOverlayPosition();
 }
 
 void Chunks::setMouseScreenPos(sf::Vector2i pos) {
@@ -391,15 +445,64 @@ int Chunks::getBlock(int chunkID, int x, int y) {
     return this->chunks[chunkID - this->chunksStartID].getBlock(x, y);
 }
 
-int Chunks::breakBlock(int& xp) {
+ItemStack Chunks::breakBlock(int& xp, int itemID) {
     if (this->mouseChunkID < this->chunksStartID || this->mouseChunkID > this->chunksEndID) {
-        return 0;
+        return ItemStack(0, 0);
     }
-    if (mousePos.x < 0 || mousePos.x > 15 || mousePos.y < 0 || mousePos.y > 255) {
-        return 0;
+    if (this->mousePos.x < 0 || this->mousePos.x > 15 || this->mousePos.y < 0 || this->mousePos.y > 255) {
+        return ItemStack(0, 0);
     }
     int breakChunkIndex = this->mouseChunkID - this->chunksStartID;
-    return this->chunks[breakChunkIndex].breakBlock(mousePos.x, mousePos.y, xp);
+    int breakBlockID = this->chunks[breakChunkIndex].getBlock(this->mousePos.x, this->mousePos.y);
+    if (!this->isBlockBreakable[breakBlockID]) {
+        return ItemStack(0, 0);
+    }
+    if (this->breakingChunkID != this->mouseChunkID || this->breakingPos != this->mousePos) {
+        this->breakProgress = 0.f;
+        this->breakingChunkID = this->mouseChunkID;
+        this->breakingPos = this->mousePos;
+    }
+    bool harvestable = false;
+    float speedMultiplier = 1.f;
+    int blockBreakGroup = this->blocksBreakGroup[breakBlockID];
+    int toolBreakGroup = this->toolsBreakGroup.contains(itemID) ? this->toolsBreakGroup[itemID] : 0;
+    int toolMingingLevel = this->toolsMiningLevel.contains(itemID) ? this->toolsMiningLevel[itemID] : 0;
+    int toolSpeedMultiplier = this->breakSpeedMultipliers[itemID];
+    float blockHardness = this->blocksHardness[breakBlockID];
+    int requiredMiningLevel = this->blocksMiningLevel[breakBlockID];
+    if (requiredMiningLevel) {
+        harvestable = blockBreakGroup == toolBreakGroup && toolMingingLevel >= requiredMiningLevel;
+    } else {
+        harvestable = true;
+    }
+    if (harvestable) {
+        speedMultiplier *= static_cast<float>(toolSpeedMultiplier);
+    }
+    this->breakProgress += speedMultiplier / blockHardness / (harvestable ? 30.f : 100.f);
+    int textureSize = this->breakProgressOverlayTexture.getSize().y;
+    int stagesCount = this->breakProgressOverlayTexture.getSize().x / textureSize;
+    int stage = static_cast<int>(std::floor(this->breakProgress * static_cast<float>(stagesCount)));
+    stage = std::min(stage, stagesCount - 1);
+    sf::IntRect textureRect;
+    textureRect.left = textureSize * stage;
+    textureRect.top = 0;
+    textureRect.width = textureSize;
+    textureRect.height = textureSize;
+    this->breakProgressOverlay.setTextureRect(textureRect);
+    this->updateBreakOverlayPosition();
+    if (this->breakProgress >= 1.f) {
+        this->breakProgress = 0.f;
+        int dropData = this->chunks[breakChunkIndex].breakBlock(mousePos.x, mousePos.y, xp);
+        if (!harvestable) {
+            return ItemStack(0, 0);
+        }
+        if (dropData == 1136) {
+            return ItemStack(112, 4);
+        }
+        return ItemStack(dropData, 1);
+    } else {
+        return ItemStack(0, 0);
+    }
 }
 
 Chunk& Chunks::getChunk(int chunkID) {
