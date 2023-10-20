@@ -8,8 +8,6 @@
 #include <string>
 #include <unordered_map>
 
-#include <iostream>
-
 #include "../include/json.hpp"
 #include "../include/perlin.hpp"
 #include "idiv.hpp"
@@ -462,6 +460,20 @@ std::vector<ItemStack> Chunks::breakBlock(int itemID) {
     if (this->mousePos.x < 0 || this->mousePos.x > 15 || this->mousePos.y < 0 || this->mousePos.y > 255) {
         return std::vector<ItemStack>({ItemStack(0, 0)});
     }
+    sf::Vector2f playerCenter(std::floor(this->playerPos.x), std::ceil(this->playerPos.y) - 1.5f);
+    sf::Vector2f mousePosF(this->mousePos);
+    sf::Vector2f dist = mousePosF - playerCenter;
+    dist.x += static_cast<float>(this->mouseChunkID - this->playerChunkID) * 16.f;
+    if (dist.y >= 0) {
+        dist.y -= 0.5f;
+        std::max(dist.y, 0.f);
+    } else {
+        dist.y += 0.5f;
+        std::min(dist.y, 0.f);
+    }
+    if (sqrtf(dist.x * dist.x + dist.y * dist.y) > 3.f) {
+        return std::vector<ItemStack>({ItemStack(0, 0)});
+    }
     int breakChunkIndex = this->mouseChunkID - this->chunksStartID;
     int breakBlockID = this->chunks[breakChunkIndex].getBlock(this->mousePos.x, this->mousePos.y);
     if (!this->isBlockBreakable[breakBlockID]) {
@@ -548,10 +560,29 @@ Chunk& Chunks::getChunk(int chunkID) {
 
 bool Chunks::placeBlock(int itemID) {
     if (this->mouseChunkID < this->chunksStartID || this->mouseChunkID > this->chunksEndID) {
-        return 0;
+        return false;
     }
-    if (mousePos.x < 0 || mousePos.x > 15 || mousePos.y < 0 || mousePos.y > 255) {
-        return 0;
+    if (this->mousePos.x < 0 || this->mousePos.x > 15 || this->mousePos.y < 0 || this->mousePos.y > 255) {
+        return false;
+    }
+    if (this->mousePos.y == static_cast<int>(std::ceil(this->playerPos.y)) - 1 || this->mousePos.y == static_cast<int>(std::ceil(this->playerPos.y - 1.f)) - 1 || this->mousePos.y == static_cast<int>(std::ceil(this->playerPos.y - 1.8f)) - 1) {
+        if (this->mousePos.x == static_cast<int>(std::floor(this->playerPos.x - 0.3f)) || this->mousePos.x == static_cast<int>(std::floor(this->playerPos.x)) || this->mousePos.x == static_cast<int>(std::floor(this->playerPos.x - 0.3f))) {
+            return false;
+        }
+    }
+    sf::Vector2f playerCenter(std::floor(this->playerPos.x), std::ceil(this->playerPos.y) - 1.5f);
+    sf::Vector2f mousePosF(this->mousePos);
+    sf::Vector2f dist = mousePosF - playerCenter;
+    dist.x += static_cast<float>(this->mouseChunkID - this->playerChunkID) * 16.f;
+    if (dist.y >= 0) {
+        dist.y -= 0.5f;
+        std::max(dist.y, 0.f);
+    } else {
+        dist.y += 0.5f;
+        std::min(dist.y, 0.f);
+    }
+    if (sqrtf(dist.x * dist.x + dist.y * dist.y) > 3.f) {
+        return false;
     }
     int placeChunkIndex = this->mouseChunkID - this->chunksStartID;
     return this->chunks[placeChunkIndex].placeBlock(mousePos.x, mousePos.y, itemID);

@@ -489,41 +489,119 @@ int main() {
                     unsavedChestEdit = false;
                 }
                 if (rightClick && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 39) {
-                    menuChanged = true;
-                    openMenuType = MENU_CRAFTINGTABLE;
-                } else if (rightClick && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 40) {
-                    menuChanged = true;
-                    std::string filePath = std::format("saves/{}/inventories/chests/{}.{}.{}.dat.gz", worldName, chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y);
-                    if (std::filesystem::exists(filePath)) {
-                        chestInventory.loadFromFile(filePath);
+                    sf::Vector2f playerCenter(std::floor(chunks.getPlayerPos().x), std::ceil(chunks.getPlayerPos().y) - 1.5f);
+                    sf::Vector2f mousePosF(chunks.getMousePos());
+                    sf::Vector2f dist = mousePosF - playerCenter;
+                    dist.x += static_cast<float>(chunks.getMouseChunkID() - chunks.getPlayerChunkID()) * 16.f;
+                    if (dist.y >= 0) {
+                        dist.y -= 0.5f;
+                        std::max(dist.y, 0.f);
                     } else {
-                        chestInventory.clear();
+                        dist.y += 0.5f;
+                        std::min(dist.y, 0.f);
                     }
-                    openedChestChunkID = chunks.getMouseChunkID();
-                    openedChestPos = chunks.getMousePos();
-                    unsavedChestEdit = true;
-                    openMenuType = MENU_CHEST;
+                    if (sqrtf(dist.x * dist.x + dist.y * dist.y) <= 3.f) {
+                        menuChanged = true;
+                        openMenuType = MENU_CRAFTINGTABLE;
+                    }
+                } else if (rightClick && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 40) {
+                    sf::Vector2f playerCenter(std::floor(chunks.getPlayerPos().x), std::ceil(chunks.getPlayerPos().y) - 1.5f);
+                    sf::Vector2f mousePosF(chunks.getMousePos());
+                    sf::Vector2f dist = mousePosF - playerCenter;
+                    dist.x += static_cast<float>(chunks.getMouseChunkID() - chunks.getPlayerChunkID()) * 16.f;
+                    if (dist.y >= 0) {
+                        dist.y -= 0.5f;
+                        std::max(dist.y, 0.f);
+                    } else {
+                        dist.y += 0.5f;
+                        std::min(dist.y, 0.f);
+                    }
+                    if (sqrtf(dist.x * dist.x + dist.y * dist.y) <= 3.f) {
+                        menuChanged = true;
+                        std::string filePath = std::format("saves/{}/inventories/chests/{}.{}.{}.dat.gz", worldName, chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y);
+                        if (std::filesystem::exists(filePath)) {
+                            chestInventory.loadFromFile(filePath);
+                        } else {
+                            chestInventory.clear();
+                        }
+                        openedChestChunkID = chunks.getMouseChunkID();
+                        openedChestPos = chunks.getMousePos();
+                        unsavedChestEdit = true;
+                        openMenuType = MENU_CHEST;
+                    }
                 } else if (rightClick && (chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 41 || chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 42)) {
-                    menuChanged = true;
-                    openedFurnaceChunkID = chunks.getMouseChunkID();
-                    openedFurnacePos = chunks.getMousePos();
-                    openMenuType = MENU_FURNACE;
+                    sf::Vector2f playerCenter(std::floor(chunks.getPlayerPos().x), std::ceil(chunks.getPlayerPos().y) - 1.5f);
+                    sf::Vector2f mousePosF(chunks.getMousePos());
+                    sf::Vector2f dist = mousePosF - playerCenter;
+                    dist.x += static_cast<float>(chunks.getMouseChunkID() - chunks.getPlayerChunkID()) * 16.f;
+                    if (dist.y >= 0) {
+                        dist.y -= 0.5f;
+                        std::max(dist.y, 0.f);
+                    } else {
+                        dist.y += 0.5f;
+                        std::min(dist.y, 0.f);
+                    }
+                    if (sqrtf(dist.x * dist.x + dist.y * dist.y) <= 3.f) {
+                        menuChanged = true;
+                        openedFurnaceChunkID = chunks.getMouseChunkID();
+                        openedFurnacePos = chunks.getMousePos();
+                        openMenuType = MENU_FURNACE;
+                    }
                 } else if (rightClickHeld && tickCount - lastPlaceTickCount >= 4 && (chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 2 || chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 3) && hotbarInventory.getItemStack(selectedHotbarSlot).id >= 82 && hotbarInventory.getItemStack(selectedHotbarSlot).id < 87 && (chunks.getMousePos().y == 0 || chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y - 1) == 0)) {
-                    chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 51);
+                    sf::Vector2f playerCenter(std::floor(chunks.getPlayerPos().x), std::ceil(chunks.getPlayerPos().y) - 1.5f);
+                    sf::Vector2f mousePosF(chunks.getMousePos());
+                    sf::Vector2f dist = mousePosF - playerCenter;
+                    dist.x += static_cast<float>(chunks.getMouseChunkID() - chunks.getPlayerChunkID()) * 16.f;
+                    if (dist.y >= 0) {
+                        dist.y -= 0.5f;
+                        std::max(dist.y, 0.f);
+                    } else {
+                        dist.y += 0.5f;
+                        std::min(dist.y, 0.f);
+                    }
+                    if (sqrtf(dist.x * dist.x + dist.y * dist.y) <= 3.f) {
+                        chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 51);
+                    }
                 } else if (rightClickHeld && tickCount - lastPlaceTickCount >= 4 && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 11 && hotbarInventory.getItemStack(selectedHotbarSlot).id == 108) {
-                    lastPlaceTickCount = tickCount;
-                    chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 0);
-                    hotbarInventory.subtractItem(selectedHotbarSlot, 1);
-                    mc::ItemStack droppedItemStack(109, 1);
-                    droppedItemStack = hotbarInventory.addItemStack(droppedItemStack);
-                    if (droppedItemStack.amount > 0) droppedItemStack = mainInventory.addItemStack(droppedItemStack);
+                    sf::Vector2f playerCenter(std::floor(chunks.getPlayerPos().x), std::ceil(chunks.getPlayerPos().y) - 1.5f);
+                    sf::Vector2f mousePosF(chunks.getMousePos());
+                    sf::Vector2f dist = mousePosF - playerCenter;
+                    dist.x += static_cast<float>(chunks.getMouseChunkID() - chunks.getPlayerChunkID()) * 16.f;
+                    if (dist.y >= 0) {
+                        dist.y -= 0.5f;
+                        std::max(dist.y, 0.f);
+                    } else {
+                        dist.y += 0.5f;
+                        std::min(dist.y, 0.f);
+                    }
+                    if (sqrtf(dist.x * dist.x + dist.y * dist.y) <= 3.f) {
+                        lastPlaceTickCount = tickCount;
+                        chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 0);
+                        hotbarInventory.subtractItem(selectedHotbarSlot, 1);
+                        mc::ItemStack droppedItemStack(109, 1);
+                        droppedItemStack = hotbarInventory.addItemStack(droppedItemStack);
+                        if (droppedItemStack.amount > 0) droppedItemStack = mainInventory.addItemStack(droppedItemStack);
+                    }
                 } else if (rightClickHeld && tickCount - lastPlaceTickCount >= 4 && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 13 && hotbarInventory.getItemStack(selectedHotbarSlot).id == 108) {
-                    lastPlaceTickCount = tickCount;
-                    chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 0);
-                    hotbarInventory.subtractItem(selectedHotbarSlot, 1);
-                    mc::ItemStack droppedItemStack(110, 1);
-                    droppedItemStack = hotbarInventory.addItemStack(droppedItemStack);
-                    if (droppedItemStack.amount > 0) droppedItemStack = mainInventory.addItemStack(droppedItemStack);
+                    sf::Vector2f playerCenter(std::floor(chunks.getPlayerPos().x), std::ceil(chunks.getPlayerPos().y) - 1.5f);
+                    sf::Vector2f mousePosF(chunks.getMousePos());
+                    sf::Vector2f dist = mousePosF - playerCenter;
+                    dist.x += static_cast<float>(chunks.getMouseChunkID() - chunks.getPlayerChunkID()) * 16.f;
+                    if (dist.y >= 0) {
+                        dist.y -= 0.5f;
+                        std::max(dist.y, 0.f);
+                    } else {
+                        dist.y += 0.5f;
+                        std::min(dist.y, 0.f);
+                    }
+                    if (sqrtf(dist.x * dist.x + dist.y * dist.y) <= 3.f) {
+                        lastPlaceTickCount = tickCount;
+                        chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 0);
+                        hotbarInventory.subtractItem(selectedHotbarSlot, 1);
+                        mc::ItemStack droppedItemStack(110, 1);
+                        droppedItemStack = hotbarInventory.addItemStack(droppedItemStack);
+                        if (droppedItemStack.amount > 0) droppedItemStack = mainInventory.addItemStack(droppedItemStack);
+                    }
                 }
                 break;
             case MENU_PLAYERINV:

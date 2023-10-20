@@ -10,8 +10,6 @@
 #include <unordered_set>
 #include <zlib.h>
 
-#include <iostream>
-
 #include "../include/perlin.hpp"
 #include "mc_inventory.hpp"
 #include "idiv.hpp"
