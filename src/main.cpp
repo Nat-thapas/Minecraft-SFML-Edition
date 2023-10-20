@@ -429,6 +429,7 @@ int main() {
             furnaceInventorySprite.setScale(sf::Vector2f(uiScaling, uiScaling));
             crafting2x2_inventory.setScaling(uiScaling);
             crafting3x3_table.setScaling(uiScaling);
+            furnaceInterface.setScaling(uiScaling);
             heldInventory.setScaling(uiScaling);
             heldInventory.setOrigin(sf::Vector2f(heldInventory.getSlotLocalBounds(0).width / 2.f, heldInventory.getSlotLocalBounds(0).height / 2.f));
         }

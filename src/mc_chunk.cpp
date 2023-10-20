@@ -631,9 +631,10 @@ int Chunk::breakBlock(int x, int y, int& xp) {
 
 void Chunk::tick(int tickCount) {
     this->animationIndex = tickCount;
+    std::vector<int> invalidatedFurnaceIdx;
     for (auto& [furnaceIdx, furnaceData] : this->furnacesData) {
         if (this->blocks[furnaceIdx] != 41 && this->blocks[furnaceIdx] != 42) {
-            this->furnacesData.erase(furnaceIdx);
+            invalidatedFurnaceIdx.push_back(furnaceIdx);
             continue;
         }
         bool running = false;
@@ -677,6 +678,9 @@ void Chunk::tick(int tickCount) {
             furnaceData.outputItemStack.amount++;
             furnaceData.progress = 0;
         }
+    }
+    for (int& idx : invalidatedFurnaceIdx) {
+        this->furnacesData.erase(idx);
     }
     this->randomTick();
 }
