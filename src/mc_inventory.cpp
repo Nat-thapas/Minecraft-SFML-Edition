@@ -94,9 +94,6 @@ void Inventory::initializeVertexArray() {
     itemRect.height = this->scaling * 16;
 
     for (int i = 0; i < this->size; i++) {
-        // itemRect.left = (i % this->width) * (itemRect.width + this->margin * this->scaling * 2) + this->margin * this->scaling;
-        // itemRect.top = (i / this->width) * (itemRect.height + this->margin * this->scaling * 2) + this->margin * this->scaling;
-
         itemRect.left = getSlotLocalBounds(i).left + this->scaling * this->margin;
         itemRect.top = getSlotLocalBounds(i).top + this->scaling * this->margin;
 

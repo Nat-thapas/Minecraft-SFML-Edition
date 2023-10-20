@@ -195,7 +195,7 @@ void Chunk::updateAnimatedVertexArray() {
         textureRect.left = this->parsedAtlasData[blockID].left;
         textureRect.top = this->parsedAtlasData[blockID].top;
         textureRect.width = this->parsedAtlasData[blockID].width;
-        if (blockID == 12 || blockID == 38) {
+        if (blockID == 12 || blockID == 14 || blockID == 38) {
             textureRect.width /= 2;
         }
         textureRect.height = textureRect.width;
@@ -251,7 +251,7 @@ void Chunk::updateAllVertexArray() {
         textureRect.left = this->parsedAtlasData[blockID].left;
         textureRect.top = this->parsedAtlasData[blockID].top;
         textureRect.width = this->parsedAtlasData[blockID].width;
-        if (blockID == 12 || blockID == 38) {
+        if (blockID == 12 || blockID == 14 || blockID == 38) {
             textureRect.width /= 2;
         }
         textureRect.height = textureRect.width;
@@ -310,7 +310,7 @@ void Chunk::updateVertexArray() {
         textureRect.left = this->parsedAtlasData[blockID].left;
         textureRect.top = this->parsedAtlasData[blockID].top;
         textureRect.width = this->parsedAtlasData[blockID].width;
-        if (blockID == 12 || blockID == 38) {
+        if (blockID == 12 || blockID == 14 || blockID == 38) {
             textureRect.width /= 2;
         }
         textureRect.height = textureRect.width;
@@ -456,6 +456,8 @@ void Chunk::update() {
         this->blockLightUpdateQueue.push(x + y * 16);
         if (y < 255 && this->blocksRequireBase[blockID] && (this->blocks[x + (y + 1) * 16] == 0 || (this->blocks[x + (y + 1) * 16] >= 12 && this->blocks[x + (y + 1) * 16] < 15))) {
             this->breakBlock(x, y);
+        } else if (y > 0 && (this->blocks[idx] == 51 || this->blocks[idx] == 52) && this->blocksSolidity[this->blocks[x + (y - 1) * 16]]) {
+            this->setBlock(x, y, 3);
         } else if (y > 0 && this->blocks[idx] == 0 && (this->blocks[x + (y - 1) * 16] == 11 || this->blocks[x + (y - 1) * 16] == 12)) {
             this->setBlock(x, y, 12);
         } else if (y > 0 && this->blocks[idx] == 12 && (this->blocks[x + (y - 1) * 16] != 11 && this->blocks[x + (y - 1) * 16] != 12)) {
@@ -467,6 +469,40 @@ void Chunk::update() {
         } else if (y < 255 && (blockID == 15 || blockID == 19) && this->blocks[x + (y + 1) * 16] == 0) {
             this->setBlock(x, y, 0);
             this->setBlock(x, y + 1, blockID);
+        } else if (blockID == 14) {
+            bool shouldTurnToCobblestone = false;
+            if (y > 0 && (this->blocks[x + (y - 1) * 16] == 11 || this->blocks[x + (y - 1) * 16] == 12)) {
+                shouldTurnToCobblestone = true;
+            }
+            if (y < 255 && (this->blocks[x + (y + 1) * 16] == 11 || this->blocks[x + (y + 1) * 16] == 12)) {
+                shouldTurnToCobblestone = true;
+            }
+            if (x > 0 && (this->blocks[(x - 1) + y * 16] == 11 || this->blocks[(x - 1) + y * 16] == 12)) {
+                shouldTurnToCobblestone = true;
+            }
+            if (x < 15 && (this->blocks[(x + 1) + y * 16] == 11 || this->blocks[(x + 1) + y * 16] == 12)) {
+                shouldTurnToCobblestone = true;
+            }
+            if (shouldTurnToCobblestone) {
+                this->setBlock(x, y, 4);
+            }
+        } else if (blockID == 13) {
+            bool shouldTurnToObsidian = false;
+            if (y > 0 && (this->blocks[x + (y - 1) * 16] == 11 || this->blocks[x + (y - 1) * 16] == 12)) {
+                shouldTurnToObsidian = true;
+            }
+            if (y < 255 && (this->blocks[x + (y + 1) * 16] == 11 || this->blocks[x + (y + 1) * 16] == 12)) {
+                shouldTurnToObsidian = true;
+            }
+            if (x > 0 && (this->blocks[(x - 1) + y * 16] == 11 || this->blocks[(x - 1) + y * 16] == 12)) {
+                shouldTurnToObsidian = true;
+            }
+            if (x < 15 && (this->blocks[(x + 1) + y * 16] == 11 || this->blocks[(x + 1) + y * 16] == 12)) {
+                shouldTurnToObsidian = true;
+            }
+            if (shouldTurnToObsidian) {
+                this->setBlock(x, y, 36);
+            }
         }
     }
 }
@@ -698,6 +734,29 @@ void Chunk::randomTick() {
                         this->blocks[(x + ox - 2) + (y + oy - 6) * 16] = this->oakTrees[plantType][ox + oy * 5];
                         this->blockUpdateQueue.push((x + ox - 2) + (y + oy - 6) * 16);
                     }
+                }
+            }
+        } else if (blockID == 2) {
+            if (y > 0 && this->blocksSolidity[this->blocks[x + (y - 1) * 16]]) {
+                this->setBlock(x, y, 3);
+            }
+        } else if (blockID == 3) {
+            if (y == 0 || !this->blocksSolidity[this->blocks[x + (y - 1) * 16]]) {
+                bool shouldGrassSpread = false;
+                for (int ox = -1; ox < 2; ox++) {
+                    for (int oy = -1; oy < 2; oy++) {
+                        int X = x + ox;
+                        int Y = y + oy;
+                        if (X < 0 || X > 15 || Y < 0 || Y > 255) {
+                            continue;
+                        }
+                        if (this->blocks[X + Y * 16] == 2) {
+                            shouldGrassSpread = true;
+                        }
+                    }
+                }
+                if (shouldGrassSpread) {
+                    this->setBlock(x, y, 2);
                 }
             }
         } else if (blockID == 7) {

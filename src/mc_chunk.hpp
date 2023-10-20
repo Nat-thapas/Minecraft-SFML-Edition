@@ -49,6 +49,7 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     std::array<bool, 71> blocksRequireSpecial = {0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     std::unordered_set<int> blocksRequireDirt = {5, 9, 28, 29};
     std::unordered_set<int> blocksRequireFarmland = {43, 44, 45, 46, 47, 48, 49, 50};
+    std::array<bool, 71> blocksSolidity = {0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1};
     std::array<std::array<int, 35>, 3> oakTrees = {{
         {0, 7, 7, 7, 0,
          7, 7, 7, 7, 7,

@@ -508,7 +508,7 @@ int main() {
                     openedFurnaceChunkID = chunks.getMouseChunkID();
                     openedFurnacePos = chunks.getMousePos();
                     openMenuType = MENU_FURNACE;
-                } else if (rightClickHeld && tickCount - lastPlaceTickCount >= 4 && (chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 2 || chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 3) && hotbarInventory.getItemStack(selectedHotbarSlot).id >= 82 && hotbarInventory.getItemStack(selectedHotbarSlot).id < 87) {
+                } else if (rightClickHeld && tickCount - lastPlaceTickCount >= 4 && (chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 2 || chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 3) && hotbarInventory.getItemStack(selectedHotbarSlot).id >= 82 && hotbarInventory.getItemStack(selectedHotbarSlot).id < 87 && (chunks.getMousePos().y == 0 || chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y - 1) == 0)) {
                     chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 51);
                 } else if (rightClickHeld && tickCount - lastPlaceTickCount >= 4 && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 11 && hotbarInventory.getItemStack(selectedHotbarSlot).id == 108) {
                     lastPlaceTickCount = tickCount;
@@ -930,7 +930,6 @@ int main() {
         perfDebugInfo.endPlayerInputProcessing();
         perfDebugInfo.endRandomTick();
 
-        // Drop items from inventories (furnaces, chests)
         if (elapsedTime.asMilliseconds() - lastTickTimeMs >= 50) {
             lastTickTimeMs += 50 + std::max(idiv(elapsedTime.asMilliseconds() - lastTickTimeMs, 50) - 100, 0) * 50;
             if (leftClickHeld && openMenuType == MENU_NONE) {
@@ -942,7 +941,6 @@ int main() {
                     }
                 }
             }
-
             if (rightClickHeld && openMenuType == MENU_NONE && tickCount - lastPlaceTickCount >= 4) {
                 int itemID = hotbarInventory.getItemStack(selectedHotbarSlot).id;
                 if (chunks.placeBlock(itemID)) {
