@@ -41,6 +41,7 @@ class Inventory : public sf::Drawable, public sf::Transformable {
    public:
     Inventory(int size, int width, int scaling, int margin, sf::Font& font, sf::Texture& textureAtlas, json& atlasData);
     void loadFromFile(std::string filePath);
+    static std::vector<ItemStack> getDataFromFile(std::string filePath, int size);
     bool saveToFile(std::string filePath);
     void clear();
     void setScaling(int scaling);

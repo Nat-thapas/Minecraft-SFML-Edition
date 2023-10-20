@@ -54,6 +54,15 @@ void Inventory::loadFromFile(std::string filePath) {
     this->updateAllAmountLabels();
 }
 
+std::vector<ItemStack> Inventory::getDataFromFile(std::string filePath, int size) {
+    gzFile inFileZ = gzopen(filePath.c_str(), "rb");
+    std::vector<ItemStack> itemsData;
+    itemsData.resize(size);
+    gzread(inFileZ, reinterpret_cast<char*>(itemsData.data()), itemsData.size() * sizeof(ItemStack));
+    gzclose(inFileZ);
+    return itemsData;
+}
+
 bool Inventory::saveToFile(std::string filePath) {
     gzFile outFileZ = gzopen(filePath.c_str(), "wb");
     gzwrite(outFileZ, reinterpret_cast<char*>(this->itemStacks.data()), this->itemStacks.size() * sizeof(ItemStack));

@@ -502,17 +502,40 @@ std::vector<ItemStack> Chunks::breakBlock(int itemID) {
     this->updateBreakOverlayPosition();
     if (this->breakProgress >= 1.f) {
         this->breakProgress = 0.f;
+        std::vector<ItemStack> droppedItemStacks;
+        if (breakBlockID == 40) {
+            std::string filePath = std::format("saves/{}/inventories/chests/{}.{}.{}.dat.gz", this->worldName, this->breakingChunkID, this->breakingPos.x, this->breakingPos.y);
+            if (std::filesystem::exists(filePath)) {
+                std::vector<ItemStack> tempDroppedItemStacks = Inventory::getDataFromFile(filePath, 27);
+                droppedItemStacks.insert(droppedItemStacks.end(), tempDroppedItemStacks.begin(), tempDroppedItemStacks.end());
+                std::filesystem::remove(filePath);
+            }
+        }
+        if (breakBlockID == 41 || breakBlockID == 42) {
+            std::string filePath = std::format("saves/{}/inventories/furnaces/{}.{}.{}.dat.gz", this->worldName, this->breakingChunkID, this->breakingPos.x, this->breakingPos.y);
+            if (std::filesystem::exists(filePath)) {
+                std::filesystem::remove(filePath);
+            }
+            FurnaceData furnaceData = this->chunks[breakingChunkID - this->chunksStartID].getFurnaceData(this->breakingPos.x, this->breakingPos.y);
+            droppedItemStacks.push_back(furnaceData.inputItemStack);
+            droppedItemStacks.push_back(furnaceData.fuelItemStack);
+            droppedItemStacks.push_back(furnaceData.outputItemStack);
+        }
         int dropData = this->chunks[breakChunkIndex].breakBlock(mousePos.x, mousePos.y);
         if (!harvestable) {
-            return std::vector<ItemStack>({ItemStack(0, 0)});
+            return droppedItemStacks;
         }
         if (dropData == 1136) {
-            return std::vector<ItemStack>({ItemStack(112, 4)});
+            droppedItemStacks.push_back(ItemStack(112, 4));
+            return droppedItemStacks;
         }
         if (dropData == 5701668) {
-            return std::vector<ItemStack>({ItemStack(36, 1), ItemStack(87, 1)});
+            droppedItemStacks.push_back(ItemStack(36, 1));
+            droppedItemStacks.push_back(ItemStack(87, 1));
+            return droppedItemStacks;
         }
-        return std::vector<ItemStack>({ItemStack(dropData, 1)});
+        droppedItemStacks.push_back(ItemStack(dropData, 1));
+        return droppedItemStacks;
     } else {
         return std::vector<ItemStack>({ItemStack(0, 0)});
     }
