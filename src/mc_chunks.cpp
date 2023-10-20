@@ -455,17 +455,17 @@ void Chunks::setBlock(int chunkID, int x, int y, int blockID) {
     this->chunks[chunkID - this->chunksStartID].setBlock(x, y, blockID);
 }
 
-ItemStack Chunks::breakBlock(int& xp, int itemID) {
+std::vector<ItemStack> Chunks::breakBlock(int itemID) {
     if (this->mouseChunkID < this->chunksStartID || this->mouseChunkID > this->chunksEndID) {
-        return ItemStack(0, 0);
+        return std::vector<ItemStack>({ItemStack(0, 0)});
     }
     if (this->mousePos.x < 0 || this->mousePos.x > 15 || this->mousePos.y < 0 || this->mousePos.y > 255) {
-        return ItemStack(0, 0);
+        return std::vector<ItemStack>({ItemStack(0, 0)});
     }
     int breakChunkIndex = this->mouseChunkID - this->chunksStartID;
     int breakBlockID = this->chunks[breakChunkIndex].getBlock(this->mousePos.x, this->mousePos.y);
     if (!this->isBlockBreakable[breakBlockID]) {
-        return ItemStack(0, 0);
+        return std::vector<ItemStack>({ItemStack(0, 0)});
     }
     if (this->breakingChunkID != this->mouseChunkID || this->breakingPos != this->mousePos) {
         this->breakProgress = 0.f;
@@ -502,16 +502,19 @@ ItemStack Chunks::breakBlock(int& xp, int itemID) {
     this->updateBreakOverlayPosition();
     if (this->breakProgress >= 1.f) {
         this->breakProgress = 0.f;
-        int dropData = this->chunks[breakChunkIndex].breakBlock(mousePos.x, mousePos.y, xp);
+        int dropData = this->chunks[breakChunkIndex].breakBlock(mousePos.x, mousePos.y);
         if (!harvestable) {
-            return ItemStack(0, 0);
+            return std::vector<ItemStack>({ItemStack(0, 0)});
         }
         if (dropData == 1136) {
-            return ItemStack(112, 4);
+            return std::vector<ItemStack>({ItemStack(112, 4)});
         }
-        return ItemStack(dropData, 1);
+        if (dropData == 5701668) {
+            return std::vector<ItemStack>({ItemStack(36, 1), ItemStack(87, 1)});
+        }
+        return std::vector<ItemStack>({ItemStack(dropData, 1)});
     } else {
-        return ItemStack(0, 0);
+        return std::vector<ItemStack>({ItemStack(0, 0)});
     }
 }
 

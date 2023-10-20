@@ -88,7 +88,7 @@ class Chunks : public sf::Drawable {
     sf::Vector2i getMouseLightLevel();
     int getBlock(int chunkID, int x, int y);
     void setBlock(int chunkID, int x, int y, int blockID);
-    ItemStack breakBlock(int& xp, int itemID);
+    std::vector<ItemStack> breakBlock(int itemID);
     bool placeBlock(int itemID);
     Chunk& getChunk(int chunkID);
     bool saveAll();

@@ -100,7 +100,6 @@ std::vector<int> CraftingInterface::getShapelessMatchVector(std::vector<int> mat
 }
 
 void CraftingInterface::updateOutput() {
-    // TODO support shapeless recipes
     sf::IntRect recipeRect = this->getRecipeRect();
     std::vector<int> matchVector = this->getMatchVector();
     for (size_t i = 0; i < this->parsedRecipesData.size(); i++) {

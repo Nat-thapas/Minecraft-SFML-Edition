@@ -455,8 +455,7 @@ void Chunk::update() {
         this->skyLightUpdateQueue.push(x + y * 16);
         this->blockLightUpdateQueue.push(x + y * 16);
         if (y < 255 && this->blocksRequireBase[blockID] && (this->blocks[x + (y + 1) * 16] == 0 || (this->blocks[x + (y + 1) * 16] >= 12 && this->blocks[x + (y + 1) * 16] < 15))) {
-            int temp;
-            this->breakBlock(x, y, temp);
+            this->breakBlock(x, y);
         } else if (y > 0 && this->blocks[idx] == 0 && (this->blocks[x + (y - 1) * 16] == 11 || this->blocks[x + (y - 1) * 16] == 12)) {
             this->setBlock(x, y, 12);
         } else if (y > 0 && this->blocks[idx] == 12 && (this->blocks[x + (y - 1) * 16] != 11 && this->blocks[x + (y - 1) * 16] != 12)) {
@@ -496,7 +495,7 @@ void Chunk::updateLightLevels() {
             }
             if (y == 0) {
                 lightLevel = 15;
-            } // TODO try delete this
+            }
         }
         if (oldLightLevel == lightLevel) {
             continue;
@@ -613,10 +612,9 @@ bool Chunk::placeBlock(int x, int y, int itemID) {
     return true;
 }
 
-int Chunk::breakBlock(int x, int y, int& xp) {
+int Chunk::breakBlock(int x, int y) {
     int blockID = this->getBlock(x, y);
     this->setBlock(x, y, 0);
-    xp += this->experienceDropAmount[blockID];
     int dropIntensity = rand() % 100 + 1;
     if (blockID == 19 && dropIntensity > 90) {
         return 80;
@@ -717,8 +715,7 @@ void Chunk::randomTick() {
                 }
             }
             if (shouldDecay) {
-                int temp;
-                this->breakBlock(x, y, temp);
+                this->breakBlock(x, y);
             }
         } else if (blockID == 51) {
             bool waterFound = false;
@@ -757,8 +754,7 @@ void Chunk::randomTick() {
                 this->setBlock(x, y, 51);
             }
         } else if (blockID >= 43 && blockID < 51 && (y == 255 || (this->blocks[x + (y + 1) * 16] != 51 && this->blocks[x + (y + 1) * 16] != 52))) {
-            int temp;
-            this->breakBlock(x, y, temp);
+            this->breakBlock(x, y);
         } else if (blockID >= 43 && blockID < 50) {
             this->setBlock(x, y, blockID + 1);
         }

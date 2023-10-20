@@ -460,7 +460,28 @@ int main() {
 
         switch (openMenuType) {
             case MENU_NONE:
-                // TODO Drop held item
+                if (heldInventory.getItemStack(0).id) {
+                    mc::ItemStack droppedItemStack = heldInventory.getItemStack(0);
+                    heldInventory.setItemStack(0, mc::ItemStack(0, 0));
+                    droppedItemStack = hotbarInventory.addItemStack(droppedItemStack);
+                    if (droppedItemStack.amount > 0) droppedItemStack = mainInventory.addItemStack(droppedItemStack);
+                }
+                for (int i = 0; i < 4; i++) {
+                    if (crafting2x2_inventory.getInputItemStack(i).id) {
+                        mc::ItemStack droppedItemStack = crafting2x2_inventory.getInputItemStack(i);
+                        crafting2x2_inventory.setInputItemStack(i, mc::ItemStack(0, 0));
+                        droppedItemStack = hotbarInventory.addItemStack(droppedItemStack);
+                        if (droppedItemStack.amount > 0) droppedItemStack = mainInventory.addItemStack(droppedItemStack);
+                    }
+                }
+                for (int i = 0; i < 9; i++) {
+                    if (crafting3x3_table.getInputItemStack(i).id) {
+                        mc::ItemStack droppedItemStack = crafting3x3_table.getInputItemStack(i);
+                        crafting3x3_table.setInputItemStack(i, mc::ItemStack(0, 0));
+                        droppedItemStack = hotbarInventory.addItemStack(droppedItemStack);
+                        if (droppedItemStack.amount > 0) droppedItemStack = mainInventory.addItemStack(droppedItemStack);
+                    }
+                }
                 if (unsavedChestEdit) {
                     std::string filePath = std::format("saves/{}/inventories/chests/{}.{}.{}.dat.gz", worldName, openedChestChunkID, openedChestPos.x, openedChestPos.y);
                     chestInventory.saveToFile(filePath);
@@ -496,9 +517,6 @@ int main() {
                     mc::ItemStack droppedItemStack(109, 1);
                     droppedItemStack = hotbarInventory.addItemStack(droppedItemStack);
                     if (droppedItemStack.amount > 0) droppedItemStack = mainInventory.addItemStack(droppedItemStack);
-                    if (droppedItemStack.amount > 0) {
-                        // TODO Drop item on the ground
-                    }
                 } else if (rightClickHeld && tickCount - lastPlaceTickCount >= 4 && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 13 && hotbarInventory.getItemStack(selectedHotbarSlot).id == 108) {
                     lastPlaceTickCount = tickCount;
                     chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 0);
@@ -506,9 +524,6 @@ int main() {
                     mc::ItemStack droppedItemStack(110, 1);
                     droppedItemStack = hotbarInventory.addItemStack(droppedItemStack);
                     if (droppedItemStack.amount > 0) droppedItemStack = mainInventory.addItemStack(droppedItemStack);
-                    if (droppedItemStack.amount > 0) {
-                        // TODO Drop item on the ground
-                    }
                 }
                 break;
             case MENU_PLAYERINV:
@@ -919,12 +934,11 @@ int main() {
         if (elapsedTime.asMilliseconds() - lastTickTimeMs >= 50) {
             lastTickTimeMs += 50 + std::max(idiv(elapsedTime.asMilliseconds() - lastTickTimeMs, 50) - 100, 0) * 50;
             if (leftClickHeld && openMenuType == MENU_NONE) {
-                mc::ItemStack droppedItemStack = chunks.breakBlock(player.xp, hotbarInventory.getItemStack(selectedHotbarSlot).id);
-                if (droppedItemStack.id != 0) {
-                    droppedItemStack = hotbarInventory.addItemStack(droppedItemStack);
-                    if (droppedItemStack.amount > 0) droppedItemStack = mainInventory.addItemStack(droppedItemStack);
-                    if (droppedItemStack.amount > 0) {
-                        // TODO Drop item on the ground
+                std::vector<mc::ItemStack> droppedItemStacks = chunks.breakBlock(hotbarInventory.getItemStack(selectedHotbarSlot).id);
+                for (mc::ItemStack& droppedItemStack : droppedItemStacks) {
+                    if (droppedItemStack.id != 0) {
+                        droppedItemStack = hotbarInventory.addItemStack(droppedItemStack);
+                        if (droppedItemStack.amount > 0) droppedItemStack = mainInventory.addItemStack(droppedItemStack);
                     }
                 }
             }
@@ -939,9 +953,6 @@ int main() {
                             mc::ItemStack droppedItemStack(108, 1);
                             droppedItemStack = hotbarInventory.addItemStack(droppedItemStack);
                             if (droppedItemStack.amount > 0) droppedItemStack = mainInventory.addItemStack(droppedItemStack);
-                            if (droppedItemStack.amount > 0) {
-                                // TODO Drop item on the ground
-                            }
                         }
                     }
                 }
@@ -982,9 +993,6 @@ int main() {
                     hotbarInventorySprite.setScale(sf::Vector2f(uiScaling, uiScaling));
                     selectedHotbarSlotSprite.setScale(sf::Vector2f(uiScaling, uiScaling));
                     window.setMouseCursor(crossCursor);
-                    if (heldInventory.getItemStack(0).id != 0) {
-                        // TODO Drop item to ground
-                    }
                     break;
                 case MENU_PLAYERINV:
                     mainInventorySprite.setPosition(sf::Vector2f(screenRect.width / 2.f, screenRect.height / 2.f));
