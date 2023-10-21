@@ -495,7 +495,7 @@ int main() {
                     std::string filePath = std::format("saves/{}/inventories/chests/{}.{}.{}.dat.gz", worldName, openedChestChunkID, openedChestPos.x, openedChestPos.y);
                     chestInventory.saveToFile(filePath);
                     chestInventory.clear();
-                    soundEffect.play("chest.close", 1.f, mc::getLocationDelta(chunks.getPlayerChunkID(), chunks.getPlayerPos(), openedChestChunkID, sf::Vector2f(openedChestPos)));
+                    soundEffect.play("chest.close", 0.8f, mc::getLocationDelta(chunks.getPlayerChunkID(), chunks.getPlayerPos(), openedChestChunkID, sf::Vector2f(openedChestPos)));
                     unsavedChestEdit = false;
                 }
                 if (rightClick && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 39) {
@@ -537,7 +537,7 @@ int main() {
                         openedChestChunkID = chunks.getMouseChunkID();
                         openedChestPos = chunks.getMousePos();
                         unsavedChestEdit = true;
-                        soundEffect.play("chest.open", 1.f, mc::getLocationDelta(chunks.getPlayerChunkID(), chunks.getPlayerPos(), openedChestChunkID, sf::Vector2f(openedChestPos)));
+                        soundEffect.play("chest.open", 0.8f, mc::getLocationDelta(chunks.getPlayerChunkID(), chunks.getPlayerPos(), openedChestChunkID, sf::Vector2f(openedChestPos)));
                         openMenuType = MENU_CHEST;
                     }
                 } else if (rightClick && (chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 41 || chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 42)) {
