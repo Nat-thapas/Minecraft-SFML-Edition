@@ -48,7 +48,7 @@ void SoundEffect::play(std::string soundName, float volume, sf::Vector2f positio
         int playVariant = (rand() % variations) + 1;
         this->soundPlayers[this->playerIdx].setBuffer(this->soundsBuffer[soundName + '.' + std::to_string(playVariant)]);
     }
-    sf::Vector3f playPosition(position.x, -position.y, zDistance);
+    sf::Vector3f playPosition(position.x, -position.y, -zDistance);
     this->soundPlayers[this->playerIdx].setVolume(volume * 100.f);
     this->soundPlayers[this->playerIdx].setMinDistance(10.f);
     this->soundPlayers[this->playerIdx].setPosition(playPosition);
