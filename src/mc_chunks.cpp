@@ -500,7 +500,11 @@ std::vector<ItemStack> Chunks::breakBlock(int itemID) {
     if (toolBreakGroup && blockBreakGroup && blockBreakGroup == toolBreakGroup) {
         speedMultiplier *= static_cast<float>(toolSpeedMultiplier);
     }
-    this->breakProgress += speedMultiplier / blockHardness / (harvestable ? 30.f : 100.f);
+    if (blockHardness > 0) {
+        this->breakProgress += speedMultiplier / blockHardness / (harvestable ? 30.f : 100.f);
+    } else {
+        this->breakProgress = 1.f;
+    }
     int textureSize = this->breakProgressOverlayTexture.getSize().y;
     int stagesCount = this->breakProgressOverlayTexture.getSize().x / textureSize;
     int stage = static_cast<int>(std::floor(this->breakProgress * static_cast<float>(stagesCount)));
