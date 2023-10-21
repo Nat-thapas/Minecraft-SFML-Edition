@@ -81,7 +81,7 @@ class Chunk : public sf::Drawable, public sf::Transformable {
 
     void initializeVertexArrays();
     void updateAllVertexArray();
-    void randomTick();
+    void randomTick(int playerChunkID, sf::Vector2f playerPos);
     sf::Color getColorFromLightLevel(int lightLevel);
     bool isBlockOpaque(int x, int y);
     int getBlockEmissionLevel(int x, int y);
@@ -94,13 +94,13 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     Chunk(int blocks[4096], int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData, SoundEffect& soundEffect);
     Chunk(std::string filePath, int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData, SoundEffect& soundEffect);
     Chunk(Perlin& noise, int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData, SoundEffect& soundEffect);
-    void update();
+    void update(int playerChunkID, sf::Vector2f playerPos);
     void setPixelPerBlock(int pixelPerBlock);
     int getBlock(int x, int y);
     void setBlock(int x, int y, int blockID);
-    bool placeBlock(int x, int y, int itemID);
-    int breakBlock(int x, int y);
-    void tick(int tickCount);
+    bool placeBlock(int x, int y, int itemID, int playerChunkID, sf::Vector2f playerPos);
+    int breakBlock(int x, int y, int playerChunkID, sf::Vector2f playerPos);
+    void tick(int tickCount, int playerChunkID, sf::Vector2f playerPos);
     int getSkyLightLevel(int x, int y);
     int getBlockLightLevel(int x, int y);
     int getLightLevel(int x, int y);

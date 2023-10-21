@@ -33,9 +33,11 @@ SoundEffect::SoundEffect(std::string soundsFolderPath)  {
     playerIdx = 0;
 }
 
-void SoundEffect::play(std::string soundName) {
+void SoundEffect::play(std::string soundName, float volume, sf::Vector2f position, float zDistance) {
     if (!this->soundsVariantCount.contains(soundName)) {
+        #ifndef NDEBUG
         std::cerr << "Sound: " << soundName << " doesn't exist" << std::endl;
+        #endif
         return;
     }
     int variations = this->soundsVariantCount[soundName];
@@ -46,6 +48,10 @@ void SoundEffect::play(std::string soundName) {
         int playVariant = (rand() % variations) + 1;
         this->soundPlayers[this->playerIdx].setBuffer(this->soundsBuffer[soundName + '.' + std::to_string(playVariant)]);
     }
+    sf::Vector3f playPosition(position.x, -position.y, zDistance);
+    this->soundPlayers[this->playerIdx].setVolume(volume * 100.f);
+    this->soundPlayers[this->playerIdx].setMinDistance(10.f);
+    this->soundPlayers[this->playerIdx].setPosition(playPosition);
     this->soundPlayers[this->playerIdx].play();
     this->playerIdx++;
     this->playerIdx %= 240;

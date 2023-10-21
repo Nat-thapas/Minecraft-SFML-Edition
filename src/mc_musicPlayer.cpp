@@ -12,6 +12,7 @@ MusicPlayer::MusicPlayer(std::string musicFilesBasePath, std::vector<std::string
         this->musicFilePaths[i] = musicFilesBasePath + musicFileNames[i];
     }
     this->shouldBePlaying = false;
+    this->music.setVolume(50.f);
 }
 
 void MusicPlayer::update() {

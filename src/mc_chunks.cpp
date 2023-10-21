@@ -11,6 +11,7 @@
 #include "../include/json.hpp"
 #include "../include/perlin.hpp"
 #include "idiv.hpp"
+#include "mc_locationDelta.hpp"
 #include "mc_soundEffect.hpp"
 #include "mod.hpp"
 
@@ -126,6 +127,7 @@ Chunks::Chunks(int playerChunkID, int seed, int pixelPerBlock, std::string world
     this->toolsMiningLevel[71] = 4;
     this->toolsMiningLevel[72] = 4;
     this->toolsMiningLevel[73] = 4;
+    this->lastBreakingSoundPlayedTickCount = 0;
     this->highlighter.setSize(sf::Vector2f(static_cast<float>(pixelPerBlock - 2), static_cast<float>(pixelPerBlock - 2)));
     this->highlighter.setOrigin(-1.f, -1.f);
     this->highlighter.setFillColor(sf::Color(0, 0, 0, 0));
@@ -195,13 +197,13 @@ void Chunks::updateBreakOverlayPosition() {
 
 void Chunks::tick(int tickCount) {
     for (Chunk& chunk : this->chunks) {
-        chunk.tick(tickCount);
+        chunk.tick(tickCount, this->playerChunkID, this->playerPos);
     }
 }
 
 void Chunks::update() {
     for (Chunk& chunk : this->chunks) {
-        chunk.update();
+        chunk.update(this->playerChunkID, this->playerPos);
     }
 }
 
@@ -454,7 +456,7 @@ void Chunks::setBlock(int chunkID, int x, int y, int blockID) {
     this->chunks[chunkID - this->chunksStartID].setBlock(x, y, blockID);
 }
 
-std::vector<ItemStack> Chunks::breakBlock(int itemID) {
+std::vector<ItemStack> Chunks::breakBlock(int itemID, int tickCount) {
     if (this->mouseChunkID < this->chunksStartID || this->mouseChunkID > this->chunksEndID) {
         return std::vector<ItemStack>({ItemStack(0, 0)});
     }
@@ -538,7 +540,7 @@ std::vector<ItemStack> Chunks::breakBlock(int itemID) {
             droppedItemStacks.push_back(furnaceData.fuelItemStack);
             droppedItemStacks.push_back(furnaceData.outputItemStack);
         }
-        int dropData = this->chunks[breakChunkIndex].breakBlock(mousePos.x, mousePos.y);
+        int dropData = this->chunks[breakChunkIndex].breakBlock(mousePos.x, mousePos.y, this->playerChunkID, this->playerPos);
         if (!harvestable) {
             return droppedItemStacks;
         }
@@ -554,6 +556,10 @@ std::vector<ItemStack> Chunks::breakBlock(int itemID) {
         droppedItemStacks.push_back(ItemStack(dropData, 1));
         return droppedItemStacks;
     } else {
+        if (tickCount - this->lastBreakingSoundPlayedTickCount >= 5) {
+            this->lastBreakingSoundPlayedTickCount = tickCount;
+            this->soundEffect.play(this->blocksBreakingSound[breakBlockID], 0.5f, getLocationDelta(this->playerChunkID, this->playerPos, this->breakingChunkID, sf::Vector2f(this->breakingPos)));
+        }
         return std::vector<ItemStack>({ItemStack(0, 0)});
     }
 }
@@ -590,7 +596,7 @@ bool Chunks::placeBlock(int itemID) {
         return false;
     }
     int placeChunkIndex = this->mouseChunkID - this->chunksStartID;
-    return this->chunks[placeChunkIndex].placeBlock(mousePos.x, mousePos.y, itemID);
+    return this->chunks[placeChunkIndex].placeBlock(mousePos.x, mousePos.y, itemID, this->playerChunkID, this->playerPos);
 }
 
 }  // namespace mc

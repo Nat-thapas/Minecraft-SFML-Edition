@@ -12,6 +12,7 @@
 
 #include "../include/perlin.hpp"
 #include "mc_inventory.hpp"
+#include "mc_locationDelta.hpp"
 #include "mc_soundEffect.hpp"
 #include "idiv.hpp"
 #include "mod.hpp"
@@ -443,7 +444,7 @@ void Chunk::initializeLightEngine() {
     }
 }
 
-void Chunk::update() {
+void Chunk::update(int playerChunkID, sf::Vector2f playerPos) {
     while (!this->blockUpdateQueue.empty()) {
         int idx = this->blockUpdateQueue.front();
         this->blockUpdateQueue.pop();
@@ -454,7 +455,7 @@ void Chunk::update() {
         this->skyLightUpdateQueue.push(x + y * 16);
         this->blockLightUpdateQueue.push(x + y * 16);
         if (y < 255 && this->blocksRequireBase[blockID] && (this->blocks[x + (y + 1) * 16] == 0 || (this->blocks[x + (y + 1) * 16] >= 12 && this->blocks[x + (y + 1) * 16] < 15))) {
-            this->breakBlock(x, y);
+            this->breakBlock(x, y, playerChunkID, playerPos);
         } else if (y > 0 && (this->blocks[idx] == 51 || this->blocks[idx] == 52) && this->blocksSolidity[this->blocks[x + (y - 1) * 16]]) {
             this->setBlock(x, y, 3);
         } else if (y > 0 && this->blocks[idx] == 0 && (this->blocks[x + (y - 1) * 16] == 11 || this->blocks[x + (y - 1) * 16] == 12)) {
@@ -624,7 +625,7 @@ void Chunk::setBlock(int x, int y, int blockID) {
     }
 }
 
-bool Chunk::placeBlock(int x, int y, int itemID) {
+bool Chunk::placeBlock(int x, int y, int itemID, int playerChunkID, sf::Vector2f playerPos) {
     int blockID = this->blockPlaceIDs[itemID];
     if (blockID == 0) {
         return false;
@@ -643,14 +644,14 @@ bool Chunk::placeBlock(int x, int y, int itemID) {
     if (!this->isBlocksReplacable[this->getBlock(x, y)]) {
         return false;
     }
-    this->soundEffect.play(this->blocksPlaceSound[blockID]);
+    this->soundEffect.play(this->blocksPlaceSound[blockID], 1.f, getLocationDelta(playerChunkID, playerPos, this->chunkID, sf::Vector2f(x, y)));
     this->setBlock(x, y, blockID);
     return true;
 }
 
-int Chunk::breakBlock(int x, int y) {
+int Chunk::breakBlock(int x, int y, int playerChunkID, sf::Vector2f playerPos) {
     int blockID = this->getBlock(x, y);
-    this->soundEffect.play(this->blocksBreakSound[blockID]);
+    this->soundEffect.play(this->blocksBreakSound[blockID], 1.f, getLocationDelta(playerChunkID, playerPos, this->chunkID, sf::Vector2f(x, y)));
     this->setBlock(x, y, 0);
     int dropIntensity = rand() % 100 + 1;
     if (blockID == 19 && dropIntensity > 90) {
@@ -664,7 +665,7 @@ int Chunk::breakBlock(int x, int y) {
     }
 }
 
-void Chunk::tick(int tickCount) {
+void Chunk::tick(int tickCount, int playerChunkID, sf::Vector2f playerPos) {
     this->animationIndex = tickCount;
     std::vector<int> invalidatedFurnaceIdx;
     for (auto& [furnaceIdx, furnaceData] : this->furnacesData) {
@@ -717,16 +718,30 @@ void Chunk::tick(int tickCount) {
     for (int& idx : invalidatedFurnaceIdx) {
         this->furnacesData.erase(idx);
     }
-    this->randomTick();
+    this->randomTick(playerChunkID, playerPos);
 }
 
-void Chunk::randomTick() {
-    // TODO set rate to 3
-    for (int i = 0; i < 300; i++) {
+void Chunk::randomTick(int playerChunkID, sf::Vector2f playerPos) {
+    for (int i = 0; i < 3; i++) {
         int idx = rand() % 4096;
         int blockID = this->blocks[idx];
         int x = idx % 16;
         int y = idx / 16;
+        if (abs(this->chunkID - playerChunkID) <= 2) {
+            if (blockID == 11 || blockID == 12) {
+                this->soundEffect.play("liquid.water", 0.4f, getLocationDelta(playerChunkID, playerPos, this->chunkID, sf::Vector2f(x, y)));
+            } else if (blockID == 13 || blockID == 14) {
+                if (rand() % 3 == 0) {
+                    this->soundEffect.play("liquid.lavapop", 0.4f, getLocationDelta(playerChunkID, playerPos, this->chunkID, sf::Vector2f(x, y)));
+                } else {
+                    this->soundEffect.play("liquid.lava", 0.4f, getLocationDelta(playerChunkID, playerPos, this->chunkID, sf::Vector2f(x, y)));
+                }
+            } else if (blockID == 42) {
+                this->soundEffect.play("furnace.fire_crackle", 0.4f, getLocationDelta(playerChunkID, playerPos, this->chunkID, sf::Vector2f(x, y)));
+            } else if (blockID == 38) {
+                this->soundEffect.play("fire.fire", 0.4f, getLocationDelta(playerChunkID, playerPos, this->chunkID, sf::Vector2f(x, y)));
+            }
+        }
         if (x > 1 && x < 14 && blockID == 5 && rand() % 3 == 0) {
             int plantType = rand() % 3;
             for (int ox = 0; ox < 5; ox++) {
@@ -775,7 +790,7 @@ void Chunk::randomTick() {
                 }
             }
             if (shouldDecay) {
-                this->breakBlock(x, y);
+                this->breakBlock(x, y, playerChunkID, playerPos);
             }
         } else if (blockID == 51) {
             bool waterFound = false;
@@ -814,7 +829,7 @@ void Chunk::randomTick() {
                 this->setBlock(x, y, 51);
             }
         } else if (blockID >= 43 && blockID < 51 && (y == 255 || (this->blocks[x + (y + 1) * 16] != 51 && this->blocks[x + (y + 1) * 16] != 52))) {
-            this->breakBlock(x, y);
+            this->breakBlock(x, y, playerChunkID, playerPos);
         } else if (blockID >= 43 && blockID < 50) {
             this->setBlock(x, y, blockID + 1);
         }

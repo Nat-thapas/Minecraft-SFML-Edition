@@ -15,6 +15,7 @@
 #include "mc_furnaceInterface.hpp"
 #include "mc_gameDebugInfo.hpp"
 #include "mc_inventory.hpp"
+#include "mc_locationDelta.hpp"
 #include "mc_musicPlayer.hpp"
 #include "mc_perfDebugInfo.hpp"
 #include "mc_player.hpp"
@@ -56,6 +57,11 @@ int main() {
     sf::Image icon;
     icon.loadFromFile("resources/icon.png");
     window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
+
+    sf::Listener::setPosition(sf::Vector3f(0.f, 0.f, 0.f));
+    sf::Listener::setDirection(sf::Vector3f(0.f, 0.f, -1.f));
+    sf::Listener::setUpVector(sf::Vector3f(0.f, 1.f, 0.f));
+    sf::Listener::setGlobalVolume(100.f);
 
     std::string worldName = "test";
     int initialPlayerChunkID = 16;
@@ -489,7 +495,7 @@ int main() {
                     std::string filePath = std::format("saves/{}/inventories/chests/{}.{}.{}.dat.gz", worldName, openedChestChunkID, openedChestPos.x, openedChestPos.y);
                     chestInventory.saveToFile(filePath);
                     chestInventory.clear();
-                    soundEffect.play("chest.close");
+                    soundEffect.play("chest.close", 1.f, mc::getLocationDelta(chunks.getPlayerChunkID(), chunks.getPlayerPos(), openedChestChunkID, sf::Vector2f(openedChestPos)));
                     unsavedChestEdit = false;
                 }
                 if (rightClick && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 39) {
@@ -531,7 +537,7 @@ int main() {
                         openedChestChunkID = chunks.getMouseChunkID();
                         openedChestPos = chunks.getMousePos();
                         unsavedChestEdit = true;
-                        soundEffect.play("chest.open");
+                        soundEffect.play("chest.open", 1.f, mc::getLocationDelta(chunks.getPlayerChunkID(), chunks.getPlayerPos(), openedChestChunkID, sf::Vector2f(openedChestPos)));
                         openMenuType = MENU_CHEST;
                     }
                 } else if (rightClick && (chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 41 || chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 42)) {
@@ -565,7 +571,7 @@ int main() {
                         std::min(dist.y, 0.f);
                     }
                     if (sqrtf(dist.x * dist.x + dist.y * dist.y) <= 3.f) {
-                        soundEffect.play("hoe.till");
+                        soundEffect.play("hoe.till", 1.f, mc::getLocationDelta(chunks.getPlayerChunkID(), chunks.getPlayerPos(), chunks.getMouseChunkID(), sf::Vector2f(chunks.getMousePos())));
                         chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 51);
                     }
                 } else if (rightClickHeld && tickCount - lastPlaceTickCount >= 4 && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 11 && hotbarInventory.getItemStack(selectedHotbarSlot).id == 108) {
@@ -582,7 +588,7 @@ int main() {
                     }
                     if (sqrtf(dist.x * dist.x + dist.y * dist.y) <= 3.f) {
                         lastPlaceTickCount = tickCount;
-                        soundEffect.play("bucket.fill");
+                        soundEffect.play("bucket.fill", 1.f, mc::getLocationDelta(chunks.getPlayerChunkID(), chunks.getPlayerPos(), chunks.getMouseChunkID(), sf::Vector2f(chunks.getMousePos())));
                         chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 0);
                         hotbarInventory.subtractItem(selectedHotbarSlot, 1);
                         mc::ItemStack droppedItemStack(109, 1);
@@ -603,7 +609,7 @@ int main() {
                     }
                     if (sqrtf(dist.x * dist.x + dist.y * dist.y) <= 3.f) {
                         lastPlaceTickCount = tickCount;
-                        soundEffect.play("bucket.fill_lava");
+                        soundEffect.play("bucket.fill_lava", 1.f, mc::getLocationDelta(chunks.getPlayerChunkID(), chunks.getPlayerPos(), chunks.getMouseChunkID(), sf::Vector2f(chunks.getMousePos())));
                         chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 0);
                         hotbarInventory.subtractItem(selectedHotbarSlot, 1);
                         mc::ItemStack droppedItemStack(110, 1);
@@ -1019,7 +1025,7 @@ int main() {
         if (elapsedTime.asMilliseconds() - lastTickTimeMs >= 50) {
             lastTickTimeMs += 50 + std::max(idiv(elapsedTime.asMilliseconds() - lastTickTimeMs, 50) - 100, 0) * 50;
             if (leftClickHeld && openMenuType == MENU_NONE) {
-                std::vector<mc::ItemStack> droppedItemStacks = chunks.breakBlock(hotbarInventory.getItemStack(selectedHotbarSlot).id);
+                std::vector<mc::ItemStack> droppedItemStacks = chunks.breakBlock(hotbarInventory.getItemStack(selectedHotbarSlot).id, tickCount);
                 for (mc::ItemStack& droppedItemStack : droppedItemStacks) {
                     if (droppedItemStack.id != 0) {
                         droppedItemStack = hotbarInventory.addItemStack(droppedItemStack);

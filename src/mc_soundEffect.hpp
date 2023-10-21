@@ -21,7 +21,7 @@ class SoundEffect {
 
    public:
     SoundEffect(std::string soundsFolderPath);
-    void play(std::string soundName);
+    void play(std::string soundName, float volume = 1.f, sf::Vector2f position = sf::Vector2f(0.f, 0.f), float zDistance = -10.f);
 };
 
 }  // namespace mc
