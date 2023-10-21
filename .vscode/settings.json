@@ -69,5 +69,6 @@
     },
     "files.exclude": {
         "**/*.dll": true
-    }
+    },
+    "C_Cpp.intelliSenseEngineFallback": "disabled"
 }

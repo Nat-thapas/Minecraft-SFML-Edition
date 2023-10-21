@@ -4,7 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 
-#include "../include/json_fwd.hpp"
+#include "../include/json.hpp"
 #include "mc_inventory.hpp"
 
 using json = nlohmann::json;

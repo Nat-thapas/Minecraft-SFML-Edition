@@ -11,6 +11,7 @@
 #include "../include/json.hpp"
 #include "../include/perlin.hpp"
 #include "idiv.hpp"
+#include "mc_soundEffect.hpp"
 #include "mod.hpp"
 
 #include "mc_chunk.hpp"
@@ -70,14 +71,14 @@ void Chunks::parseSmeltingRecipesData() {
 void Chunks::initializeChunks() {
     for (int i = 0; i < this->chunkCountOnScreen; i++) {
         if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, this->chunksStartID + i))) {
-            this->chunks.push_back(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, this->chunksStartID + i), this->chunksStartID + i, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+            this->chunks.push_back(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, this->chunksStartID + i), this->chunksStartID + i, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData, this->soundEffect));
         } else {
-            this->chunks.push_back(Chunk(this->noise, this->chunksStartID + i, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+            this->chunks.push_back(Chunk(this->noise, this->chunksStartID + i, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData, this->soundEffect));
         }
     }
 }
 
-Chunks::Chunks(int playerChunkID, int seed, int pixelPerBlock, std::string worldName, sf::Vector2i screenSize, std::string atlasFilesPath, std::string atlasDatasPath, std::string chunkShaderFilePath, std::string overlayShaderFilePath, json& smeltingRecipesData, std::string breakProgressOverlayTextureFilePath) : smeltingRecipesData(smeltingRecipesData) {
+Chunks::Chunks(int playerChunkID, int seed, int pixelPerBlock, std::string worldName, sf::Vector2i screenSize, std::string atlasFilesPath, std::string atlasDatasPath, std::string chunkShaderFilePath, std::string overlayShaderFilePath, json& smeltingRecipesData, std::string breakProgressOverlayTextureFilePath, SoundEffect& soundEffect) : smeltingRecipesData(smeltingRecipesData), soundEffect(soundEffect) {
     this->chunkShader.loadFromFile(chunkShaderFilePath, sf::Shader::Fragment);
     this->chunkShader.setUniform("time", 1.f);
     this->overlayShader.loadFromFile(overlayShaderFilePath, sf::Shader::Fragment);
@@ -264,9 +265,9 @@ void Chunks::setPixelPerBlock(int pixelPerBlock) {
     if (this->chunksEndID > oldChunksEndID) {
         for (int i = 0; i < this->chunksEndID - oldChunksEndID; i++) {
             if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksEndID + i + 1))) {
-                this->chunks.push_back(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksEndID + i + 1), oldChunksEndID + i + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+                this->chunks.push_back(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksEndID + i + 1), oldChunksEndID + i + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData, this->soundEffect));
             } else {
-                this->chunks.push_back(Chunk(this->noise, oldChunksEndID + i + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+                this->chunks.push_back(Chunk(this->noise, oldChunksEndID + i + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData, this->soundEffect));
             }
         }
     } else if (this->chunksEndID < oldChunksEndID) {
@@ -278,9 +279,9 @@ void Chunks::setPixelPerBlock(int pixelPerBlock) {
     if (this->chunksStartID < oldChunksStartID) {
         for (int i = 0; i < oldChunksStartID - this->chunksStartID; i++) {
             if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksStartID - i - 1))) {
-                this->chunks.push_front(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksStartID - i - 1), oldChunksStartID - i - 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+                this->chunks.push_front(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksStartID - i - 1), oldChunksStartID - i - 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData, this->soundEffect));
             } else {
-                this->chunks.push_front(Chunk(this->noise, oldChunksStartID - i - 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+                this->chunks.push_front(Chunk(this->noise, oldChunksStartID - i - 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData, this->soundEffect));
             }
         }
     } else if (this->chunksStartID > oldChunksStartID) {
@@ -307,9 +308,9 @@ void Chunks::setScreenSize(sf::Vector2i screenSize) {
     if (this->chunksEndID > oldChunksEndID) {
         for (int i = 0; i < this->chunksEndID - oldChunksEndID; i++) {
             if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksEndID + i + 1))) {
-                this->chunks.push_back(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksEndID + i + 1), oldChunksEndID + i + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+                this->chunks.push_back(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksEndID + i + 1), oldChunksEndID + i + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData, this->soundEffect));
             } else {
-                this->chunks.push_back(Chunk(this->noise, oldChunksEndID + i + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+                this->chunks.push_back(Chunk(this->noise, oldChunksEndID + i + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData, this->soundEffect));
             }
         }
     } else if (this->chunksEndID < oldChunksEndID) {
@@ -321,9 +322,9 @@ void Chunks::setScreenSize(sf::Vector2i screenSize) {
     if (this->chunksStartID < oldChunksStartID) {
         for (int i = 0; i < oldChunksStartID - this->chunksStartID; i++) {
             if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksStartID - i - 1))) {
-                this->chunks.push_front(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksStartID - i - 1), oldChunksStartID - i - 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+                this->chunks.push_front(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, oldChunksStartID - i - 1), oldChunksStartID - i - 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData, this->soundEffect));
             } else {
-                this->chunks.push_front(Chunk(this->noise, oldChunksStartID - i - 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+                this->chunks.push_front(Chunk(this->noise, oldChunksStartID - i - 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData, this->soundEffect));
             }
         }
     } else if (this->chunksStartID > oldChunksStartID) {
@@ -348,9 +349,9 @@ void Chunks::setPlayerChunkID(int chunkID) {
     if (chunkID > this->playerChunkID) {
         for (int i = 0; i < chunkID - this->playerChunkID; i++) {
             if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, this->chunksEndID + 1))) {
-                this->chunks.push_back(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, this->chunksEndID + 1), this->chunksEndID + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+                this->chunks.push_back(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, this->chunksEndID + 1), this->chunksEndID + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData, this->soundEffect));
             } else {
-                this->chunks.push_back(Chunk(this->noise, this->chunksEndID + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+                this->chunks.push_back(Chunk(this->noise, this->chunksEndID + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData, this->soundEffect));
             }
             this->chunks.front().saveToFile();
             this->chunks.pop_front();
@@ -360,9 +361,9 @@ void Chunks::setPlayerChunkID(int chunkID) {
     } else {
         for (int i = 0; i < this->playerChunkID - chunkID; i++) {
             if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, this->chunksStartID - 1))) {
-                this->chunks.push_front(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, this->chunksStartID - 1), this->chunksStartID + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+                this->chunks.push_front(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, this->chunksStartID - 1), this->chunksStartID + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData, this->soundEffect));
             } else {
-                this->chunks.push_front(Chunk(this->noise, this->chunksStartID - 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData));
+                this->chunks.push_front(Chunk(this->noise, this->chunksStartID - 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData, this->soundEffect));
             }
             this->chunks.back().saveToFile();
             this->chunks.pop_back();
@@ -500,7 +501,7 @@ std::vector<ItemStack> Chunks::breakBlock(int itemID) {
     if (toolBreakGroup && blockBreakGroup && blockBreakGroup == toolBreakGroup) {
         speedMultiplier *= static_cast<float>(toolSpeedMultiplier);
     }
-    if (blockHardness > 0) {
+    if (blockHardness > 0.f) {
         this->breakProgress += speedMultiplier / blockHardness / (harvestable ? 30.f : 100.f);
     } else {
         this->breakProgress = 1.f;

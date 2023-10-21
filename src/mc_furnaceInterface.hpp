@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "../include/json_fwd.hpp"
+#include "../include/json.hpp"
 #include "mc_inventory.hpp"
 #include "mc_progressBar.hpp"
 

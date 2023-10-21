@@ -11,6 +11,7 @@
 #include "../include/perlin.hpp"
 #include "mc_inventory.hpp"
 #include "mc_furnaceInterface.hpp"
+#include "mc_soundEffect.hpp"
 
 using Perlin = siv::PerlinNoise;
 
@@ -36,6 +37,7 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     std::array<int, 256> rightChunkBlockLightLevels = {};
     std::unordered_map<int, FurnaceData> furnacesData;
     std::unordered_map<int, int>& parsedSmeltingRecipesData;
+    SoundEffect& soundEffect;
     std::array<int, 123> stackSizes = {0, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 1, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 16, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 64, 64, 64, 1, 64, 64, 64, 1, 1, 1, 1, 1, 1, 64, 64, 64, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 64, 64, 16, 1, 1, 64, 64, 64, 64, 16, 64, 64, 64, 64, 16, 64, 64};
     std::array<int, 123> burnTimes = {0, 0, 0, 0, 0, 100, 300, 0, 300, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 16000, 0, 0, 0, 0, 0, 0, 0, 300, 300, 0, 0, 200, 200, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1600, 1600, 0, 0, 0, 200, 200, 200, 200, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 300, 0, 0, 0, 0, 200, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20000, 0, 0, 0, 0, 0, 0, 0, 2400, 0, 0, 0, 0};
     std::array<int, 71> itemDropIDs = {0, 4, 3, 3, 4, 5, 6, 5, 8, 87, 0, 0, 0, 0, 0, 11, 12, 13, 14, 15, 49, 17, 18, 53, 0, 21, 0, 22, 23, 24, 25, 26, 27, 28, 29, (4 << 8) + 112, 31, 32, 0, 33, 34, 35, 35, 87, 87, 87, 87, 87, 87, 87, (87 << 16) + 36, 3, 3, 37, 0, 38, 0, 38, 39, 40, 41, 42, 43, 0, 44, 45, 0, 0, 0, 47, 48};
@@ -50,6 +52,8 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     std::unordered_set<int> blocksRequireDirt = {5, 9, 28, 29};
     std::unordered_set<int> blocksRequireFarmland = {43, 44, 45, 46, 47, 48, 49, 50};
     std::array<bool, 71> blocksSolidity = {0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1};
+    std::array<std::string, 71> blocksBreakSound = {"", "dig.stone", "dig.grass", "dig.gravel", "dig.stone", "dig.grass", "dig.wood", "dig.grass", "dig.wood", "dig.grass", "dig.stone", "", "", "", "", "dig.sand", "dig.stone", "dig.stone", "dig.stone", "dig.gravel", "dig.stone", "dig.stone", "dig.stone", "dig.stone", "dig.glass", "dig.wood", "dig.wood", "dig.cloth", "dig.grass", "dig.grass", "dig.stone", "dig.stone", "dig.stone", "dig.stone", "dig.stone", "dig.gravel", "dig.stone", "dig.wood", "random.fizz", "dig.wood", "dig.wood", "dig.stone", "dig.stone", "dig.grass", "dig.grass", "dig.grass", "dig.grass", "dig.grass", "dig.grass", "dig.grass", "dig.grass", "dig.gravel", "dig.gravel", "dig.wood", "dig.wood", "dig.wood", "dig.wood", "dig.wood", "dig.stone", "dig.stone", "dig.stone", "dig.stone", "dig.stone", "dig.glass", "dig.stone", "dig.stone", "dig.glass", "dig.stone", "dig.stone", "dig.stone", "dig.stone"};
+    std::array<std::string, 71> blocksPlaceSound = {"", "dig.stone", "dig.grass", "dig.gravel", "dig.stone", "dig.grass", "dig.wood", "dig.grass", "dig.wood", "dig.grass", "dig.stone", "bucket.empty", "", "bucket.empty_lava", "", "dig.sand", "dig.stone", "dig.stone", "dig.stone", "dig.gravel", "dig.stone", "dig.stone", "dig.stone", "dig.stone", "dig.glass", "dig.wood", "dig.wood", "dig.cloth", "dig.grass", "dig.grass", "dig.stone", "dig.stone", "dig.stone", "dig.stone", "dig.stone", "dig.gravel", "dig.stone", "dig.wood", "fire.ignite", "dig.wood", "dig.wood", "dig.stone", "dig.stone", "dig.grass", "dig.grass", "dig.grass", "dig.grass", "dig.grass", "dig.grass", "dig.grass", "dig.grass", "dig.gravel", "dig.gravel", "dig.wood", "dig.wood", "dig.wood", "dig.wood", "dig.wood", "dig.stone", "dig.stone", "dig.stone", "dig.stone", "dig.stone", "dig.glass", "dig.stone", "dig.stone", "dig.glass", "dig.stone", "dig.stone", "dig.stone", "dig.stone"};
     std::array<std::array<int, 35>, 3> oakTrees = {{
         {0, 7, 7, 7, 0,
          7, 7, 7, 7, 7,
@@ -87,9 +91,9 @@ class Chunk : public sf::Drawable, public sf::Transformable {
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
    public:
-    Chunk(int blocks[4096], int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData);
-    Chunk(std::string filePath, int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData);
-    Chunk(Perlin& noise, int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData);
+    Chunk(int blocks[4096], int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData, SoundEffect& soundEffect);
+    Chunk(std::string filePath, int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData, SoundEffect& soundEffect);
+    Chunk(Perlin& noise, int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData, SoundEffect& soundEffect);
     void update();
     void setPixelPerBlock(int pixelPerBlock);
     int getBlock(int x, int y);

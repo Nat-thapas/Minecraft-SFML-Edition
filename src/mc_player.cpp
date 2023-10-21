@@ -103,24 +103,43 @@ bool Player::isBlockSolid(int blockID) {
 
 void Player::setLateralForce(int force, bool sprint) {
     force = std::clamp(force, -1, 1);
-    if (force) {
-        this->acceleration.x = ((force * this->movementForce * (1.f + 0.3f * sprint)) - (this->velocity.x * this->frictionCoefficient)) / this->mass;
+    if (this->getRelativeBlock(sf::Vector2f(0.f, 0.f)) == 11 || this->getRelativeBlock(sf::Vector2f(0.f, 0.f)) == 12 || this->getRelativeBlock(sf::Vector2f(-0.3f, 0.f)) == 11 || this->getRelativeBlock(sf::Vector2f(-0.3f, 0.f)) == 12 || this->getRelativeBlock(sf::Vector2f(0.3f, 0.f)) == 11 || this->getRelativeBlock(sf::Vector2f(0.3f, 0.f)) == 12) {
+        if (force) {
+            this->acceleration.x = ((force * this->movementForce * (1.f + 0.3f * sprint)) - (this->velocity.x * this->frictionCoefficient * 2.5f)) / this->mass;
+        } else {
+            this->acceleration.x = - (this->velocity.x * this->frictionCoefficient * 2.f) / this->mass;
+        }
+        if (!this->isOnGround()) {
+            this->acceleration.x *= 0.25f;
+        }
     } else {
-        this->acceleration.x = - (this->velocity.x * this->frictionCoefficient * 2.f) / this->mass;
-    }
-    if (!this->isOnGround()) {
-        this->acceleration.x *= 0.25f;
+        if (force) {
+            this->acceleration.x = ((force * this->movementForce * (1.f + 0.3f * sprint)) - (this->velocity.x * this->frictionCoefficient)) / this->mass;
+        } else {
+            this->acceleration.x = - (this->velocity.x * this->frictionCoefficient * 2.f) / this->mass;
+        }
+        if (!this->isOnGround()) {
+            this->acceleration.x *= 0.25f;
+        }
     }
 }
 
 void Player::jump() {
     if (this->isOnGround()) {
         this->velocity.y -= static_cast<float>(sqrt(2.f * this->gravity * 1.25f));  // v^2 = 2as, target jump height = 1.25 m.
+    } else if (this->getRelativeBlock(sf::Vector2f(0.f, 0.f)) == 11 || this->getRelativeBlock(sf::Vector2f(0.f, 0.f)) == 12 || this->getRelativeBlock(sf::Vector2f(-0.3f, 0.f)) == 11 || this->getRelativeBlock(sf::Vector2f(-0.3f, 0.f)) == 12 || this->getRelativeBlock(sf::Vector2f(0.3f, 0.f)) == 11 || this->getRelativeBlock(sf::Vector2f(0.3f, 0.f)) == 12) {
+        if (this->velocity.y > 0) {
+            this->velocity.y -= static_cast<float>(sqrt(2.f * this->gravity * 1.25f)) / 2.f;
+        }
     }
 }
 
 void Player::physicsUpdate(float deltaTime) {
-    this->acceleration.y = ((this->mass * this->gravity) - (this->velocity.y * this->airDragCoefficient)) / this->mass;
+    if (this->getRelativeBlock(sf::Vector2f(0.f, 0.f)) == 11 || this->getRelativeBlock(sf::Vector2f(0.f, 0.f)) == 12 || this->getRelativeBlock(sf::Vector2f(-0.3f, 0.f)) == 11 || this->getRelativeBlock(sf::Vector2f(-0.3f, 0.f)) == 12 || this->getRelativeBlock(sf::Vector2f(0.3f, 0.f)) == 11 || this->getRelativeBlock(sf::Vector2f(0.3f, 0.f)) == 12) {
+        this->acceleration.y = ((this->mass * this->gravity) - (this->velocity.y * this->airDragCoefficient * 25.f)) / this->mass;
+    } else {
+        this->acceleration.y = ((this->mass * this->gravity) - (this->velocity.y * this->airDragCoefficient)) / this->mass;
+    }
     this->velocity += this->acceleration * deltaTime;
     sf::Vector2f newPosition = this->position;
     newPosition.y += this->velocity.y * deltaTime;

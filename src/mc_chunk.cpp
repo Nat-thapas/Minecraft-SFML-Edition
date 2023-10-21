@@ -12,6 +12,7 @@
 
 #include "../include/perlin.hpp"
 #include "mc_inventory.hpp"
+#include "mc_soundEffect.hpp"
 #include "idiv.hpp"
 #include "mod.hpp"
 
@@ -26,7 +27,7 @@ void Chunk::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     target.draw(this->vertexArray, states);
 }
 
-Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData) : parsedAtlasData(parsedAtlasData), parsedSmeltingRecipesData(parsedSmeltingRecipesData) {
+Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData, SoundEffect& soundEffect) : parsedAtlasData(parsedAtlasData), parsedSmeltingRecipesData(parsedSmeltingRecipesData), soundEffect(soundEffect) {
     this->chunkID = chunkID;
     this->pixelPerBlock = pixelPerBlock;
     this->worldName = worldName;
@@ -42,7 +43,7 @@ Chunk::Chunk(int blocks[4096], int chunkID, int pixelPerBlock, std::string world
     this->updateAllLightingVertexArray();
 }
 
-Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData) : parsedAtlasData(parsedAtlasData), parsedSmeltingRecipesData(parsedSmeltingRecipesData) {
+Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData, SoundEffect& soundEffect) : parsedAtlasData(parsedAtlasData), parsedSmeltingRecipesData(parsedSmeltingRecipesData), soundEffect(soundEffect) {
     this->chunkID = chunkID;
     this->pixelPerBlock = pixelPerBlock;
     this->worldName = worldName;
@@ -63,7 +64,7 @@ Chunk::Chunk(std::string filePath, int chunkID, int pixelPerBlock, std::string w
     this->updateAllLightingVertexArray();
 }
 
-Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData) : parsedAtlasData(parsedAtlasData), parsedSmeltingRecipesData(parsedSmeltingRecipesData) {
+Chunk::Chunk(Perlin& noise, int chunkID, int pixelPerBlock, std::string worldName, std::array<sf::IntRect, 71>& parsedAtlasData, std::unordered_map<int, int>& parsedSmeltingRecipesData, SoundEffect& soundEffect) : parsedAtlasData(parsedAtlasData), parsedSmeltingRecipesData(parsedSmeltingRecipesData), soundEffect(soundEffect) {
     this->chunkID = chunkID;
     this->pixelPerBlock = pixelPerBlock;
     this->worldName = worldName;
@@ -642,12 +643,14 @@ bool Chunk::placeBlock(int x, int y, int itemID) {
     if (!this->isBlocksReplacable[this->getBlock(x, y)]) {
         return false;
     }
+    this->soundEffect.play(this->blocksPlaceSound[blockID]);
     this->setBlock(x, y, blockID);
     return true;
 }
 
 int Chunk::breakBlock(int x, int y) {
     int blockID = this->getBlock(x, y);
+    this->soundEffect.play(this->blocksBreakSound[blockID]);
     this->setBlock(x, y, 0);
     int dropIntensity = rand() % 100 + 1;
     if (blockID == 19 && dropIntensity > 90) {

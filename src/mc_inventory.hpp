@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "../include/json_fwd.hpp"
+#include "../include/json.hpp"
 
 using json = nlohmann::json;
 

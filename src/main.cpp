@@ -18,6 +18,7 @@
 #include "mc_musicPlayer.hpp"
 #include "mc_perfDebugInfo.hpp"
 #include "mc_player.hpp"
+#include "mc_soundEffect.hpp"
 #include "mod.hpp"
 
 #define MENU_NONE 0
@@ -60,11 +61,13 @@ int main() {
     int initialPlayerChunkID = 16;
     int pixelPerBlock = 32;
 
+    mc::SoundEffect soundEffect("resources/sounds/event/");
+
     std::ifstream smeltingRecipesDataFile("resources/recipes/smelting.json");
     json smeltingRecipesData = json::parse(smeltingRecipesDataFile);
     smeltingRecipesDataFile.close();
 
-    mc::Chunks chunks(initialPlayerChunkID, 123654789, pixelPerBlock, "test", sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/", "resources/shaders/chunk.frag", "resources/shaders/breakOverlay.frag", smeltingRecipesData, "resources/textures/overlays/breakProgress.png");
+    mc::Chunks chunks(initialPlayerChunkID, 123654789, pixelPerBlock, "test", sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/", "resources/shaders/chunk.frag", "resources/shaders/breakOverlay.frag", smeltingRecipesData, "resources/textures/overlays/breakProgress.png", soundEffect);
 
     sf::Vector2f initialPlayerPos(0.5f, 0.f);
     while (!chunks.getBlock(initialPlayerChunkID, static_cast<int>(initialPlayerPos.x), static_cast<int>(initialPlayerPos.y))) {
@@ -486,6 +489,7 @@ int main() {
                     std::string filePath = std::format("saves/{}/inventories/chests/{}.{}.{}.dat.gz", worldName, openedChestChunkID, openedChestPos.x, openedChestPos.y);
                     chestInventory.saveToFile(filePath);
                     chestInventory.clear();
+                    soundEffect.play("chest.close");
                     unsavedChestEdit = false;
                 }
                 if (rightClick && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 39) {
@@ -527,6 +531,7 @@ int main() {
                         openedChestChunkID = chunks.getMouseChunkID();
                         openedChestPos = chunks.getMousePos();
                         unsavedChestEdit = true;
+                        soundEffect.play("chest.open");
                         openMenuType = MENU_CHEST;
                     }
                 } else if (rightClick && (chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 41 || chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 42)) {
@@ -560,6 +565,7 @@ int main() {
                         std::min(dist.y, 0.f);
                     }
                     if (sqrtf(dist.x * dist.x + dist.y * dist.y) <= 3.f) {
+                        soundEffect.play("hoe.till");
                         chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 51);
                     }
                 } else if (rightClickHeld && tickCount - lastPlaceTickCount >= 4 && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 11 && hotbarInventory.getItemStack(selectedHotbarSlot).id == 108) {
@@ -576,6 +582,7 @@ int main() {
                     }
                     if (sqrtf(dist.x * dist.x + dist.y * dist.y) <= 3.f) {
                         lastPlaceTickCount = tickCount;
+                        soundEffect.play("bucket.fill");
                         chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 0);
                         hotbarInventory.subtractItem(selectedHotbarSlot, 1);
                         mc::ItemStack droppedItemStack(109, 1);
@@ -596,6 +603,7 @@ int main() {
                     }
                     if (sqrtf(dist.x * dist.x + dist.y * dist.y) <= 3.f) {
                         lastPlaceTickCount = tickCount;
+                        soundEffect.play("bucket.fill_lava");
                         chunks.setBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y, 0);
                         hotbarInventory.subtractItem(selectedHotbarSlot, 1);
                         mc::ItemStack droppedItemStack(110, 1);
