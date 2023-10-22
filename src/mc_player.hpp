@@ -11,6 +11,11 @@
 
 namespace mc {
 
+struct PlayerLocationData {
+    int chunkID;
+    sf::Vector2f position;
+};
+
 class Player : public sf::Drawable {
     Chunks& chunks;
     sf::Vector2i screenSize;
@@ -49,6 +54,8 @@ class Player : public sf::Drawable {
     void setLateralForce(int force, bool sprint);
     void jump();
     void update(sf::Time frameTime);
+    static PlayerLocationData getDataFromFile(std::string filePath);
+    static bool saveDataToFile(std::string filePath, PlayerLocationData data);
 };
 
 }  // namespace mc

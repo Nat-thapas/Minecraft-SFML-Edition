@@ -18,6 +18,7 @@
 #include "mc_locationDelta.hpp"
 #include "mc_musicPlayer.hpp"
 #include "mc_perfDebugInfo.hpp"
+#include "mc_preferences.hpp"
 #include "mc_player.hpp"
 #include "mc_soundEffect.hpp"
 #include "mod.hpp"
@@ -32,11 +33,16 @@
 
 using json = nlohmann::json;
 
-int main() {
-    srand(time(NULL));
+void game(std::string worldName) {
+    mc::PreferencesData preferences;
+    if (std::filesystem::exists("settings.dat.gz")) {
+        preferences = mc::Preferences::loadFromFile("settings.dat.gz");
+    } else {
+        preferences = mc::Preferences::getDefault();
+    }
 
     sf::ContextSettings ctxSettings;
-    ctxSettings.antialiasingLevel = 8;
+    ctxSettings.antialiasingLevel = preferences.antialiasingLevel;
 
     sf::Image cursorImage;
     cursorImage.loadFromFile("resources/textures/cursor.png");
@@ -47,11 +53,22 @@ int main() {
     sf::Cursor arrowCursor;
     arrowCursor.loadFromSystem(sf::Cursor::Arrow);
 
-    sf::FloatRect screenRect(0.f, 0.f, 1600.f, 900.f);
+    sf::FloatRect screenRect;
+    sf::RenderWindow window;
 
-    sf::RenderWindow window(sf::VideoMode(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "Minecraft SFML Edition", sf::Style::Default, ctxSettings);
-    window.setFramerateLimit(120);
-    window.setVerticalSyncEnabled(false);
+    if (preferences.fullScreenEnabled) {
+        sf::VideoMode fullScreenVideoMode = sf::VideoMode::getFullscreenModes()[0];
+        window.create(fullScreenVideoMode, "Minecraft SFML Edition", sf::Style::Default | sf::Style::Fullscreen, ctxSettings);
+        screenRect = sf::FloatRect(0, 0, fullScreenVideoMode.width, fullScreenVideoMode.height);
+        window.setView(sf::View(screenRect));
+    } else {
+        screenRect = sf::FloatRect(0.f, 0.f, preferences.screenSize.x, preferences.screenSize.y);
+        window.create(sf::VideoMode(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "Minecraft SFML Edition", sf::Style::Default, ctxSettings);
+        window.setView(sf::View(screenRect));
+    }
+
+    window.setFramerateLimit(preferences.framerateLimit);
+    window.setVerticalSyncEnabled(preferences.vsyncEnabled);
     window.setKeyRepeatEnabled(false);
 
     sf::Image icon;
@@ -61,11 +78,7 @@ int main() {
     sf::Listener::setPosition(sf::Vector3f(0.f, 0.f, 0.f));
     sf::Listener::setDirection(sf::Vector3f(0.f, 0.f, -1.f));
     sf::Listener::setUpVector(sf::Vector3f(0.f, 1.f, 0.f));
-    sf::Listener::setGlobalVolume(100.f);
-
-    std::string worldName = "test";
-    int initialPlayerChunkID = 16;
-    int pixelPerBlock = 32;
+    sf::Listener::setGlobalVolume(static_cast<float>(preferences.masterVolume));
 
     mc::SoundEffect soundEffect("resources/sounds/event/");
 
@@ -73,11 +86,23 @@ int main() {
     json smeltingRecipesData = json::parse(smeltingRecipesDataFile);
     smeltingRecipesDataFile.close();
 
-    mc::Chunks chunks(initialPlayerChunkID, 123654789, pixelPerBlock, "test", sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/", "resources/shaders/chunk.frag", "resources/shaders/breakOverlay.frag", smeltingRecipesData, "resources/textures/overlays/breakProgress.png", soundEffect);
+    bool recalculateSpawnY = false;
 
-    sf::Vector2f initialPlayerPos(0.5f, 0.f);
-    while (!chunks.getBlock(initialPlayerChunkID, static_cast<int>(initialPlayerPos.x), static_cast<int>(initialPlayerPos.y))) {
-        initialPlayerPos.y++;
+    mc::PlayerLocationData playerLocationData;
+    if (std::filesystem::exists(std::format("saves/{}/player.dat.gz", worldName))) {
+        playerLocationData = mc::Player::getDataFromFile(std::format("saves/{}/player.dat.gz", worldName));
+    } else {
+        playerLocationData.chunkID = 0;
+        recalculateSpawnY = true;
+    }
+
+    mc::Chunks chunks(playerLocationData.chunkID, 123654789, preferences.gamePixelPerBlock, "test", sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/", "resources/shaders/chunk.frag", "resources/shaders/breakOverlay.frag", smeltingRecipesData, "resources/textures/overlays/breakProgress.png", soundEffect);
+
+    if (recalculateSpawnY) {
+        playerLocationData.position = sf::Vector2f(0.5f, 0.f);
+        while (!chunks.getBlock(playerLocationData.chunkID, static_cast<int>(playerLocationData.position.x), static_cast<int>(playerLocationData.position.y))) {
+            playerLocationData.position.y++;
+        }
     }
 
     std::vector<std::string> musicNames = {"calm1.ogg", "calm2.ogg", "calm3.ogg", "hal1.ogg", "hal2.ogg", "hal3.ogg", "hal4.ogg", "piano1.ogg", "piano2.ogg", "piano3.ogg", "an_ordinary_day.ogg", "comforting_memories.ogg", "floating_dream.ogg", "infinite_amethyst.ogg", "left_to_bloom.ogg", "one_more_day.ogg", "stand_tall.ogg", "wedding.ogg", "creative1.ogg", "creative2.ogg", "creative3.ogg", "creative4.ogg", "creative5.ogg", "creative6.ogg"};
@@ -107,7 +132,7 @@ int main() {
     float playerFrictionCoefficient = playerMovementForce / playerMaxSpeed;
     float playerAirDragCoefficient = playerMass * gravity / playerTerminalVelocity;
 
-    mc::Player player(chunks, initialPlayerChunkID, initialPlayerPos, sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), pixelPerBlock, "resources/textures/players/right.png", playerMovementForce, playerMass, gravity, playerFrictionCoefficient, playerAirDragCoefficient);
+    mc::Player player(chunks, playerLocationData.chunkID, playerLocationData.position, sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), preferences.gamePixelPerBlock, "resources/textures/players/right.png", playerMovementForce, playerMass, gravity, playerFrictionCoefficient, playerAirDragCoefficient);
 
     int playerMoveInput = 0;
     bool playerIntendJump = false;
@@ -119,20 +144,28 @@ int main() {
     json invAtlasData = json::parse(invAtlasDataFile);
     invAtlasDataFile.close();
 
-    int uiScaling = 3;
+    mc::Inventory hotbarInventory(9, 9, preferences.uiScaling, 2, robotoMonoRegular, invTextureAtlas, invAtlasData);
+    mc::Inventory mainInventory(27, 9, preferences.uiScaling, 1, robotoMonoRegular, invTextureAtlas, invAtlasData);
+    mc::Inventory heldInventory(1, 1, preferences.uiScaling, 0, robotoMonoRegular, invTextureAtlas, invAtlasData);
 
-    mc::Inventory hotbarInventory(9, 9, uiScaling, 2, robotoMonoRegular, invTextureAtlas, invAtlasData);
-    mc::Inventory mainInventory(27, 9, uiScaling, 1, robotoMonoRegular, invTextureAtlas, invAtlasData);
-    mc::Inventory heldInventory(1, 1, uiScaling, 0, robotoMonoRegular, invTextureAtlas, invAtlasData);
+    std::string filePath = std::format("saves/{}/inventories/player/hotbar.dat.gz", worldName);
+    if (std::filesystem::exists(filePath)) {
+        hotbarInventory.loadFromFile(filePath);
+    }
 
-    mc::Inventory chestInventory(27, 9, uiScaling, 1, robotoMonoRegular, invTextureAtlas, invAtlasData);
+    filePath = std::format("saves/{}/inventories/player/main.dat.gz", worldName);
+    if (std::filesystem::exists(filePath)) {
+        mainInventory.loadFromFile(filePath);
+    }
+
+    mc::Inventory chestInventory(27, 9, preferences.uiScaling, 1, robotoMonoRegular, invTextureAtlas, invAtlasData);
 
     std::ifstream recipesDataFile("resources/recipes/crafting.json");
     json recipesData = json::parse(recipesDataFile);
     recipesDataFile.close();
 
-    mc::CraftingInterface crafting2x2_inventory(2, uiScaling, 1, robotoMonoRegular, invTextureAtlas, invAtlasData, recipesData);
-    mc::CraftingInterface crafting3x3_table(3, uiScaling, 1, robotoMonoRegular, invTextureAtlas, invAtlasData, recipesData);
+    mc::CraftingInterface crafting2x2_inventory(2, preferences.uiScaling, 1, robotoMonoRegular, invTextureAtlas, invAtlasData, recipesData);
+    mc::CraftingInterface crafting3x3_table(3, preferences.uiScaling, 1, robotoMonoRegular, invTextureAtlas, invAtlasData, recipesData);
 
     sf::Texture hotbarInventoryTexture;
     hotbarInventoryTexture.loadFromFile("resources/textures/gui/hotbar.png");
@@ -163,7 +196,7 @@ int main() {
     sf::Texture furnaceFuelBarTexture;
     furnaceFuelBarTexture.loadFromFile("resources/textures/gui/furnacefireIcon.png");
 
-    mc::FurnaceInterface furnaceInterface(uiScaling, robotoMonoRegular, invTextureAtlas, invAtlasData, smeltingRecipesData, furnaceProgressBarTexture, furnaceFuelBarTexture);
+    mc::FurnaceInterface furnaceInterface(preferences.uiScaling, robotoMonoRegular, invTextureAtlas, invAtlasData, smeltingRecipesData, furnaceProgressBarTexture, furnaceFuelBarTexture);
 
     sf::Texture furnaceInventoryTexture;
     furnaceInventoryTexture.loadFromFile("resources/textures/gui/furnace.png");
@@ -196,7 +229,6 @@ int main() {
     int openMenuType = 0;
 
     bool isFirstLoop = true;
-    bool isFullScreen = false;
 
     bool unsavedChestEdit = false;
     int openedChestChunkID = 0;
@@ -232,6 +264,10 @@ int main() {
                         chestInventory.saveToFile(filePath);
                     }
                     chunks.saveAll();
+                    hotbarInventory.saveToFile(std::format("saves/{}/inventories/player/hotbar.dat.gz", worldName));
+                    mainInventory.saveToFile(std::format("saves/{}/inventories/player/main.dat.gz", worldName));
+                    mc::Player::saveDataToFile(std::format("saves/{}/player.dat.gz", worldName), mc::PlayerLocationData(chunks.getPlayerChunkID(), chunks.getPlayerPos()));
+                    mc::Preferences::saveToFile("settings.dat.gz", preferences);
                     window.close();
                     break;
                 case sf::Event::KeyPressed:
@@ -309,33 +345,33 @@ int main() {
                             break;
                         case sf::Keyboard::I:
                             ppbChanged = true;
-                            pixelPerBlock *= 2;
+                            preferences.gamePixelPerBlock *= 2;
                             break;
                         case sf::Keyboard::O:
                             ppbChanged = true;
-                            pixelPerBlock /= 2;
+                            preferences.gamePixelPerBlock /= 2;
                             break;
                         case sf::Keyboard::K:
                             scalingChanged = true;
-                            uiScaling += 1;
+                            preferences.uiScaling += 1;
                             break;
                         case sf::Keyboard::L:
                             scalingChanged = true;
-                            uiScaling -= 1;
+                            preferences.uiScaling -= 1;
                             break;
                         case sf::Keyboard::F3:
                             displayDebug ^= 1;
                             break;
                         case sf::Keyboard::F11:
-                            isFullScreen ^= 1;
-                            if (isFullScreen) {
+                            preferences.fullScreenEnabled ^= 1;
+                            if (preferences.fullScreenEnabled) {
                                 sf::VideoMode fullScreenVideoMode = sf::VideoMode::getFullscreenModes()[0];
                                 window.create(fullScreenVideoMode, "Minecraft SFML Edition", sf::Style::Default | sf::Style::Fullscreen, ctxSettings);
                                 resized = true;
                                 screenRect = sf::FloatRect(0, 0, fullScreenVideoMode.width, fullScreenVideoMode.height);
                                 window.setView(sf::View(screenRect));
                             } else {
-                                screenRect = sf::FloatRect(0.f, 0.f, 1600.f, 900.f);
+                                screenRect = sf::FloatRect(0.f, 0.f, preferences.screenSize.x, preferences.screenSize.y);
                                 window.create(sf::VideoMode(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "Minecraft SFML Edition", sf::Style::Default, ctxSettings);
                                 resized = true;
                                 window.setView(sf::View(screenRect));
@@ -404,7 +440,8 @@ int main() {
                     break;
                 case sf::Event::Resized:
                     resized = true;
-                    screenRect = sf::FloatRect(0, 0, event.size.width, event.size.height);
+                    preferences.screenSize = sf::Vector2i(event.size.width, event.size.height);
+                    screenRect = sf::FloatRect(0.f, 0.f, preferences.screenSize.x, preferences.screenSize.y);
                     window.setView(sf::View(screenRect));
                     break;
                 default:
@@ -415,8 +452,8 @@ int main() {
         perfDebugInfo.endEventLoop();
 
         playerMoveInput = std::clamp(playerMoveInput, -1, 1);
-        pixelPerBlock = std::clamp(pixelPerBlock, 1, 256);
-        uiScaling = std::clamp(uiScaling, 1, 16);
+        preferences.gamePixelPerBlock = std::clamp(preferences.gamePixelPerBlock, 1, 256);
+        preferences.uiScaling = std::clamp(preferences.uiScaling, 1, 16);
 
         if (resized) {
             chunks.setScreenSize(sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))));
@@ -425,21 +462,21 @@ int main() {
         }
 
         if (ppbChanged) {
-            chunks.setPixelPerBlock(pixelPerBlock);
-            player.setPixelPerBlock(pixelPerBlock);
+            chunks.setPixelPerBlock(preferences.gamePixelPerBlock);
+            player.setPixelPerBlock(preferences.gamePixelPerBlock);
         }
 
         if (scalingChanged) {
-            hotbarInventory.setScaling(uiScaling);
-            mainInventory.setScaling(uiScaling);
-            mainInventorySprite.setScale(sf::Vector2f(uiScaling, uiScaling));
-            chestInventorySprite.setScale(sf::Vector2f(uiScaling, uiScaling));
-            craftingTableInventorySprite.setScale(sf::Vector2f(uiScaling, uiScaling));
-            furnaceInventorySprite.setScale(sf::Vector2f(uiScaling, uiScaling));
-            crafting2x2_inventory.setScaling(uiScaling);
-            crafting3x3_table.setScaling(uiScaling);
-            furnaceInterface.setScaling(uiScaling);
-            heldInventory.setScaling(uiScaling);
+            hotbarInventory.setScaling(preferences.uiScaling);
+            mainInventory.setScaling(preferences.uiScaling);
+            mainInventorySprite.setScale(sf::Vector2f(preferences.uiScaling, preferences.uiScaling));
+            chestInventorySprite.setScale(sf::Vector2f(preferences.uiScaling, preferences.uiScaling));
+            craftingTableInventorySprite.setScale(sf::Vector2f(preferences.uiScaling, preferences.uiScaling));
+            furnaceInventorySprite.setScale(sf::Vector2f(preferences.uiScaling, preferences.uiScaling));
+            crafting2x2_inventory.setScaling(preferences.uiScaling);
+            crafting3x3_table.setScaling(preferences.uiScaling);
+            furnaceInterface.setScaling(preferences.uiScaling);
+            heldInventory.setScaling(preferences.uiScaling);
             heldInventory.setOrigin(sf::Vector2f(heldInventory.getSlotLocalBounds(0).width / 2.f, heldInventory.getSlotLocalBounds(0).height / 2.f));
         }
 
@@ -623,8 +660,8 @@ int main() {
                 for (int i = 0; i < 9; i++) {
                     sf::FloatRect bound = hotbarInventory.getSlotGlobalBounds(i);
                     if (bound.contains(sf::Vector2f(mousePosition))) {
-                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
-                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * preferences.uiScaling, 1.f * preferences.uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * preferences.uiScaling, 2.f * preferences.uiScaling));
                         renderSlotHoverHighlighter = true;
                         if (leftClick) {
                             if (hotbarInventory.getItemStack(i).id == heldInventory.getItemStack(0).id) {
@@ -650,8 +687,8 @@ int main() {
                 for (int i = 0; i < 27; i++) {
                     sf::FloatRect bound = mainInventory.getSlotGlobalBounds(i);
                     if (bound.contains(sf::Vector2f(mousePosition))) {
-                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
-                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * preferences.uiScaling, 1.f * preferences.uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * preferences.uiScaling, 2.f * preferences.uiScaling));
                         renderSlotHoverHighlighter = true;
                         if (leftClick) {
                             if (mainInventory.getItemStack(i).id == heldInventory.getItemStack(0).id) {
@@ -677,8 +714,8 @@ int main() {
                 for (int i = 0; i < 4; i++) {
                     sf::FloatRect bound = crafting2x2_inventory.getInputSlotGlobalBounds(i);
                     if (bound.contains(sf::Vector2f(mousePosition))) {
-                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
-                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * preferences.uiScaling, 1.f * preferences.uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * preferences.uiScaling, 2.f * preferences.uiScaling));
                         renderSlotHoverHighlighter = true;
                         if (leftClick) {
                             if (crafting2x2_inventory.getInputItemStack(i).id == heldInventory.getItemStack(0).id) {
@@ -704,8 +741,8 @@ int main() {
                 for (int i = 0; i < 1; i++) {
                     sf::FloatRect bound = crafting2x2_inventory.getOutputSlotGlobalBounds(i);
                     if (bound.contains(sf::Vector2f(mousePosition))) {
-                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
-                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * preferences.uiScaling, 1.f * preferences.uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * preferences.uiScaling, 2.f * preferences.uiScaling));
                         renderSlotHoverHighlighter = true;
                         if (leftClick && (heldInventory.getItemStack(0).id == 0 || (heldInventory.getItemStack(0).id == crafting2x2_inventory.getOutputItemStack(0).id && heldInventory.getEmptySpace(0) >= crafting2x2_inventory.getOutputItemStack(0).amount))) {
                             heldInventory.addItemStack(0, crafting2x2_inventory.takeOutputItem(0));
@@ -718,8 +755,8 @@ int main() {
                 for (int i = 0; i < 9; i++) {
                     sf::FloatRect bound = hotbarInventory.getSlotGlobalBounds(i);
                     if (bound.contains(sf::Vector2f(mousePosition))) {
-                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
-                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * preferences.uiScaling, 1.f * preferences.uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * preferences.uiScaling, 2.f * preferences.uiScaling));
                         renderSlotHoverHighlighter = true;
                         if (leftClick) {
                             if (hotbarInventory.getItemStack(i).id == heldInventory.getItemStack(0).id) {
@@ -745,8 +782,8 @@ int main() {
                 for (int i = 0; i < 27; i++) {
                     sf::FloatRect bound = mainInventory.getSlotGlobalBounds(i);
                     if (bound.contains(sf::Vector2f(mousePosition))) {
-                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
-                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * preferences.uiScaling, 1.f * preferences.uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * preferences.uiScaling, 2.f * preferences.uiScaling));
                         renderSlotHoverHighlighter = true;
                         if (leftClick) {
                             if (mainInventory.getItemStack(i).id == heldInventory.getItemStack(0).id) {
@@ -772,8 +809,8 @@ int main() {
                 for (int i = 0; i < 27; i++) {
                     sf::FloatRect bound = chestInventory.getSlotGlobalBounds(i);
                     if (bound.contains(sf::Vector2f(mousePosition))) {
-                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
-                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * preferences.uiScaling, 1.f * preferences.uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * preferences.uiScaling, 2.f * preferences.uiScaling));
                         renderSlotHoverHighlighter = true;
                         if (leftClick) {
                             if (chestInventory.getItemStack(i).id == heldInventory.getItemStack(0).id) {
@@ -801,8 +838,8 @@ int main() {
                 for (int i = 0; i < 9; i++) {
                     sf::FloatRect bound = hotbarInventory.getSlotGlobalBounds(i);
                     if (bound.contains(sf::Vector2f(mousePosition))) {
-                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
-                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * preferences.uiScaling, 1.f * preferences.uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * preferences.uiScaling, 2.f * preferences.uiScaling));
                         renderSlotHoverHighlighter = true;
                         if (leftClick) {
                             if (hotbarInventory.getItemStack(i).id == heldInventory.getItemStack(0).id) {
@@ -828,8 +865,8 @@ int main() {
                 for (int i = 0; i < 27; i++) {
                     sf::FloatRect bound = mainInventory.getSlotGlobalBounds(i);
                     if (bound.contains(sf::Vector2f(mousePosition))) {
-                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
-                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * preferences.uiScaling, 1.f * preferences.uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * preferences.uiScaling, 2.f * preferences.uiScaling));
                         renderSlotHoverHighlighter = true;
                         if (leftClick) {
                             if (mainInventory.getItemStack(i).id == heldInventory.getItemStack(0).id) {
@@ -855,8 +892,8 @@ int main() {
                 for (int i = 0; i < 9; i++) {
                     sf::FloatRect bound = crafting3x3_table.getInputSlotGlobalBounds(i);
                     if (bound.contains(sf::Vector2f(mousePosition))) {
-                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
-                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * preferences.uiScaling, 1.f * preferences.uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * preferences.uiScaling, 2.f * preferences.uiScaling));
                         renderSlotHoverHighlighter = true;
                         if (leftClick) {
                             if (crafting3x3_table.getInputItemStack(i).id == heldInventory.getItemStack(0).id) {
@@ -882,8 +919,8 @@ int main() {
                 for (int i = 0; i < 1; i++) {
                     sf::FloatRect bound = crafting3x3_table.getOutputSlotGlobalBounds(i);
                     if (bound.contains(sf::Vector2f(mousePosition))) {
-                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
-                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * preferences.uiScaling, 1.f * preferences.uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * preferences.uiScaling, 2.f * preferences.uiScaling));
                         renderSlotHoverHighlighter = true;
                         if (leftClick && (heldInventory.getItemStack(0).id == 0 || (heldInventory.getItemStack(0).id == crafting3x3_table.getOutputItemStack(0).id && heldInventory.getEmptySpace(0) >= crafting3x3_table.getOutputItemStack(0).amount))) {
                             heldInventory.addItemStack(0, crafting3x3_table.takeOutputItem(0));
@@ -897,8 +934,8 @@ int main() {
                 for (int i = 0; i < 9; i++) {
                     sf::FloatRect bound = hotbarInventory.getSlotGlobalBounds(i);
                     if (bound.contains(sf::Vector2f(mousePosition))) {
-                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
-                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * preferences.uiScaling, 1.f * preferences.uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * preferences.uiScaling, 2.f * preferences.uiScaling));
                         renderSlotHoverHighlighter = true;
                         if (leftClick) {
                             if (hotbarInventory.getItemStack(i).id == heldInventory.getItemStack(0).id) {
@@ -924,8 +961,8 @@ int main() {
                 for (int i = 0; i < 27; i++) {
                     sf::FloatRect bound = mainInventory.getSlotGlobalBounds(i);
                     if (bound.contains(sf::Vector2f(mousePosition))) {
-                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
-                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * preferences.uiScaling, 1.f * preferences.uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * preferences.uiScaling, 2.f * preferences.uiScaling));
                         renderSlotHoverHighlighter = true;
                         if (leftClick) {
                             if (mainInventory.getItemStack(i).id == heldInventory.getItemStack(0).id) {
@@ -951,8 +988,8 @@ int main() {
                 for (int i = 0; i < 1; i++) {
                     sf::FloatRect bound = furnaceInterface.getInputSlotGlobalBounds(i);
                     if (bound.contains(sf::Vector2f(mousePosition))) {
-                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
-                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * preferences.uiScaling, 1.f * preferences.uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * preferences.uiScaling, 2.f * preferences.uiScaling));
                         renderSlotHoverHighlighter = true;
                         if (leftClick) {
                             if (furnaceInterface.getInputItemStack(i).id == heldInventory.getItemStack(0).id) {
@@ -978,8 +1015,8 @@ int main() {
                 for (int i = 0; i < 1; i++) {
                     sf::FloatRect bound = furnaceInterface.getFuelSlotGlobalBounds(i);
                     if (bound.contains(sf::Vector2f(mousePosition))) {
-                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
-                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * preferences.uiScaling, 1.f * preferences.uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * preferences.uiScaling, 2.f * preferences.uiScaling));
                         renderSlotHoverHighlighter = true;
                         if (leftClick) {
                             if (furnaceInterface.getFuelItemStack(i).id == heldInventory.getItemStack(0).id) {
@@ -1005,8 +1042,8 @@ int main() {
                 for (int i = 0; i < 1; i++) {
                     sf::FloatRect bound = furnaceInterface.getOutputSlotGlobalBounds(i);
                     if (bound.contains(sf::Vector2f(mousePosition))) {
-                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * uiScaling, 1.f * uiScaling));
-                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * uiScaling, 2.f * uiScaling));
+                        inventorySlotHoverHighlighter.setPosition(bound.getPosition() + sf::Vector2f(1.f * preferences.uiScaling, 1.f * preferences.uiScaling));
+                        inventorySlotHoverHighlighter.setSize(bound.getSize() - sf::Vector2f(2.f * preferences.uiScaling, 2.f * preferences.uiScaling));
                         renderSlotHoverHighlighter = true;
                         if (leftClick && (heldInventory.getItemStack(0).id == 0 || (heldInventory.getItemStack(0).id == furnaceInterface.getOutputItemStack(0).id && heldInventory.getEmptySpace(0) >= furnaceInterface.getOutputItemStack(0).amount))) {
                             heldInventory.addItemStack(0, furnaceInterface.takeOutputItem(0));
@@ -1079,18 +1116,18 @@ int main() {
                 case MENU_NONE:
                     hotbarInventory.setMargin(2);
                     hotbarInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - hotbarInventory.getLocalBounds().width / 2.f, screenRect.height - hotbarInventory.getLocalBounds().height));
-                    hotbarInventorySprite.setPosition(sf::Vector2f(hotbarInventory.getGlobalBounds().left - static_cast<float>(uiScaling), hotbarInventory.getGlobalBounds().top - static_cast<float>(uiScaling)));
-                    hotbarInventorySprite.setScale(sf::Vector2f(uiScaling, uiScaling));
-                    selectedHotbarSlotSprite.setScale(sf::Vector2f(uiScaling, uiScaling));
+                    hotbarInventorySprite.setPosition(sf::Vector2f(hotbarInventory.getGlobalBounds().left - static_cast<float>(preferences.uiScaling), hotbarInventory.getGlobalBounds().top - static_cast<float>(preferences.uiScaling)));
+                    hotbarInventorySprite.setScale(sf::Vector2f(preferences.uiScaling, preferences.uiScaling));
+                    selectedHotbarSlotSprite.setScale(sf::Vector2f(preferences.uiScaling, preferences.uiScaling));
                     window.setMouseCursor(crossCursor);
                     break;
                 case MENU_PLAYERINV:
                     mainInventorySprite.setPosition(sf::Vector2f(screenRect.width / 2.f, screenRect.height / 2.f));
-                    mainInventory.setPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), mainInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(uiScaling)));
+                    mainInventory.setPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), mainInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(preferences.uiScaling)));
                     hotbarInventory.setMargin(1);
-                    hotbarInventory.setPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), mainInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(uiScaling)));
-                    crafting2x2_inventory.setInputPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 88.f * static_cast<float>(uiScaling), mainInventorySprite.getGlobalBounds().top + 25.f * static_cast<float>(uiScaling)));
-                    crafting2x2_inventory.setOutputPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 144.f * static_cast<float>(uiScaling), mainInventorySprite.getGlobalBounds().top + 35.f * static_cast<float>(uiScaling)));
+                    hotbarInventory.setPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), mainInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(preferences.uiScaling)));
+                    crafting2x2_inventory.setInputPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 88.f * static_cast<float>(preferences.uiScaling), mainInventorySprite.getGlobalBounds().top + 25.f * static_cast<float>(preferences.uiScaling)));
+                    crafting2x2_inventory.setOutputPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 144.f * static_cast<float>(preferences.uiScaling), mainInventorySprite.getGlobalBounds().top + 35.f * static_cast<float>(preferences.uiScaling)));
                     menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
                     window.setMouseCursor(arrowCursor);
                     break;
@@ -1100,33 +1137,33 @@ int main() {
                     break;
                 case MENU_CRAFTINGTABLE:
                     craftingTableInventorySprite.setPosition(sf::Vector2f(screenRect.width / 2.f, screenRect.height / 2.f));
-                    mainInventory.setPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), craftingTableInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(uiScaling)));
+                    mainInventory.setPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), craftingTableInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(preferences.uiScaling)));
                     hotbarInventory.setMargin(1);
-                    hotbarInventory.setPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), craftingTableInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(uiScaling)));
-                    crafting3x3_table.setInputPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 29.f * static_cast<float>(uiScaling), craftingTableInventorySprite.getGlobalBounds().top + 16.f * static_cast<float>(uiScaling)));
-                    crafting3x3_table.setOutputPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 123.f * static_cast<float>(uiScaling), craftingTableInventorySprite.getGlobalBounds().top + 34.f * static_cast<float>(uiScaling)));
+                    hotbarInventory.setPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), craftingTableInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(preferences.uiScaling)));
+                    crafting3x3_table.setInputPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 29.f * static_cast<float>(preferences.uiScaling), craftingTableInventorySprite.getGlobalBounds().top + 16.f * static_cast<float>(preferences.uiScaling)));
+                    crafting3x3_table.setOutputPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 123.f * static_cast<float>(preferences.uiScaling), craftingTableInventorySprite.getGlobalBounds().top + 34.f * static_cast<float>(preferences.uiScaling)));
                     menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
                     window.setMouseCursor(arrowCursor);
                     break;
                 case MENU_CHEST:
                     chestInventorySprite.setPosition(sf::Vector2f(screenRect.width / 2.f, screenRect.height / 2.f));
-                    mainInventory.setPosition(sf::Vector2f(chestInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), chestInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(uiScaling)));
+                    mainInventory.setPosition(sf::Vector2f(chestInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), chestInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(preferences.uiScaling)));
                     hotbarInventory.setMargin(1);
-                    hotbarInventory.setPosition(sf::Vector2f(chestInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), chestInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(uiScaling)));
-                    chestInventory.setPosition(sf::Vector2f(chestInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), chestInventorySprite.getGlobalBounds().top + 17.f * static_cast<float>(uiScaling)));
+                    hotbarInventory.setPosition(sf::Vector2f(chestInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), chestInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(preferences.uiScaling)));
+                    chestInventory.setPosition(sf::Vector2f(chestInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), chestInventorySprite.getGlobalBounds().top + 17.f * static_cast<float>(preferences.uiScaling)));
                     menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
                     window.setMouseCursor(arrowCursor);
                     break;
                 case MENU_FURNACE:
                     furnaceInventorySprite.setPosition(sf::Vector2f(screenRect.width / 2.f, screenRect.height / 2.f));
-                    mainInventory.setPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), furnaceInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(uiScaling)));
+                    mainInventory.setPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(preferences.uiScaling)));
                     hotbarInventory.setMargin(1);
-                    hotbarInventory.setPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(uiScaling), furnaceInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(uiScaling)));
-                    furnaceInterface.setInputPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 55.f * static_cast<float>(uiScaling), furnaceInventorySprite.getGlobalBounds().top + 16.f * static_cast<float>(uiScaling)));
-                    furnaceInterface.setFuelPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 55.f * static_cast<float>(uiScaling), furnaceInventorySprite.getGlobalBounds().top + 52.f * static_cast<float>(uiScaling)));
-                    furnaceInterface.setOutputPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 115.f * static_cast<float>(uiScaling), furnaceInventorySprite.getGlobalBounds().top + 34.f * static_cast<float>(uiScaling)));
-                    furnaceInterface.setProgressBarPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 79.f * static_cast<float>(uiScaling), furnaceInventorySprite.getGlobalBounds().top + 34.f * static_cast<float>(uiScaling)));
-                    furnaceInterface.setFuelBarPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 56.f * static_cast<float>(uiScaling), furnaceInventorySprite.getGlobalBounds().top + 36.f * static_cast<float>(uiScaling)));
+                    hotbarInventory.setPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(preferences.uiScaling)));
+                    furnaceInterface.setInputPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 55.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 16.f * static_cast<float>(preferences.uiScaling)));
+                    furnaceInterface.setFuelPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 55.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 52.f * static_cast<float>(preferences.uiScaling)));
+                    furnaceInterface.setOutputPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 115.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 34.f * static_cast<float>(preferences.uiScaling)));
+                    furnaceInterface.setProgressBarPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 79.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 34.f * static_cast<float>(preferences.uiScaling)));
+                    furnaceInterface.setFuelBarPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 56.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 36.f * static_cast<float>(preferences.uiScaling)));
                     menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
                     window.setMouseCursor(arrowCursor);
                     break;
@@ -1135,7 +1172,7 @@ int main() {
             }
         }
 
-        selectedHotbarSlotSprite.setPosition(sf::Vector2f(hotbarInventory.getSlotGlobalBounds(selectedHotbarSlot).left - static_cast<float>(uiScaling) * 2.f, hotbarInventory.getSlotGlobalBounds(selectedHotbarSlot).top - static_cast<float>(uiScaling) * 2.f));
+        selectedHotbarSlotSprite.setPosition(sf::Vector2f(hotbarInventory.getSlotGlobalBounds(selectedHotbarSlot).left - static_cast<float>(preferences.uiScaling) * 2.f, hotbarInventory.getSlotGlobalBounds(selectedHotbarSlot).top - static_cast<float>(preferences.uiScaling) * 2.f));
 
         switch (openMenuType) {
             case MENU_NONE:
@@ -1207,6 +1244,12 @@ int main() {
 
         isFirstLoop = false;
     }
+}
+
+int main() {
+    srand(time(NULL));
+
+    game("test");
 
     return 0;
 }

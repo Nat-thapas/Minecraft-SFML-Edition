@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <string>
 #include <unordered_map>
+#include <zlib.h>
 
 #include "idiv.hpp"
 #include "mod.hpp"
@@ -179,6 +180,21 @@ void Player::update(sf::Time frameTime) {
     for (int i = 0; i < stepCount; i++) {
         this->physicsUpdate(stepDetaTime);
     }
+}
+
+PlayerLocationData Player::getDataFromFile(std::string filePath) {
+    PlayerLocationData data;
+    gzFile inFileZ = gzopen(filePath.c_str(), "rb");
+    gzread(inFileZ, reinterpret_cast<char*>(&data), sizeof(PlayerLocationData));
+    gzclose(inFileZ);
+    return data;
+}
+
+bool Player::saveDataToFile(std::string filePath, PlayerLocationData data) {
+    gzFile outFileZ = gzopen(filePath.c_str(), "wb");
+    gzwrite(outFileZ, reinterpret_cast<char*>(&data), sizeof(PlayerLocationData));
+    gzclose(outFileZ);
+    return true;
 }
 
 }  // namespace mc
