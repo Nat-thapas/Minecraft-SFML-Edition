@@ -363,7 +363,7 @@ void Chunks::setPlayerChunkID(int chunkID) {
     } else {
         for (int i = 0; i < this->playerChunkID - chunkID; i++) {
             if (std::filesystem::exists(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, this->chunksStartID - 1))) {
-                this->chunks.push_front(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, this->chunksStartID - 1), this->chunksStartID + 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData, this->soundEffect));
+                this->chunks.push_front(Chunk(std::format("saves/{}/chunks/{}.dat.gz", this->worldName, this->chunksStartID - 1), this->chunksStartID - 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData, this->soundEffect));
             } else {
                 this->chunks.push_front(Chunk(this->noise, this->chunksStartID - 1, this->pixelPerBlock, this->worldName, this->parsedAtlasData, this->parsedSmeltingRecipesData, this->soundEffect));
             }

@@ -17,18 +17,19 @@
 // #include "mc_gameDebugInfo.hpp"
 // #include "mc_inventory.hpp"
 // #include "mc_locationDelta.hpp"
+#include "mc_menuBackground.hpp"
 #include "mc_musicPlayer.hpp"
 // #include "mc_perfDebugInfo.hpp"
 #include "mc_preferences.hpp"
 // #include "mc_player.hpp"
 #include "mc_slider.hpp"
 #include "mc_soundEffect.hpp"
+#include "mc_textBox.hpp"
 #include "mod.hpp"
 
 #define MENU_MAIN -10
 #define MENU_SELECTWORLD -9
-#define MENU_CREATEWORLD -8
-#define MENU_LEADERBOARD -7
+#define MENU_LEADERBOARD -8
 #define MENU_NONE 0
 #define MENU_PAUSE 1
 #define MENU_SETTINGS 2
@@ -1357,6 +1358,11 @@ int main() {
     titleTexture.setSmooth(true);
     sf::Sprite titleSprite(titleTexture);
 
+    sf::Texture menuBackgroundTexture;
+    menuBackgroundTexture.loadFromFile("resources/textures/gui/menuBackground.png");
+    menuBackgroundTexture.setSmooth(true);
+    mc::MenuBackground menuBackground(menuBackgroundTexture);
+
     sf::Text optionText;
     optionText.setFont(robotoRegular);
     optionText.setLetterSpacing(1.25f);
@@ -1373,7 +1379,21 @@ int main() {
     mc::Button vsyncToggleButton(mediumButtonTexture, robotoRegular, preferences.uiScaling, preferences.vsyncEnabled ? "VSync: ON" : "VSync: OFF");
     mc::Button uiScalingStepButton(mediumButtonTexture, robotoRegular, preferences.uiScaling, std::format("GUI Scale: {}", preferences.uiScaling));
     mc::Slider ppbSlider(mediumSliderTexture, slidingTexture, robotoRegular, preferences.uiScaling, std::format("Pixel Per Block: {}", preferences.gamePixelPerBlock), 8);
-    mc::Button doneButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Done");
+    mc::Button settingsDoneButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Done");
+
+    sf::Text selectWorldText;
+    selectWorldText.setFont(robotoRegular);
+    selectWorldText.setLetterSpacing(1.25f);
+    selectWorldText.setCharacterSize(12 * preferences.uiScaling);
+    selectWorldText.setFillColor(sf::Color::White);
+    selectWorldText.setOutlineColor(sf::Color::Black);
+    selectWorldText.setOutlineThickness(0.5f * preferences.uiScaling);
+    selectWorldText.setString("Select World");
+    mc::TextBox worldNameTextBox(notoSansThaiLoopedMedium, sf::Vector2f(200.f, 20.f), preferences.uiScaling);
+    mc::Button selectWorldDoneButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Done");
+
+    sf::Clock elapsedClock;
+    elapsedClock.restart();
 
     sf::Vector2i mousePosition(sf::Mouse::getPosition(window));
 
@@ -1399,6 +1419,10 @@ int main() {
 
         bool windowNeedRecreate = false;
 
+        sf::String textInputed;
+
+        sf::Time elapsedTime = elapsedClock.getElapsedTime();
+
         sf::Event event;
         while (window.pollEvent(event)) {
             switch (event.type) {
@@ -1406,6 +1430,9 @@ int main() {
                     mc::Preferences::saveToFile("settings.dat.gz", preferences);
                     window.close();
                     return 0;
+                    break;
+                case sf::Event::TextEntered:
+                    textInputed += event.text.unicode;
                     break;
                 case sf::Event::MouseMoved:
                     mousePosition = sf::Vector2i(event.mouseMove.x, event.mouseMove.y);
@@ -1457,6 +1484,7 @@ int main() {
                     if (leftClick) {
                         soundEffect.play("click");
                         menuChanged = true;
+                        worldNameTextBox.setFocused(true);
                         openMenuType = MENU_SELECTWORLD;
                     }
                 } else {
@@ -1622,16 +1650,39 @@ int main() {
                 } else {
                     uiScalingStepButton.setState(BTN_STATE_NORMAL);
                 }
-                if (doneButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
-                    doneButton.setState(BTN_STATE_HOVERED);
+                if (settingsDoneButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    settingsDoneButton.setState(BTN_STATE_HOVERED);
                     if (leftClick) {
                         soundEffect.play("click");
                         menuChanged = true;
                         openMenuType = MENU_MAIN;
                     }
                 } else {
-                    doneButton.setState(BTN_STATE_NORMAL);
+                    settingsDoneButton.setState(BTN_STATE_NORMAL);
                 }
+                break;
+            case MENU_SELECTWORLD:
+                if (leftClick) {
+                    if (worldNameTextBox.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                        worldNameTextBox.setFocused(true);
+                    } else {
+                        worldNameTextBox.setFocused(false);
+                    }
+                }
+                if (worldNameTextBox.getFocused()) {
+                    worldNameTextBox.setDisplayString(worldNameTextBox.getDisplayString() + textInputed);
+                }
+                if (selectWorldDoneButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    selectWorldDoneButton.setState(BTN_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        // call game
+                    }
+                } else {
+                    selectWorldDoneButton.setState(BTN_STATE_NORMAL);
+                }
+                break;
+            default:
                 break;
         }
 
@@ -1672,6 +1723,7 @@ int main() {
                     versionText.setOutlineThickness(0.5f * preferences.uiScaling);
                     copyleftText.setCharacterSize(12 * preferences.uiScaling);
                     copyleftText.setOutlineThickness(0.5f * preferences.uiScaling);
+                    menuBackground.setScale(screenRect.height / static_cast<float>(menuBackgroundTexture.getSize().y));
 
                     titleSprite.setPosition(sf::Vector2f(screenRect.width / 2.f - titleSprite.getGlobalBounds().width / 2.f, screenRect.height * 0.10f));
                     singleplayerButton.setPosition(sf::Vector2f(screenRect.width / 2.f - singleplayerButton.getGlobalBounds().width / 2.f, screenRect.height * 0.4f));
@@ -1693,7 +1745,7 @@ int main() {
                     vsyncToggleButton.setScaling(preferences.uiScaling);
                     uiScalingStepButton.setScaling(preferences.uiScaling);
                     ppbSlider.setScaling(preferences.uiScaling);
-                    doneButton.setScaling(preferences.uiScaling);
+                    settingsDoneButton.setScaling(preferences.uiScaling);
 
                     optionText.setPosition(sf::Vector2f(screenRect.width / 2.f - optionText.getGlobalBounds().width / 2.f, screenRect.height * 0.075f));
                     masterVolumeSlider.setPosition(sf::Vector2f(screenRect.width / 2.f - masterVolumeSlider.getGlobalBounds().width - 5.f * preferences.uiScaling, screenRect.height * 0.25f));
@@ -1704,13 +1756,25 @@ int main() {
                     vsyncToggleButton.setPosition(sf::Vector2f(screenRect.width / 2.f + 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 2.f));
                     uiScalingStepButton.setPosition(sf::Vector2f(screenRect.width / 2.f - masterVolumeSlider.getGlobalBounds().width - 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 3.f));
                     ppbSlider.setPosition(sf::Vector2f(screenRect.width / 2.f + 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 3.f));
-                    doneButton.setPosition(sf::Vector2f(screenRect.width / 2.f - doneButton.getGlobalBounds().width / 2.f, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 4.5f));
+                    settingsDoneButton.setPosition(sf::Vector2f(screenRect.width / 2.f - settingsDoneButton.getGlobalBounds().width / 2.f, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 4.5f));
 
                     masterVolumeSlider.setValue(preferences.masterVolume);
                     musicVolumeSlider.setValue(preferences.musicVolume);
                     antialiasingLevelSlider.setValue(preferences.antialiasingLevel);
                     framerateLimitSlider.setValue(preferences.framerateLimit / 10);
                     ppbSlider.setValue(static_cast<int>(std::round(log2(preferences.gamePixelPerBlock))));
+                    break;
+                case MENU_SELECTWORLD:
+                    selectWorldText.setCharacterSize(12 * preferences.uiScaling);
+                    selectWorldText.setOutlineThickness(0.5f * preferences.uiScaling);
+                    worldNameTextBox.setScaling(preferences.uiScaling);
+                    selectWorldDoneButton.setScaling(preferences.uiScaling);
+
+                    selectWorldText.setPosition(sf::Vector2f(screenRect.width / 2.f - selectWorldText.getGlobalBounds().width / 2.f, screenRect.height * 0.075f));
+                    worldNameTextBox.setPosition(sf::Vector2f(screenRect.width / 2.f - worldNameTextBox.getGlobalBounds().width / 2.f, screenRect.height * 0.35f));
+                    selectWorldDoneButton.setPosition(sf::Vector2f(screenRect.width / 2.f - settingsDoneButton.getGlobalBounds().width / 2.f, screenRect.height * 0.35f + static_cast<float>(preferences.uiScaling * 25) * 1.5f));
+                    break;
+                default:
                     break;
             }
         }
@@ -1727,6 +1791,8 @@ int main() {
 
         switch (openMenuType) {
             case MENU_MAIN:
+                menuBackground.setPosition(sf::Vector2f(-mod(elapsedTime.asSeconds() * 20.f * (screenRect.height / static_cast<float>(menuBackgroundTexture.getSize().y)), static_cast<float>(menuBackgroundTexture.getSize().x) * screenRect.height / static_cast<float>(menuBackgroundTexture.getSize().y)), 0.f));
+                window.draw(menuBackground);
                 window.draw(titleSprite);
                 window.draw(singleplayerButton);
                 window.draw(leaderBoardButton);
@@ -1736,8 +1802,9 @@ int main() {
                 window.draw(copyleftText);
                 break;
             case MENU_SELECTWORLD:
-                break;
-            case MENU_CREATEWORLD:
+                window.draw(selectWorldText);
+                window.draw(worldNameTextBox);
+                window.draw(selectWorldDoneButton);
                 break;
             case MENU_LEADERBOARD:
                 break;
@@ -1751,7 +1818,7 @@ int main() {
                 window.draw(vsyncToggleButton);
                 window.draw(uiScalingStepButton);
                 window.draw(ppbSlider);
-                window.draw(doneButton);
+                window.draw(settingsDoneButton);
                 break;
         }
 
