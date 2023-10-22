@@ -7,22 +7,28 @@
 #include <fstream>
 #include <iostream>
 
-#include "../include/json.hpp"
+// #include "../include/json.hpp"
 #include "idiv.hpp"
-#include "mc_chunk.hpp"
-#include "mc_chunks.hpp"
-#include "mc_craftingInterface.hpp"
-#include "mc_furnaceInterface.hpp"
-#include "mc_gameDebugInfo.hpp"
-#include "mc_inventory.hpp"
-#include "mc_locationDelta.hpp"
+#include "mc_button.hpp"
+// #include "mc_chunk.hpp"
+// #include "mc_chunks.hpp"
+// #include "mc_craftingInterface.hpp"
+// #include "mc_furnaceInterface.hpp"
+// #include "mc_gameDebugInfo.hpp"
+// #include "mc_inventory.hpp"
+// #include "mc_locationDelta.hpp"
 #include "mc_musicPlayer.hpp"
-#include "mc_perfDebugInfo.hpp"
+// #include "mc_perfDebugInfo.hpp"
 #include "mc_preferences.hpp"
-#include "mc_player.hpp"
+// #include "mc_player.hpp"
+#include "mc_slider.hpp"
 #include "mc_soundEffect.hpp"
 #include "mod.hpp"
 
+#define MENU_MAIN -10
+#define MENU_SELECTWORLD -9
+#define MENU_CREATEWORLD -8
+#define MENU_LEADERBOARD -7
 #define MENU_NONE 0
 #define MENU_PAUSE 1
 #define MENU_SETTINGS 2
@@ -31,16 +37,10 @@
 #define MENU_CHEST 5
 #define MENU_FURNACE 6
 
-using json = nlohmann::json;
+// using json = nlohmann::json;
 
-void game(std::string worldName) {
-    mc::PreferencesData preferences;
-    if (std::filesystem::exists("settings.dat.gz")) {
-        preferences = mc::Preferences::loadFromFile("settings.dat.gz");
-    } else {
-        preferences = mc::Preferences::getDefault();
-    }
-
+/*
+void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenRect, mc::SoundEffect& soundEffect, mc::PreferencesData& preferences) {
     sf::ContextSettings ctxSettings;
     ctxSettings.antialiasingLevel = preferences.antialiasingLevel;
 
@@ -52,20 +52,6 @@ void game(std::string worldName) {
 
     sf::Cursor arrowCursor;
     arrowCursor.loadFromSystem(sf::Cursor::Arrow);
-
-    sf::FloatRect screenRect;
-    sf::RenderWindow window;
-
-    if (preferences.fullScreenEnabled) {
-        sf::VideoMode fullScreenVideoMode = sf::VideoMode::getFullscreenModes()[0];
-        window.create(fullScreenVideoMode, "Minecraft SFML Edition", sf::Style::Default | sf::Style::Fullscreen, ctxSettings);
-        screenRect = sf::FloatRect(0, 0, fullScreenVideoMode.width, fullScreenVideoMode.height);
-        window.setView(sf::View(screenRect));
-    } else {
-        screenRect = sf::FloatRect(0.f, 0.f, preferences.screenSize.x, preferences.screenSize.y);
-        window.create(sf::VideoMode(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "Minecraft SFML Edition", sf::Style::Default, ctxSettings);
-        window.setView(sf::View(screenRect));
-    }
 
     window.setFramerateLimit(preferences.framerateLimit);
     window.setVerticalSyncEnabled(preferences.vsyncEnabled);
@@ -79,8 +65,6 @@ void game(std::string worldName) {
     sf::Listener::setDirection(sf::Vector3f(0.f, 0.f, -1.f));
     sf::Listener::setUpVector(sf::Vector3f(0.f, 1.f, 0.f));
     sf::Listener::setGlobalVolume(static_cast<float>(preferences.masterVolume));
-
-    mc::SoundEffect soundEffect("resources/sounds/event/");
 
     std::ifstream smeltingRecipesDataFile("resources/recipes/smelting.json");
     json smeltingRecipesData = json::parse(smeltingRecipesDataFile);
@@ -96,7 +80,19 @@ void game(std::string worldName) {
         recalculateSpawnY = true;
     }
 
-    mc::Chunks chunks(playerLocationData.chunkID, 123654789, preferences.gamePixelPerBlock, "test", sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/", "resources/shaders/chunk.frag", "resources/shaders/breakOverlay.frag", smeltingRecipesData, "resources/textures/overlays/breakProgress.png", soundEffect);
+    int seed;
+    if (std::filesystem::exists(std::format("saves/{}/seed.dat", worldName))) {
+        std::ifstream seedFile(std::format("saves/{}/seed.dat", worldName), std::ios::binary);
+        seedFile.read(reinterpret_cast<char*>(&seed), sizeof(int));
+        seedFile.close();
+    } else {
+        seed = ((rand() & 0b11111111) << 24) + ((rand() & 0b11111111) << 16) + ((rand() & 0b11111111) << 8) + (rand() & 0b11111111);
+        std::ofstream seedFile(std::format("saves/{}/seed.dat", worldName), std::ios::binary);
+        seedFile.write(reinterpret_cast<char*>(&seed), sizeof(int));
+        seedFile.close();
+    }
+
+    mc::Chunks chunks(playerLocationData.chunkID, seed, preferences.gamePixelPerBlock, "test", sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/", "resources/shaders/chunk.frag", "resources/shaders/breakOverlay.frag", smeltingRecipesData, "resources/textures/overlays/breakProgress.png", soundEffect);
 
     if (recalculateSpawnY) {
         playerLocationData.position = sf::Vector2f(0.5f, 0.f);
@@ -106,7 +102,7 @@ void game(std::string worldName) {
     }
 
     std::vector<std::string> musicNames = {"calm1.ogg", "calm2.ogg", "calm3.ogg", "hal1.ogg", "hal2.ogg", "hal3.ogg", "hal4.ogg", "piano1.ogg", "piano2.ogg", "piano3.ogg", "an_ordinary_day.ogg", "comforting_memories.ogg", "floating_dream.ogg", "infinite_amethyst.ogg", "left_to_bloom.ogg", "one_more_day.ogg", "stand_tall.ogg", "wedding.ogg", "creative1.ogg", "creative2.ogg", "creative3.ogg", "creative4.ogg", "creative5.ogg", "creative6.ogg"};
-    mc::MusicPlayer musicPlayer("resources/sounds/music/game/", musicNames);
+    mc::MusicPlayer musicPlayer("resources/sounds/music/game/", musicNames, static_cast<float>(preferences.musicVolume) / 100.f);
     musicPlayer.start();
 
     sf::Font robotoRegular;
@@ -259,7 +255,7 @@ void game(std::string worldName) {
         while (window.pollEvent(event)) {
             switch (event.type) {
                 case sf::Event::Closed:
-                    if (openMenuType == MENU_CHEST) {
+                    if (unsavedChestEdit) {
                         std::string filePath = std::format("saves/{}/inventories/chests/{}.{}.{}.dat.gz", worldName, openedChestChunkID, openedChestPos.x, openedChestPos.y);
                         chestInventory.saveToFile(filePath);
                     }
@@ -269,6 +265,7 @@ void game(std::string worldName) {
                     mc::Player::saveDataToFile(std::format("saves/{}/player.dat.gz", worldName), mc::PlayerLocationData(chunks.getPlayerChunkID(), chunks.getPlayerPos()));
                     mc::Preferences::saveToFile("settings.dat.gz", preferences);
                     window.close();
+                    return;
                     break;
                 case sf::Event::KeyPressed:
                     switch (event.key.code) {
@@ -309,8 +306,13 @@ void game(std::string worldName) {
                                 case MENU_CHEST:
                                 case MENU_FURNACE:
                                 case MENU_PAUSE:
-                                case MENU_SETTINGS:
                                     openMenuType = MENU_NONE;
+                                    break;
+                                case MENU_SETTINGS:
+                                    openMenuType = MENU_PAUSE;
+                                    break;
+                                case MENU_NONE:
+                                    openMenuType = MENU_PAUSE;
                                     break;
                                 default:
                                     break;
@@ -453,7 +455,7 @@ void game(std::string worldName) {
 
         playerMoveInput = std::clamp(playerMoveInput, -1, 1);
         preferences.gamePixelPerBlock = std::clamp(preferences.gamePixelPerBlock, 1, 256);
-        preferences.uiScaling = std::clamp(preferences.uiScaling, 1, 16);
+        preferences.uiScaling = std::clamp(preferences.uiScaling, 1, 4);
 
         if (resized) {
             chunks.setScreenSize(sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))));
@@ -483,9 +485,12 @@ void game(std::string worldName) {
         if (playerIntendJump) {
             player.jump();
         }
-
+        
         player.setLateralForce(playerMoveInput, playerSprinting);
-        player.update(frameTime);
+
+        if (openMenuType == MENU_NONE || openMenuType == MENU_PLAYERINV || openMenuType == MENU_CHEST || openMenuType == MENU_CRAFTINGTABLE || openMenuType == MENU_FURNACE) {
+            player.update(frameTime);
+        }
 
         chunks.setPlayerChunkID(player.getChunkID());
         chunks.setPlayerPos(player.getPosition());
@@ -1059,7 +1064,7 @@ void game(std::string worldName) {
         perfDebugInfo.endPlayerInputProcessing();
         perfDebugInfo.endRandomTick();
 
-        if (elapsedTime.asMilliseconds() - lastTickTimeMs >= 50) {
+        if (elapsedTime.asMilliseconds() - lastTickTimeMs >= 50 && (openMenuType == MENU_NONE || openMenuType == MENU_PLAYERINV || openMenuType == MENU_CHEST || openMenuType == MENU_CRAFTINGTABLE || openMenuType == MENU_FURNACE)) {
             lastTickTimeMs += 50 + std::max(idiv(elapsedTime.asMilliseconds() - lastTickTimeMs, 50) - 100, 0) * 50;
             if (leftClickHeld && openMenuType == MENU_NONE) {
                 std::vector<mc::ItemStack> droppedItemStacks = chunks.breakBlock(hotbarInventory.getItemStack(selectedHotbarSlot).id, tickCount);
@@ -1132,6 +1137,7 @@ void game(std::string worldName) {
                     window.setMouseCursor(arrowCursor);
                     break;
                 case MENU_PAUSE:
+                    menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
                     break;
                 case MENU_SETTINGS:
                     break;
@@ -1191,6 +1197,7 @@ void game(std::string worldName) {
                 window.draw(heldInventory);
                 break;
             case MENU_PAUSE:
+                window.draw(menuBlackOutBackground);
                 break;
             case MENU_SETTINGS:
                 break;
@@ -1245,11 +1252,513 @@ void game(std::string worldName) {
         isFirstLoop = false;
     }
 }
+*/
 
 int main() {
     srand(time(NULL));
 
-    game("test");
+    mc::PreferencesData preferences;
+    if (std::filesystem::exists("settings.dat.gz")) {
+        preferences = mc::Preferences::loadFromFile("settings.dat.gz");
+    } else {
+        preferences = mc::Preferences::getDefault();
+    }
+
+    sf::ContextSettings ctxSettings;
+    ctxSettings.antialiasingLevel = preferences.antialiasingLevel;
+
+    sf::Cursor arrowCursor;
+    arrowCursor.loadFromSystem(sf::Cursor::Arrow);
+
+    sf::FloatRect screenRect;
+    sf::RenderWindow window;
+
+    if (preferences.fullScreenEnabled) {
+        sf::VideoMode fullScreenVideoMode = sf::VideoMode::getFullscreenModes()[0];
+        window.create(fullScreenVideoMode, "Minecraft SFML Edition", sf::Style::Default | sf::Style::Fullscreen, ctxSettings);
+        screenRect = sf::FloatRect(0, 0, fullScreenVideoMode.width, fullScreenVideoMode.height);
+        window.setView(sf::View(screenRect));
+    } else {
+        screenRect = sf::FloatRect(0.f, 0.f, preferences.screenSize.x, preferences.screenSize.y);
+        window.create(sf::VideoMode(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "Minecraft SFML Edition", sf::Style::Default, ctxSettings);
+        window.setView(sf::View(screenRect));
+    }
+
+    window.setFramerateLimit(preferences.framerateLimit);
+    window.setVerticalSyncEnabled(preferences.vsyncEnabled);
+    window.setKeyRepeatEnabled(false);
+    window.setMouseCursor(arrowCursor);
+
+    sf::Image icon;
+    icon.loadFromFile("resources/icon.png");
+    window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
+
+    sf::Listener::setPosition(sf::Vector3f(0.f, 0.f, 0.f));
+    sf::Listener::setDirection(sf::Vector3f(0.f, 0.f, -1.f));
+    sf::Listener::setUpVector(sf::Vector3f(0.f, 1.f, 0.f));
+    sf::Listener::setGlobalVolume(static_cast<float>(preferences.masterVolume));
+
+    std::vector<std::string> musicNames = {"menu1.ogg", "menu2.ogg", "menu3.ogg", "menu4.ogg"};
+    mc::MusicPlayer musicPlayer("resources/sounds/music/menu/", musicNames, static_cast<float>(preferences.musicVolume) / 100.f);
+    musicPlayer.start();
+
+    mc::SoundEffect soundEffect("resources/sounds/event/");
+
+    sf::Font robotoRegular;
+    robotoRegular.loadFromFile("resources/fonts/Roboto-Regular.ttf");
+
+    sf::Font robotoMonoRegular;
+    robotoMonoRegular.loadFromFile("resources/fonts/RobotoMono-Regular.ttf");
+
+    sf::Font notoSansThaiLoopedMedium;
+    notoSansThaiLoopedMedium.loadFromFile("resources/fonts/NotoSansThaiLooped-Medium.ttf");
+
+    sf::Texture shortButtonTexture;
+    shortButtonTexture.loadFromFile("resources/textures/gui/buttonShort.png");
+    sf::Texture mediumButtonTexture;
+    mediumButtonTexture.loadFromFile("resources/textures/gui/buttonMedium.png");
+    sf::Texture longButtonTexture;
+    longButtonTexture.loadFromFile("resources/textures/gui/buttonLong.png");
+
+    sf::Texture shortSliderTexture;
+    shortSliderTexture.loadFromFile("resources/textures/gui/sliderShort.png");
+    sf::Texture mediumSliderTexture;
+    mediumSliderTexture.loadFromFile("resources/textures/gui/sliderMedium.png");
+    sf::Texture longSliderTexture;
+    longSliderTexture.loadFromFile("resources/textures/gui/sliderLong.png");
+    sf::Texture slidingTexture;
+    slidingTexture.loadFromFile("resources/textures/gui/sliderSliding.png");
+
+    mc::Button singleplayerButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Singleplayer");
+    mc::Button leaderBoardButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Leaderboard");
+    mc::Button optionsButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Options...");
+    mc::Button quitGameButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Quit Game");
+
+    sf::Text versionText;
+    versionText.setFont(robotoRegular);
+    versionText.setLetterSpacing(1.25f);
+    versionText.setCharacterSize(12 * preferences.uiScaling);
+    versionText.setFillColor(sf::Color::White);
+    versionText.setOutlineColor(sf::Color::Black);
+    versionText.setOutlineThickness(0.5f * preferences.uiScaling);
+    versionText.setString("Minecraft SFML Edition 1.0.0rc1");
+
+    sf::Text copyleftText;
+    copyleftText.setFont(robotoRegular);
+    copyleftText.setLetterSpacing(1.25f);
+    copyleftText.setCharacterSize(12 * preferences.uiScaling);
+    copyleftText.setFillColor(sf::Color::White);
+    copyleftText.setOutlineColor(sf::Color::Black);
+    copyleftText.setOutlineThickness(0.5f * preferences.uiScaling);
+    copyleftText.setString("Copyleft 66010261 Natthapas Saengnikornkiat");
+
+    sf::Texture titleTexture;
+    titleTexture.loadFromFile("resources/textures/gui/title.png");
+    titleTexture.setSmooth(true);
+    sf::Sprite titleSprite(titleTexture);
+
+    sf::Text optionText;
+    optionText.setFont(robotoRegular);
+    optionText.setLetterSpacing(1.25f);
+    optionText.setCharacterSize(12 * preferences.uiScaling);
+    optionText.setFillColor(sf::Color::White);
+    optionText.setOutlineColor(sf::Color::Black);
+    optionText.setOutlineThickness(0.5f * preferences.uiScaling);
+    optionText.setString("Options");
+    mc::Slider masterVolumeSlider(mediumSliderTexture, slidingTexture, robotoRegular, preferences.uiScaling, std::format("Volume: {}%", preferences.masterVolume), 100);
+    mc::Slider musicVolumeSlider(mediumSliderTexture, slidingTexture, robotoRegular, preferences.uiScaling, std::format("Music: {}%", preferences.musicVolume), 100);
+    mc::Slider antialiasingLevelSlider(mediumSliderTexture, slidingTexture, robotoRegular, preferences.uiScaling, std::format("Antialiasing: {}", preferences.antialiasingLevel), 8);
+    mc::Slider framerateLimitSlider(mediumSliderTexture, slidingTexture, robotoRegular, preferences.uiScaling, preferences.framerateLimit != 0 ? std::format("Max Framerate: {} fps", preferences.framerateLimit) : "Max Framerate: Unlimited", 25);
+    mc::Button fullscreenToggleButton(mediumButtonTexture, robotoRegular, preferences.uiScaling, preferences.fullScreenEnabled ? "Fullscreen: ON" : "Fullscreen: OFF");
+    mc::Button vsyncToggleButton(mediumButtonTexture, robotoRegular, preferences.uiScaling, preferences.vsyncEnabled ? "VSync: ON" : "VSync: OFF");
+    mc::Button uiScalingStepButton(mediumButtonTexture, robotoRegular, preferences.uiScaling, std::format("GUI Scale: {}", preferences.uiScaling));
+    mc::Slider ppbSlider(mediumSliderTexture, slidingTexture, robotoRegular, preferences.uiScaling, std::format("Pixel Per Block: {}", preferences.gamePixelPerBlock), 8);
+    mc::Button doneButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Done");
+
+    sf::Vector2i mousePosition(sf::Mouse::getPosition(window));
+
+    float scrollWhellPosition = 0.f;
+    bool leftClickHeld = false;
+    bool rightClickHeld = false;
+
+    int openMenuType = MENU_MAIN;
+
+    bool isFirstLoop = true;
+
+    while (window.isOpen()) {
+        bool resized = isFirstLoop;
+        bool scalingChanged = isFirstLoop;
+        bool menuChanged = isFirstLoop;
+        bool volumeChanged = false;
+        bool windowSettingsChanged = false;
+
+        bool leftClick = false;
+        bool rightClick = false;
+
+        bool quit = false;
+
+        bool windowNeedRecreate = false;
+
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            switch (event.type) {
+                case sf::Event::Closed:
+                    mc::Preferences::saveToFile("settings.dat.gz", preferences);
+                    window.close();
+                    return 0;
+                    break;
+                case sf::Event::MouseMoved:
+                    mousePosition = sf::Vector2i(event.mouseMove.x, event.mouseMove.y);
+                    break;
+                case sf::Event::MouseButtonPressed:
+                    switch (event.mouseButton.button) {
+                        case sf::Mouse::Left:
+                            leftClick = true;
+                            leftClickHeld = true;
+                            break;
+                        case sf::Mouse::Right:
+                            rightClick = true;
+                            rightClickHeld = true;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case sf::Event::MouseButtonReleased:
+                    switch (event.mouseButton.button) {
+                        case sf::Mouse::Left:
+                            leftClickHeld = false;
+                            break;
+                        case sf::Mouse::Right:
+                            rightClickHeld = false;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case sf::Event::MouseWheelScrolled:
+                    scrollWhellPosition += event.mouseWheelScroll.delta;
+                    break;
+                case sf::Event::Resized:
+                    resized = true;
+                    preferences.screenSize = sf::Vector2i(event.size.width, event.size.height);
+                    screenRect = sf::FloatRect(0.f, 0.f, preferences.screenSize.x, preferences.screenSize.y);
+                    window.setView(sf::View(screenRect));
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        switch (openMenuType) {
+            case MENU_MAIN:
+                if (singleplayerButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    singleplayerButton.setState(BTN_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        menuChanged = true;
+                        openMenuType = MENU_SELECTWORLD;
+                    }
+                } else {
+                    singleplayerButton.setState(BTN_STATE_NORMAL);
+                }
+                if (leaderBoardButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    leaderBoardButton.setState(BTN_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        menuChanged = true;
+                        openMenuType = MENU_LEADERBOARD;
+                    }
+                } else {
+                    leaderBoardButton.setState(BTN_STATE_NORMAL);
+                }
+                if (optionsButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    optionsButton.setState(BTN_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        menuChanged = true;
+                        openMenuType = MENU_SETTINGS;
+                    }
+                } else {
+                    optionsButton.setState(BTN_STATE_NORMAL);
+                }
+                if (quitGameButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    quitGameButton.setState(BTN_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        quit = true;
+                    }
+                } else {
+                    quitGameButton.setState(BTN_STATE_NORMAL);
+                }
+                break;
+            case MENU_SETTINGS:
+                if (masterVolumeSlider.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    masterVolumeSlider.setState(SLIDER_STATE_HOVERED);
+                    if (leftClick) {
+                        masterVolumeSlider.setActiveValue(true);
+                        soundEffect.play("click");
+                        volumeChanged = true;
+                        masterVolumeSlider.setValueByMousePos(mousePosition);
+                        preferences.masterVolume = masterVolumeSlider.getValue();
+                        masterVolumeSlider.setDisplayText(std::format("Volume: {}%", preferences.masterVolume));
+                    } else if (leftClickHeld && masterVolumeSlider.getActiveValue()) {
+                        volumeChanged = true;
+                        masterVolumeSlider.setValueByMousePos(mousePosition);
+                        preferences.masterVolume = masterVolumeSlider.getValue();
+                        masterVolumeSlider.setDisplayText(std::format("Volume: {}%", preferences.masterVolume));
+                    }
+                } else {
+                    masterVolumeSlider.setActiveValue(false);
+                    masterVolumeSlider.setState(SLIDER_STATE_NORMAL);
+                }
+                if (musicVolumeSlider.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    musicVolumeSlider.setState(SLIDER_STATE_HOVERED);
+                    if (leftClick) {
+                        musicVolumeSlider.setActiveValue(true);
+                        soundEffect.play("click");
+                        volumeChanged = true;
+                        musicVolumeSlider.setValueByMousePos(mousePosition);
+                        preferences.musicVolume = musicVolumeSlider.getValue();
+                        musicVolumeSlider.setDisplayText(std::format("Music: {}%", preferences.musicVolume));
+                    } else if (leftClickHeld && musicVolumeSlider.getActiveValue()) {
+                        volumeChanged = true;
+                        musicVolumeSlider.setValueByMousePos(mousePosition);
+                        preferences.musicVolume = musicVolumeSlider.getValue();
+                        musicVolumeSlider.setDisplayText(std::format("Music: {}%", preferences.musicVolume));
+                    }
+                } else {
+                    musicVolumeSlider.setActiveValue(false);
+                    musicVolumeSlider.setState(SLIDER_STATE_NORMAL);
+                }
+                if (antialiasingLevelSlider.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    antialiasingLevelSlider.setState(SLIDER_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        windowNeedRecreate = true;
+                        antialiasingLevelSlider.setValueByMousePos(mousePosition);
+                        preferences.antialiasingLevel = antialiasingLevelSlider.getValue();
+                        antialiasingLevelSlider.setDisplayText(std::format("Antialiasing: {}", preferences.antialiasingLevel));
+                    }
+                } else {
+                    antialiasingLevelSlider.setState(SLIDER_STATE_NORMAL);
+                }
+                if (framerateLimitSlider.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    framerateLimitSlider.setState(SLIDER_STATE_HOVERED);
+                    if (leftClick) {
+                        framerateLimitSlider.setActiveValue(true);
+                        soundEffect.play("click");
+                        windowSettingsChanged = true;
+                        framerateLimitSlider.setValueByMousePos(mousePosition);
+                        preferences.framerateLimit = framerateLimitSlider.getValue() * 10;
+                        if (preferences.framerateLimit != 0) {
+                            framerateLimitSlider.setDisplayText(std::format("Max Framerate: {} fps", preferences.framerateLimit));
+                        } else {
+                            framerateLimitSlider.setDisplayText("Max Framerate: Unlimited");
+                        }
+                    } else if (leftClickHeld && framerateLimitSlider.getActiveValue()) {
+                        windowSettingsChanged = true;
+                        framerateLimitSlider.setValueByMousePos(mousePosition);
+                        preferences.framerateLimit = framerateLimitSlider.getValue() * 10;
+                        if (preferences.framerateLimit != 0) {
+                            framerateLimitSlider.setDisplayText(std::format("Max Framerate: {} fps", preferences.framerateLimit));
+                        } else {
+                            framerateLimitSlider.setDisplayText("Max Framerate: Unlimited");
+                        }
+                    }
+                } else {
+                    framerateLimitSlider.setActiveValue(false);
+                    framerateLimitSlider.setState(SLIDER_STATE_NORMAL);
+                }
+                if (ppbSlider.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    ppbSlider.setState(SLIDER_STATE_HOVERED);
+                    if (leftClick) {
+                        ppbSlider.setActiveValue(true);
+                        soundEffect.play("click");
+                        ppbSlider.setValueByMousePos(mousePosition);
+                        preferences.gamePixelPerBlock = 0b1 << ppbSlider.getValue();
+                        ppbSlider.setDisplayText(std::format("Pixel Per Block: {}", preferences.gamePixelPerBlock));
+                    } else if (leftClickHeld && ppbSlider.getActiveValue()) {
+                        ppbSlider.setValueByMousePos(mousePosition);
+                        preferences.gamePixelPerBlock = 0b1 << ppbSlider.getValue();
+                        ppbSlider.setDisplayText(std::format("Pixel Per Block: {}", preferences.gamePixelPerBlock));
+                    }
+                } else {
+                    ppbSlider.setActiveValue(false);
+                    ppbSlider.setState(SLIDER_STATE_NORMAL);
+                }
+                if (fullscreenToggleButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    fullscreenToggleButton.setState(BTN_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        windowNeedRecreate = true;
+                        preferences.fullScreenEnabled ^= 1;
+                        fullscreenToggleButton.setDisplayText(preferences.fullScreenEnabled ? "Fullscreen: ON" : "Fullscreen: OFF");
+                    }
+                } else {
+                    fullscreenToggleButton.setState(BTN_STATE_NORMAL);
+                }
+                if (vsyncToggleButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    vsyncToggleButton.setState(BTN_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        windowSettingsChanged = true;
+                        preferences.vsyncEnabled ^= 1;
+                        vsyncToggleButton.setDisplayText(preferences.vsyncEnabled ? "VSync: ON" : "VSync: OFF");
+                    }
+                } else {
+                    vsyncToggleButton.setState(BTN_STATE_NORMAL);
+                }
+                if (uiScalingStepButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    uiScalingStepButton.setState(BTN_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        scalingChanged = true;
+                        preferences.uiScaling++;
+                        preferences.uiScaling %= 5;
+                        preferences.uiScaling = std::clamp(preferences.uiScaling, 1, 4);
+                        uiScalingStepButton.setDisplayText(std::format("GUI Scale: {}", preferences.uiScaling));
+                    }
+                } else {
+                    uiScalingStepButton.setState(BTN_STATE_NORMAL);
+                }
+                if (doneButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    doneButton.setState(BTN_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        menuChanged = true;
+                        openMenuType = MENU_MAIN;
+                    }
+                } else {
+                    doneButton.setState(BTN_STATE_NORMAL);
+                }
+                break;
+        }
+
+        if (windowSettingsChanged) {
+            window.setFramerateLimit(preferences.framerateLimit);
+            window.setVerticalSyncEnabled(preferences.vsyncEnabled);
+        }
+
+        if (windowNeedRecreate) {
+            ctxSettings.antialiasingLevel = preferences.antialiasingLevel;
+            if (preferences.fullScreenEnabled) {
+                sf::VideoMode fullScreenVideoMode = sf::VideoMode::getFullscreenModes()[0];
+                window.create(fullScreenVideoMode, "Minecraft SFML Edition", sf::Style::Default | sf::Style::Fullscreen, ctxSettings);
+                screenRect = sf::FloatRect(0, 0, fullScreenVideoMode.width, fullScreenVideoMode.height);
+                window.setView(sf::View(screenRect));
+            } else {
+                screenRect = sf::FloatRect(0.f, 0.f, preferences.screenSize.x, preferences.screenSize.y);
+                window.create(sf::VideoMode(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "Minecraft SFML Edition", sf::Style::Default, ctxSettings);
+                window.setView(sf::View(screenRect));
+            }
+            window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
+        }
+
+        if (volumeChanged) {
+            sf::Listener::setGlobalVolume(static_cast<float>(preferences.masterVolume));
+            musicPlayer.setVolume(static_cast<float>(preferences.musicVolume) / 100.f);
+        }
+
+        if (resized || scalingChanged || menuChanged) {
+            switch (openMenuType) {
+                case MENU_MAIN:
+                    titleSprite.setScale(sf::Vector2f(static_cast<float>(preferences.uiScaling) / 7.5f, static_cast<float>(preferences.uiScaling) / 7.5f));
+                    singleplayerButton.setScaling(preferences.uiScaling);
+                    leaderBoardButton.setScaling(preferences.uiScaling);
+                    optionsButton.setScaling(preferences.uiScaling);
+                    quitGameButton.setScaling(preferences.uiScaling);
+                    versionText.setCharacterSize(12 * preferences.uiScaling);
+                    versionText.setOutlineThickness(0.5f * preferences.uiScaling);
+                    copyleftText.setCharacterSize(12 * preferences.uiScaling);
+                    copyleftText.setOutlineThickness(0.5f * preferences.uiScaling);
+
+                    titleSprite.setPosition(sf::Vector2f(screenRect.width / 2.f - titleSprite.getGlobalBounds().width / 2.f, screenRect.height * 0.10f));
+                    singleplayerButton.setPosition(sf::Vector2f(screenRect.width / 2.f - singleplayerButton.getGlobalBounds().width / 2.f, screenRect.height * 0.4f));
+                    leaderBoardButton.setPosition(sf::Vector2f(screenRect.width / 2.f - leaderBoardButton.getGlobalBounds().width / 2.f, screenRect.height * 0.4f + static_cast<float>(preferences.uiScaling * 25)));
+                    optionsButton.setPosition(sf::Vector2f(screenRect.width / 2.f - optionsButton.getGlobalBounds().width / 2.f, screenRect.height * 0.4f + static_cast<float>(preferences.uiScaling * 25) * 2.f));
+                    quitGameButton.setPosition(sf::Vector2f(screenRect.width / 2.f - quitGameButton.getGlobalBounds().width / 2.f, screenRect.height * 0.4f + static_cast<float>(preferences.uiScaling * 25) * 3.5f));
+                    versionText.setPosition(sf::Vector2f(5.f, screenRect.height - 16.f * preferences.uiScaling));
+                    copyleftText.setOrigin(sf::Vector2f(copyleftText.getGlobalBounds().width, 0.f));
+                    copyleftText.setPosition(sf::Vector2f(screenRect.width - 5.f, screenRect.height - 16.f * preferences.uiScaling));
+                    break;
+                case MENU_SETTINGS:
+                    optionText.setCharacterSize(12 * preferences.uiScaling);
+                    optionText.setOutlineThickness(0.5f * preferences.uiScaling);
+                    masterVolumeSlider.setScaling(preferences.uiScaling);
+                    musicVolumeSlider.setScaling(preferences.uiScaling);
+                    antialiasingLevelSlider.setScaling(preferences.uiScaling);
+                    framerateLimitSlider.setScaling(preferences.uiScaling);
+                    fullscreenToggleButton.setScaling(preferences.uiScaling);
+                    vsyncToggleButton.setScaling(preferences.uiScaling);
+                    uiScalingStepButton.setScaling(preferences.uiScaling);
+                    ppbSlider.setScaling(preferences.uiScaling);
+                    doneButton.setScaling(preferences.uiScaling);
+
+                    optionText.setPosition(sf::Vector2f(screenRect.width / 2.f - optionText.getGlobalBounds().width / 2.f, screenRect.height * 0.075f));
+                    masterVolumeSlider.setPosition(sf::Vector2f(screenRect.width / 2.f - masterVolumeSlider.getGlobalBounds().width - 5.f * preferences.uiScaling, screenRect.height * 0.25f));
+                    musicVolumeSlider.setPosition(sf::Vector2f(screenRect.width / 2.f + 5.f * preferences.uiScaling, screenRect.height * 0.25f));
+                    antialiasingLevelSlider.setPosition(sf::Vector2f(screenRect.width / 2.f - masterVolumeSlider.getGlobalBounds().width - 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25)));
+                    framerateLimitSlider.setPosition(sf::Vector2f(screenRect.width / 2.f + 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25)));
+                    fullscreenToggleButton.setPosition(sf::Vector2f(screenRect.width / 2.f - masterVolumeSlider.getGlobalBounds().width - 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 2.f));
+                    vsyncToggleButton.setPosition(sf::Vector2f(screenRect.width / 2.f + 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 2.f));
+                    uiScalingStepButton.setPosition(sf::Vector2f(screenRect.width / 2.f - masterVolumeSlider.getGlobalBounds().width - 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 3.f));
+                    ppbSlider.setPosition(sf::Vector2f(screenRect.width / 2.f + 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 3.f));
+                    doneButton.setPosition(sf::Vector2f(screenRect.width / 2.f - doneButton.getGlobalBounds().width / 2.f, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 4.5f));
+
+                    masterVolumeSlider.setValue(preferences.masterVolume);
+                    musicVolumeSlider.setValue(preferences.musicVolume);
+                    antialiasingLevelSlider.setValue(preferences.antialiasingLevel);
+                    framerateLimitSlider.setValue(preferences.framerateLimit / 10);
+                    ppbSlider.setValue(static_cast<int>(std::round(log2(preferences.gamePixelPerBlock))));
+                    break;
+            }
+        }
+
+        if (quit) {
+            mc::Preferences::saveToFile("settings.dat.gz", preferences);
+            window.close();
+            return 0;
+        }
+
+        musicPlayer.update();
+
+        window.clear(sf::Color::Black);
+
+        switch (openMenuType) {
+            case MENU_MAIN:
+                window.draw(titleSprite);
+                window.draw(singleplayerButton);
+                window.draw(leaderBoardButton);
+                window.draw(optionsButton);
+                window.draw(quitGameButton);
+                window.draw(versionText);
+                window.draw(copyleftText);
+                break;
+            case MENU_SELECTWORLD:
+                break;
+            case MENU_CREATEWORLD:
+                break;
+            case MENU_LEADERBOARD:
+                break;
+            case MENU_SETTINGS:
+                window.draw(optionText);
+                window.draw(masterVolumeSlider);
+                window.draw(musicVolumeSlider);
+                window.draw(antialiasingLevelSlider);
+                window.draw(framerateLimitSlider);
+                window.draw(fullscreenToggleButton);
+                window.draw(vsyncToggleButton);
+                window.draw(uiScalingStepButton);
+                window.draw(ppbSlider);
+                window.draw(doneButton);
+                break;
+        }
+
+        window.display();
+
+        isFirstLoop = false;
+    }
 
     return 0;
 }

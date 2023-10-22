@@ -17,10 +17,11 @@ class MusicPlayer {
     int waitTime;
 
    public:
-    MusicPlayer(std::string musicFilesBasePath, std::vector<std::string> musicFileNames);
+    MusicPlayer(std::string musicFilesBasePath, std::vector<std::string> musicFileNames, float volume);
     void update();
     void start();
     void stop();
+    void setVolume(float volume);
 };
 
 }  // namespace mc

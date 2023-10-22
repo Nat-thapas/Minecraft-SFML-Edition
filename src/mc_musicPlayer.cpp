@@ -6,13 +6,13 @@
 
 namespace mc {
 
-MusicPlayer::MusicPlayer(std::string musicFilesBasePath, std::vector<std::string> musicFileNames) {
+MusicPlayer::MusicPlayer(std::string musicFilesBasePath, std::vector<std::string> musicFileNames, float volume) {
     this->musicFilePaths.resize(musicFileNames.size());
     for (size_t i = 0; i < musicFileNames.size(); i++) {
         this->musicFilePaths[i] = musicFilesBasePath + musicFileNames[i];
     }
     this->shouldBePlaying = false;
-    this->music.setVolume(50.f);
+    this->music.setVolume(volume * 100.f);
 }
 
 void MusicPlayer::update() {
@@ -57,6 +57,10 @@ void MusicPlayer::stop() {
     this->waitTime = 0;
     this->clock.restart();
     this->shouldBePlaying = false;
+}
+
+void MusicPlayer::setVolume(float volume) {
+    this->music.setVolume(volume * 100.f);
 }
 
 }  // namespace mc
