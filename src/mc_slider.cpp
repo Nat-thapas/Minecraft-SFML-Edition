@@ -50,9 +50,6 @@ void Slider::setPosition(sf::Vector2f position) {
 }
 
 void Slider::setScaling(int scaling) {
-    if (this->scaling == scaling) {
-        return;
-    }
     this->scaling = scaling;
     this->backgroundSprite.setScale(sf::Vector2f(this->scaling, this->scaling));
     this->slidingSprite.setScale(sf::Vector2f(this->scaling, this->scaling));

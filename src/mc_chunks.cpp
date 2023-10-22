@@ -140,6 +140,7 @@ Chunks::Chunks(int playerChunkID, int seed, int pixelPerBlock, std::string world
         std::filesystem::create_directory(std::format("saves/{}/inventories", this->worldName));
         std::filesystem::create_directory(std::format("saves/{}/inventories/chests", this->worldName));
         std::filesystem::create_directory(std::format("saves/{}/inventories/furnaces", this->worldName));
+        std::filesystem::create_directory(std::format("saves/{}/inventories/player", this->worldName));
     }
     this->updateTexture();
     this->parseAtlasData();

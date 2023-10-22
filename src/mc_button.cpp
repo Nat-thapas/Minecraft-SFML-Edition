@@ -33,9 +33,6 @@ void Button::updatePosition() {
 }
 
 void Button::setScaling(int scaling) {
-    if (this->scaling == scaling) {
-        return;
-    }
     this->scaling = scaling;
     this->sprite.setScale(sf::Vector2f(this->scaling, this->scaling));
     this->text.setCharacterSize(12 * this->scaling);

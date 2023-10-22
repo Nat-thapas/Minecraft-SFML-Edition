@@ -7,21 +7,21 @@
 #include <fstream>
 #include <iostream>
 
-// #include "../include/json.hpp"
+#include "../include/json.hpp"
 #include "idiv.hpp"
 #include "mc_button.hpp"
-// #include "mc_chunk.hpp"
-// #include "mc_chunks.hpp"
-// #include "mc_craftingInterface.hpp"
-// #include "mc_furnaceInterface.hpp"
-// #include "mc_gameDebugInfo.hpp"
-// #include "mc_inventory.hpp"
-// #include "mc_locationDelta.hpp"
+#include "mc_chunk.hpp"
+#include "mc_chunks.hpp"
+#include "mc_craftingInterface.hpp"
+#include "mc_furnaceInterface.hpp"
+#include "mc_gameDebugInfo.hpp"
+#include "mc_inventory.hpp"
+#include "mc_locationDelta.hpp"
 #include "mc_menuBackground.hpp"
 #include "mc_musicPlayer.hpp"
-// #include "mc_perfDebugInfo.hpp"
+#include "mc_perfDebugInfo.hpp"
 #include "mc_preferences.hpp"
-// #include "mc_player.hpp"
+#include "mc_player.hpp"
 #include "mc_slider.hpp"
 #include "mc_soundEffect.hpp"
 #include "mc_textBox.hpp"
@@ -38,9 +38,8 @@
 #define MENU_CHEST 5
 #define MENU_FURNACE 6
 
-// using json = nlohmann::json;
+ using json = nlohmann::json;
 
-/*
 void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenRect, mc::SoundEffect& soundEffect, mc::PreferencesData& preferences) {
     sf::ContextSettings ctxSettings;
     ctxSettings.antialiasingLevel = preferences.antialiasingLevel;
@@ -88,12 +87,9 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
         seedFile.close();
     } else {
         seed = ((rand() & 0b11111111) << 24) + ((rand() & 0b11111111) << 16) + ((rand() & 0b11111111) << 8) + (rand() & 0b11111111);
-        std::ofstream seedFile(std::format("saves/{}/seed.dat", worldName), std::ios::binary);
-        seedFile.write(reinterpret_cast<char*>(&seed), sizeof(int));
-        seedFile.close();
     }
 
-    mc::Chunks chunks(playerLocationData.chunkID, seed, preferences.gamePixelPerBlock, "test", sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/", "resources/shaders/chunk.frag", "resources/shaders/breakOverlay.frag", smeltingRecipesData, "resources/textures/overlays/breakProgress.png", soundEffect);
+    mc::Chunks chunks(playerLocationData.chunkID, seed, preferences.gamePixelPerBlock, worldName, sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/", "resources/shaders/chunk.frag", "resources/shaders/breakOverlay.frag", smeltingRecipesData, "resources/textures/overlays/breakProgress.png", soundEffect);
 
     if (recalculateSpawnY) {
         playerLocationData.position = sf::Vector2f(0.5f, 0.f);
@@ -207,6 +203,44 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
     menuBlackOutBackground.setPosition(sf::Vector2f(0.f, 0.f));
     menuBlackOutBackground.setFillColor(sf::Color(7, 7, 7, 191));
 
+    sf::Texture shortButtonTexture;
+    shortButtonTexture.loadFromFile("resources/textures/gui/buttonShort.png");
+    sf::Texture mediumButtonTexture;
+    mediumButtonTexture.loadFromFile("resources/textures/gui/buttonMedium.png");
+    sf::Texture longButtonTexture;
+    longButtonTexture.loadFromFile("resources/textures/gui/buttonLong.png");
+
+    sf::Texture shortSliderTexture;
+    shortSliderTexture.loadFromFile("resources/textures/gui/sliderShort.png");
+    sf::Texture mediumSliderTexture;
+    mediumSliderTexture.loadFromFile("resources/textures/gui/sliderMedium.png");
+    sf::Texture longSliderTexture;
+    longSliderTexture.loadFromFile("resources/textures/gui/sliderLong.png");
+    sf::Texture slidingTexture;
+    slidingTexture.loadFromFile("resources/textures/gui/sliderSliding.png");
+
+    mc::Button backToGameButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Back to Game");
+    mc::Button optionsButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Options...");
+    mc::Button saveAndQuitButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Save and Quit to Title");
+
+    sf::Text optionText;
+    optionText.setFont(robotoRegular);
+    optionText.setLetterSpacing(1.25f);
+    optionText.setCharacterSize(12 * preferences.uiScaling);
+    optionText.setFillColor(sf::Color::White);
+    optionText.setOutlineColor(sf::Color::Black);
+    optionText.setOutlineThickness(0.5f * preferences.uiScaling);
+    optionText.setString("Options");
+    mc::Slider masterVolumeSlider(mediumSliderTexture, slidingTexture, robotoRegular, preferences.uiScaling, std::format("Volume: {}%", preferences.masterVolume), 100);
+    mc::Slider musicVolumeSlider(mediumSliderTexture, slidingTexture, robotoRegular, preferences.uiScaling, std::format("Music: {}%", preferences.musicVolume), 100);
+    mc::Slider antialiasingLevelSlider(mediumSliderTexture, slidingTexture, robotoRegular, preferences.uiScaling, std::format("Antialiasing: {}", preferences.antialiasingLevel), 8);
+    mc::Slider framerateLimitSlider(mediumSliderTexture, slidingTexture, robotoRegular, preferences.uiScaling, preferences.framerateLimit != 0 ? std::format("Max Framerate: {} fps", preferences.framerateLimit) : "Max Framerate: Unlimited", 25);
+    mc::Button fullscreenToggleButton(mediumButtonTexture, robotoRegular, preferences.uiScaling, preferences.fullScreenEnabled ? "Fullscreen: ON" : "Fullscreen: OFF");
+    mc::Button vsyncToggleButton(mediumButtonTexture, robotoRegular, preferences.uiScaling, preferences.vsyncEnabled ? "VSync: ON" : "VSync: OFF");
+    mc::Button uiScalingStepButton(mediumButtonTexture, robotoRegular, preferences.uiScaling, std::format("GUI Scale: {}", preferences.uiScaling));
+    mc::Slider ppbSlider(mediumSliderTexture, slidingTexture, robotoRegular, preferences.uiScaling, std::format("Pixel Per Block: {}", preferences.gamePixelPerBlock), 8);
+    mc::Button settingsDoneButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Done");
+
     float scrollWheelFraction = 0.f;
     int selectedHotbarSlot = 0;
 
@@ -223,7 +257,7 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
     int tickCount = 0;
     bool displayDebug = false;
     bool playerSprinting = false;
-    int openMenuType = 0;
+    int openMenuType = MENU_NONE;
 
     bool isFirstLoop = true;
 
@@ -248,19 +282,24 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
         bool resized = isFirstLoop;
         bool ppbChanged = isFirstLoop;
         bool scalingChanged = isFirstLoop;
-        bool menuChanged = isFirstLoop;
+        bool volumeChanged = false;
+        bool windowSettingsChanged = false;
+        bool windowNeedRecreate = false;
 
         bool renderSlotHoverHighlighter = false;
 
         sf::Event event;
         while (window.pollEvent(event)) {
             switch (event.type) {
-                case sf::Event::Closed:
+                case sf::Event::Closed: {
                     if (unsavedChestEdit) {
                         std::string filePath = std::format("saves/{}/inventories/chests/{}.{}.{}.dat.gz", worldName, openedChestChunkID, openedChestPos.x, openedChestPos.y);
                         chestInventory.saveToFile(filePath);
                     }
                     chunks.saveAll();
+                    std::ofstream seedFile(std::format("saves/{}/seed.dat", worldName), std::ios::binary);
+                    seedFile.write(reinterpret_cast<char*>(&seed), sizeof(int));
+                    seedFile.close();
                     hotbarInventory.saveToFile(std::format("saves/{}/inventories/player/hotbar.dat.gz", worldName));
                     mainInventory.saveToFile(std::format("saves/{}/inventories/player/main.dat.gz", worldName));
                     mc::Player::saveDataToFile(std::format("saves/{}/player.dat.gz", worldName), mc::PlayerLocationData(chunks.getPlayerChunkID(), chunks.getPlayerPos()));
@@ -268,6 +307,7 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
                     window.close();
                     return;
                     break;
+                }
                 case sf::Event::KeyPressed:
                     switch (event.key.code) {
                         case sf::Keyboard::W:
@@ -284,7 +324,6 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
                             playerSprinting = true;
                             break;
                         case sf::Keyboard::E:
-                            menuChanged = true;
                             switch (openMenuType) {
                                 case MENU_NONE:
                                     openMenuType = MENU_PLAYERINV;
@@ -300,7 +339,6 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
                             }
                             break;
                         case sf::Keyboard::Escape:
-                            menuChanged = true;
                             switch (openMenuType) {
                                 case MENU_PLAYERINV:
                                 case MENU_CRAFTINGTABLE:
@@ -454,62 +492,6 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
 
         perfDebugInfo.endEventLoop();
 
-        playerMoveInput = std::clamp(playerMoveInput, -1, 1);
-        preferences.gamePixelPerBlock = std::clamp(preferences.gamePixelPerBlock, 1, 256);
-        preferences.uiScaling = std::clamp(preferences.uiScaling, 1, 4);
-
-        if (resized) {
-            chunks.setScreenSize(sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))));
-            player.setScreenSize(sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))));
-            gameDebugInfo.setPosition(sf::Vector2f(screenRect.width - 5.f, 0.f));
-        }
-
-        if (ppbChanged) {
-            chunks.setPixelPerBlock(preferences.gamePixelPerBlock);
-            player.setPixelPerBlock(preferences.gamePixelPerBlock);
-        }
-
-        if (scalingChanged) {
-            hotbarInventory.setScaling(preferences.uiScaling);
-            mainInventory.setScaling(preferences.uiScaling);
-            mainInventorySprite.setScale(sf::Vector2f(preferences.uiScaling, preferences.uiScaling));
-            chestInventorySprite.setScale(sf::Vector2f(preferences.uiScaling, preferences.uiScaling));
-            craftingTableInventorySprite.setScale(sf::Vector2f(preferences.uiScaling, preferences.uiScaling));
-            furnaceInventorySprite.setScale(sf::Vector2f(preferences.uiScaling, preferences.uiScaling));
-            crafting2x2_inventory.setScaling(preferences.uiScaling);
-            crafting3x3_table.setScaling(preferences.uiScaling);
-            furnaceInterface.setScaling(preferences.uiScaling);
-            heldInventory.setScaling(preferences.uiScaling);
-            heldInventory.setOrigin(sf::Vector2f(heldInventory.getSlotLocalBounds(0).width / 2.f, heldInventory.getSlotLocalBounds(0).height / 2.f));
-        }
-
-        if (playerIntendJump) {
-            player.jump();
-        }
-        
-        player.setLateralForce(playerMoveInput, playerSprinting);
-
-        if (openMenuType == MENU_NONE || openMenuType == MENU_PLAYERINV || openMenuType == MENU_CHEST || openMenuType == MENU_CRAFTINGTABLE || openMenuType == MENU_FURNACE) {
-            player.update(frameTime);
-        }
-
-        chunks.setPlayerChunkID(player.getChunkID());
-        chunks.setPlayerPos(player.getPosition());
-
-        gameDebugInfo.setPlayerChunkID(player.getChunkID());
-        gameDebugInfo.setPlayerPos(player.getPosition());
-        gameDebugInfo.setPlayerVelocity(player.getVelocity());
-
-        gameDebugInfo.setLoadedChunks(chunks.getLoadedChunks());
-
-        chunks.setMouseScreenPos(mousePosition);
-
-        gameDebugInfo.setMouseChunkID(chunks.getMouseChunkID());
-        gameDebugInfo.setMousePos(chunks.getMousePos());
-
-        gameDebugInfo.setPlayerLightLevel(chunks.getPlayerLightLevel());
-        gameDebugInfo.setMouseLightLevel(chunks.getMouseLightLevel());
-
         switch (openMenuType) {
             case MENU_NONE:
                 if (heldInventory.getItemStack(0).id) {
@@ -554,7 +536,6 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
                         std::min(dist.y, 0.f);
                     }
                     if (sqrtf(dist.x * dist.x + dist.y * dist.y) <= 3.f) {
-                        menuChanged = true;
                         openMenuType = MENU_CRAFTINGTABLE;
                     }
                 } else if (rightClick && chunks.getBlock(chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y) == 40) {
@@ -570,7 +551,6 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
                         std::min(dist.y, 0.f);
                     }
                     if (sqrtf(dist.x * dist.x + dist.y * dist.y) <= 3.f) {
-                        menuChanged = true;
                         std::string filePath = std::format("saves/{}/inventories/chests/{}.{}.{}.dat.gz", worldName, chunks.getMouseChunkID(), chunks.getMousePos().x, chunks.getMousePos().y);
                         if (std::filesystem::exists(filePath)) {
                             chestInventory.loadFromFile(filePath);
@@ -596,7 +576,6 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
                         std::min(dist.y, 0.f);
                     }
                     if (sqrtf(dist.x * dist.x + dist.y * dist.y) <= 3.f) {
-                        menuChanged = true;
                         openedFurnaceChunkID = chunks.getMouseChunkID();
                         openedFurnacePos = chunks.getMousePos();
                         openMenuType = MENU_FURNACE;
@@ -1058,8 +1037,273 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
                 }
                 chunks.getChunk(openedFurnaceChunkID).setFurnaceData(openedFurnacePos.x, openedFurnacePos.y, furnaceInterface.getFurnaceData());
                 break;
+            case MENU_SETTINGS:
+                if (masterVolumeSlider.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    masterVolumeSlider.setState(SLIDER_STATE_HOVERED);
+                    if (leftClick) {
+                        masterVolumeSlider.setActiveValue(true);
+                        soundEffect.play("click");
+                        volumeChanged = true;
+                        masterVolumeSlider.setValueByMousePos(mousePosition);
+                        preferences.masterVolume = masterVolumeSlider.getValue();
+                        masterVolumeSlider.setDisplayText(std::format("Volume: {}%", preferences.masterVolume));
+                    } else if (leftClickHeld && masterVolumeSlider.getActiveValue()) {
+                        volumeChanged = true;
+                        masterVolumeSlider.setValueByMousePos(mousePosition);
+                        preferences.masterVolume = masterVolumeSlider.getValue();
+                        masterVolumeSlider.setDisplayText(std::format("Volume: {}%", preferences.masterVolume));
+                    }
+                } else {
+                    masterVolumeSlider.setActiveValue(false);
+                    masterVolumeSlider.setState(SLIDER_STATE_NORMAL);
+                }
+                if (musicVolumeSlider.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    musicVolumeSlider.setState(SLIDER_STATE_HOVERED);
+                    if (leftClick) {
+                        musicVolumeSlider.setActiveValue(true);
+                        soundEffect.play("click");
+                        volumeChanged = true;
+                        musicVolumeSlider.setValueByMousePos(mousePosition);
+                        preferences.musicVolume = musicVolumeSlider.getValue();
+                        musicVolumeSlider.setDisplayText(std::format("Music: {}%", preferences.musicVolume));
+                    } else if (leftClickHeld && musicVolumeSlider.getActiveValue()) {
+                        volumeChanged = true;
+                        musicVolumeSlider.setValueByMousePos(mousePosition);
+                        preferences.musicVolume = musicVolumeSlider.getValue();
+                        musicVolumeSlider.setDisplayText(std::format("Music: {}%", preferences.musicVolume));
+                    }
+                } else {
+                    musicVolumeSlider.setActiveValue(false);
+                    musicVolumeSlider.setState(SLIDER_STATE_NORMAL);
+                }
+                if (antialiasingLevelSlider.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    antialiasingLevelSlider.setState(SLIDER_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        windowNeedRecreate = true;
+                        antialiasingLevelSlider.setValueByMousePos(mousePosition);
+                        preferences.antialiasingLevel = antialiasingLevelSlider.getValue();
+                        antialiasingLevelSlider.setDisplayText(std::format("Antialiasing: {}", preferences.antialiasingLevel));
+                    }
+                } else {
+                    antialiasingLevelSlider.setState(SLIDER_STATE_NORMAL);
+                }
+                if (framerateLimitSlider.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    framerateLimitSlider.setState(SLIDER_STATE_HOVERED);
+                    if (leftClick) {
+                        framerateLimitSlider.setActiveValue(true);
+                        soundEffect.play("click");
+                        windowSettingsChanged = true;
+                        framerateLimitSlider.setValueByMousePos(mousePosition);
+                        preferences.framerateLimit = framerateLimitSlider.getValue() * 10;
+                        if (preferences.framerateLimit != 0) {
+                            framerateLimitSlider.setDisplayText(std::format("Max Framerate: {} fps", preferences.framerateLimit));
+                        } else {
+                            framerateLimitSlider.setDisplayText("Max Framerate: Unlimited");
+                        }
+                    } else if (leftClickHeld && framerateLimitSlider.getActiveValue()) {
+                        windowSettingsChanged = true;
+                        framerateLimitSlider.setValueByMousePos(mousePosition);
+                        preferences.framerateLimit = framerateLimitSlider.getValue() * 10;
+                        if (preferences.framerateLimit != 0) {
+                            framerateLimitSlider.setDisplayText(std::format("Max Framerate: {} fps", preferences.framerateLimit));
+                        } else {
+                            framerateLimitSlider.setDisplayText("Max Framerate: Unlimited");
+                        }
+                    }
+                } else {
+                    framerateLimitSlider.setActiveValue(false);
+                    framerateLimitSlider.setState(SLIDER_STATE_NORMAL);
+                }
+                if (ppbSlider.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    ppbSlider.setState(SLIDER_STATE_HOVERED);
+                    if (leftClick) {
+                        ppbSlider.setActiveValue(true);
+                        soundEffect.play("click");
+                        ppbChanged = true;
+                        ppbSlider.setValueByMousePos(mousePosition);
+                        preferences.gamePixelPerBlock = 0b1 << ppbSlider.getValue();
+                        ppbSlider.setDisplayText(std::format("Pixel Per Block: {}", preferences.gamePixelPerBlock));
+                    } else if (leftClickHeld && ppbSlider.getActiveValue()) {
+                        ppbChanged = true;
+                        ppbSlider.setValueByMousePos(mousePosition);
+                        preferences.gamePixelPerBlock = 0b1 << ppbSlider.getValue();
+                        ppbSlider.setDisplayText(std::format("Pixel Per Block: {}", preferences.gamePixelPerBlock));
+                    }
+                } else {
+                    ppbSlider.setActiveValue(false);
+                    ppbSlider.setState(SLIDER_STATE_NORMAL);
+                }
+                if (fullscreenToggleButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    fullscreenToggleButton.setState(BTN_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        windowNeedRecreate = true;
+                        preferences.fullScreenEnabled ^= 1;
+                        fullscreenToggleButton.setDisplayText(preferences.fullScreenEnabled ? "Fullscreen: ON" : "Fullscreen: OFF");
+                    }
+                } else {
+                    fullscreenToggleButton.setState(BTN_STATE_NORMAL);
+                }
+                if (vsyncToggleButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    vsyncToggleButton.setState(BTN_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        windowSettingsChanged = true;
+                        preferences.vsyncEnabled ^= 1;
+                        vsyncToggleButton.setDisplayText(preferences.vsyncEnabled ? "VSync: ON" : "VSync: OFF");
+                    }
+                } else {
+                    vsyncToggleButton.setState(BTN_STATE_NORMAL);
+                }
+                if (uiScalingStepButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    uiScalingStepButton.setState(BTN_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        scalingChanged = true;
+                        preferences.uiScaling++;
+                        preferences.uiScaling %= 5;
+                        preferences.uiScaling = std::clamp(preferences.uiScaling, 1, 4);
+                        uiScalingStepButton.setDisplayText(std::format("GUI Scale: {}", preferences.uiScaling));
+                    }
+                } else {
+                    uiScalingStepButton.setState(BTN_STATE_NORMAL);
+                }
+                if (settingsDoneButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    settingsDoneButton.setState(BTN_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        openMenuType = MENU_PAUSE;
+                    }
+                } else {
+                    settingsDoneButton.setState(BTN_STATE_NORMAL);
+                }
+                break;
+            case MENU_PAUSE:
+                if (backToGameButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    backToGameButton.setState(BTN_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        openMenuType = MENU_NONE;
+                    }
+                } else {
+                    backToGameButton.setState(BTN_STATE_NORMAL);
+                }
+                if (optionsButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    optionsButton.setState(BTN_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        openMenuType = MENU_SETTINGS;
+                    }
+                } else {
+                    optionsButton.setState(BTN_STATE_NORMAL);
+                }
+                if (saveAndQuitButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    saveAndQuitButton.setState(BTN_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        if (unsavedChestEdit) {
+                            std::string filePath = std::format("saves/{}/inventories/chests/{}.{}.{}.dat.gz", worldName, openedChestChunkID, openedChestPos.x, openedChestPos.y);
+                            chestInventory.saveToFile(filePath);
+                        }
+                        chunks.saveAll();
+                        std::ofstream seedFile(std::format("saves/{}/seed.dat", worldName), std::ios::binary);
+                        seedFile.write(reinterpret_cast<char*>(&seed), sizeof(int));
+                        seedFile.close();
+                        hotbarInventory.saveToFile(std::format("saves/{}/inventories/player/hotbar.dat.gz", worldName));
+                        mainInventory.saveToFile(std::format("saves/{}/inventories/player/main.dat.gz", worldName));
+                        mc::Player::saveDataToFile(std::format("saves/{}/player.dat.gz", worldName), mc::PlayerLocationData(chunks.getPlayerChunkID(), chunks.getPlayerPos()));
+                        return;
+                    }
+                } else {
+                    saveAndQuitButton.setState(BTN_STATE_NORMAL);
+                }
+                break;
             default:
                 break;
+        }
+
+        playerMoveInput = std::clamp(playerMoveInput, -1, 1);
+        preferences.gamePixelPerBlock = std::clamp(preferences.gamePixelPerBlock, 1, 256);
+        preferences.uiScaling = std::clamp(preferences.uiScaling, 1, 4);
+
+        if (resized) {
+            chunks.setScreenSize(sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))));
+            player.setScreenSize(sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))));
+            gameDebugInfo.setPosition(sf::Vector2f(screenRect.width - 5.f, 0.f));
+        }
+
+        if (ppbChanged) {
+            chunks.setPixelPerBlock(preferences.gamePixelPerBlock);
+            player.setPixelPerBlock(preferences.gamePixelPerBlock);
+        }
+
+        if (scalingChanged) {
+            hotbarInventory.setScaling(preferences.uiScaling);
+            mainInventory.setScaling(preferences.uiScaling);
+            mainInventorySprite.setScale(sf::Vector2f(preferences.uiScaling, preferences.uiScaling));
+            chestInventorySprite.setScale(sf::Vector2f(preferences.uiScaling, preferences.uiScaling));
+            craftingTableInventorySprite.setScale(sf::Vector2f(preferences.uiScaling, preferences.uiScaling));
+            furnaceInventorySprite.setScale(sf::Vector2f(preferences.uiScaling, preferences.uiScaling));
+            crafting2x2_inventory.setScaling(preferences.uiScaling);
+            crafting3x3_table.setScaling(preferences.uiScaling);
+            furnaceInterface.setScaling(preferences.uiScaling);
+            heldInventory.setScaling(preferences.uiScaling);
+            heldInventory.setOrigin(sf::Vector2f(heldInventory.getSlotLocalBounds(0).width / 2.f, heldInventory.getSlotLocalBounds(0).height / 2.f));
+        }
+
+        if (playerIntendJump) {
+            player.jump();
+        }
+        
+        player.setLateralForce(playerMoveInput, playerSprinting);
+
+        if (openMenuType == MENU_NONE || openMenuType == MENU_PLAYERINV || openMenuType == MENU_CHEST || openMenuType == MENU_CRAFTINGTABLE || openMenuType == MENU_FURNACE) {
+            player.update(frameTime);
+        }
+
+        chunks.setPlayerChunkID(player.getChunkID());
+        chunks.setPlayerPos(player.getPosition());
+
+        gameDebugInfo.setPlayerChunkID(player.getChunkID());
+        gameDebugInfo.setPlayerPos(player.getPosition());
+        gameDebugInfo.setPlayerVelocity(player.getVelocity());
+
+        gameDebugInfo.setLoadedChunks(chunks.getLoadedChunks());
+
+        chunks.setMouseScreenPos(mousePosition);
+
+        gameDebugInfo.setMouseChunkID(chunks.getMouseChunkID());
+        gameDebugInfo.setMousePos(chunks.getMousePos());
+
+        gameDebugInfo.setPlayerLightLevel(chunks.getPlayerLightLevel());
+        gameDebugInfo.setMouseLightLevel(chunks.getMouseLightLevel());
+
+        if (windowSettingsChanged) {
+            window.setFramerateLimit(preferences.framerateLimit);
+            window.setVerticalSyncEnabled(preferences.vsyncEnabled);
+        }
+
+        if (windowNeedRecreate) {
+            ctxSettings.antialiasingLevel = preferences.antialiasingLevel;
+            if (preferences.fullScreenEnabled) {
+                sf::VideoMode fullScreenVideoMode = sf::VideoMode::getFullscreenModes()[0];
+                window.create(fullScreenVideoMode, "Minecraft SFML Edition", sf::Style::Default | sf::Style::Fullscreen, ctxSettings);
+                screenRect = sf::FloatRect(0, 0, fullScreenVideoMode.width, fullScreenVideoMode.height);
+                window.setView(sf::View(screenRect));
+            } else {
+                screenRect = sf::FloatRect(0.f, 0.f, preferences.screenSize.x, preferences.screenSize.y);
+                window.create(sf::VideoMode(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "Minecraft SFML Edition", sf::Style::Default, ctxSettings);
+                window.setView(sf::View(screenRect));
+            }
+            window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
+            window.setFramerateLimit(preferences.framerateLimit);
+            window.setVerticalSyncEnabled(preferences.vsyncEnabled);
+        }
+
+        if (volumeChanged) {
+            sf::Listener::setGlobalVolume(static_cast<float>(preferences.masterVolume));
+            musicPlayer.setVolume(static_cast<float>(preferences.musicVolume) / 100.f);
         }
 
         perfDebugInfo.endPlayerInputProcessing();
@@ -1117,66 +1361,102 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
         perfDebugInfo.endEntitiesRendering();
         perfDebugInfo.endParticlesRendering();
 
-        if (resized || scalingChanged || menuChanged) {
-            switch (openMenuType) {
-                case MENU_NONE:
-                    hotbarInventory.setMargin(2);
-                    hotbarInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - hotbarInventory.getLocalBounds().width / 2.f, screenRect.height - hotbarInventory.getLocalBounds().height));
-                    hotbarInventorySprite.setPosition(sf::Vector2f(hotbarInventory.getGlobalBounds().left - static_cast<float>(preferences.uiScaling), hotbarInventory.getGlobalBounds().top - static_cast<float>(preferences.uiScaling)));
-                    hotbarInventorySprite.setScale(sf::Vector2f(preferences.uiScaling, preferences.uiScaling));
-                    selectedHotbarSlotSprite.setScale(sf::Vector2f(preferences.uiScaling, preferences.uiScaling));
-                    window.setMouseCursor(crossCursor);
-                    break;
-                case MENU_PLAYERINV:
-                    mainInventorySprite.setPosition(sf::Vector2f(screenRect.width / 2.f, screenRect.height / 2.f));
-                    mainInventory.setPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), mainInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(preferences.uiScaling)));
-                    hotbarInventory.setMargin(1);
-                    hotbarInventory.setPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), mainInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(preferences.uiScaling)));
-                    crafting2x2_inventory.setInputPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 88.f * static_cast<float>(preferences.uiScaling), mainInventorySprite.getGlobalBounds().top + 25.f * static_cast<float>(preferences.uiScaling)));
-                    crafting2x2_inventory.setOutputPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 144.f * static_cast<float>(preferences.uiScaling), mainInventorySprite.getGlobalBounds().top + 35.f * static_cast<float>(preferences.uiScaling)));
-                    menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
-                    window.setMouseCursor(arrowCursor);
-                    break;
-                case MENU_PAUSE:
-                    menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
-                    break;
-                case MENU_SETTINGS:
-                    break;
-                case MENU_CRAFTINGTABLE:
-                    craftingTableInventorySprite.setPosition(sf::Vector2f(screenRect.width / 2.f, screenRect.height / 2.f));
-                    mainInventory.setPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), craftingTableInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(preferences.uiScaling)));
-                    hotbarInventory.setMargin(1);
-                    hotbarInventory.setPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), craftingTableInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(preferences.uiScaling)));
-                    crafting3x3_table.setInputPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 29.f * static_cast<float>(preferences.uiScaling), craftingTableInventorySprite.getGlobalBounds().top + 16.f * static_cast<float>(preferences.uiScaling)));
-                    crafting3x3_table.setOutputPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 123.f * static_cast<float>(preferences.uiScaling), craftingTableInventorySprite.getGlobalBounds().top + 34.f * static_cast<float>(preferences.uiScaling)));
-                    menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
-                    window.setMouseCursor(arrowCursor);
-                    break;
-                case MENU_CHEST:
-                    chestInventorySprite.setPosition(sf::Vector2f(screenRect.width / 2.f, screenRect.height / 2.f));
-                    mainInventory.setPosition(sf::Vector2f(chestInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), chestInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(preferences.uiScaling)));
-                    hotbarInventory.setMargin(1);
-                    hotbarInventory.setPosition(sf::Vector2f(chestInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), chestInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(preferences.uiScaling)));
-                    chestInventory.setPosition(sf::Vector2f(chestInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), chestInventorySprite.getGlobalBounds().top + 17.f * static_cast<float>(preferences.uiScaling)));
-                    menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
-                    window.setMouseCursor(arrowCursor);
-                    break;
-                case MENU_FURNACE:
-                    furnaceInventorySprite.setPosition(sf::Vector2f(screenRect.width / 2.f, screenRect.height / 2.f));
-                    mainInventory.setPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(preferences.uiScaling)));
-                    hotbarInventory.setMargin(1);
-                    hotbarInventory.setPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(preferences.uiScaling)));
-                    furnaceInterface.setInputPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 55.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 16.f * static_cast<float>(preferences.uiScaling)));
-                    furnaceInterface.setFuelPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 55.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 52.f * static_cast<float>(preferences.uiScaling)));
-                    furnaceInterface.setOutputPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 115.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 34.f * static_cast<float>(preferences.uiScaling)));
-                    furnaceInterface.setProgressBarPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 79.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 34.f * static_cast<float>(preferences.uiScaling)));
-                    furnaceInterface.setFuelBarPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 56.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 36.f * static_cast<float>(preferences.uiScaling)));
-                    menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
-                    window.setMouseCursor(arrowCursor);
-                    break;
-                default:
-                    break;
-            }
+        switch (openMenuType) {
+            case MENU_NONE:
+                hotbarInventory.setMargin(2);
+                hotbarInventory.setPosition(sf::Vector2f(screenRect.width / 2.f - hotbarInventory.getLocalBounds().width / 2.f, screenRect.height - hotbarInventory.getLocalBounds().height));
+                hotbarInventorySprite.setPosition(sf::Vector2f(hotbarInventory.getGlobalBounds().left - static_cast<float>(preferences.uiScaling), hotbarInventory.getGlobalBounds().top - static_cast<float>(preferences.uiScaling)));
+                hotbarInventorySprite.setScale(sf::Vector2f(preferences.uiScaling, preferences.uiScaling));
+                selectedHotbarSlotSprite.setScale(sf::Vector2f(preferences.uiScaling, preferences.uiScaling));
+                window.setMouseCursor(crossCursor);
+                break;
+            case MENU_PLAYERINV:
+                mainInventorySprite.setPosition(sf::Vector2f(screenRect.width / 2.f, screenRect.height / 2.f));
+                mainInventory.setPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), mainInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(preferences.uiScaling)));
+                hotbarInventory.setMargin(1);
+                hotbarInventory.setPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), mainInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(preferences.uiScaling)));
+                crafting2x2_inventory.setInputPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 88.f * static_cast<float>(preferences.uiScaling), mainInventorySprite.getGlobalBounds().top + 25.f * static_cast<float>(preferences.uiScaling)));
+                crafting2x2_inventory.setOutputPosition(sf::Vector2f(mainInventorySprite.getGlobalBounds().left + 144.f * static_cast<float>(preferences.uiScaling), mainInventorySprite.getGlobalBounds().top + 35.f * static_cast<float>(preferences.uiScaling)));
+                menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
+                window.setMouseCursor(arrowCursor);
+                break;
+            case MENU_PAUSE:
+                menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
+                backToGameButton.setScaling(preferences.uiScaling);
+                optionsButton.setScaling(preferences.uiScaling);
+                saveAndQuitButton.setScaling(preferences.uiScaling);
+
+                backToGameButton.setPosition(sf::Vector2f(screenRect.width / 2.f - backToGameButton.getGlobalBounds().width / 2.f, screenRect.height * 0.4f));
+                optionsButton.setPosition(sf::Vector2f(screenRect.width / 2.f - optionsButton.getGlobalBounds().width / 2.f, screenRect.height * 0.4f + static_cast<float>(preferences.uiScaling * 25)));
+                saveAndQuitButton.setPosition(sf::Vector2f(screenRect.width / 2.f - saveAndQuitButton.getGlobalBounds().width / 2.f, screenRect.height * 0.4f + static_cast<float>(preferences.uiScaling * 25) * 2.f));
+                window.setMouseCursor(arrowCursor);
+                break;
+            case MENU_SETTINGS:
+                menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
+                optionText.setCharacterSize(12 * preferences.uiScaling);
+                optionText.setOutlineThickness(0.5f * preferences.uiScaling);
+                masterVolumeSlider.setScaling(preferences.uiScaling);
+                musicVolumeSlider.setScaling(preferences.uiScaling);
+                antialiasingLevelSlider.setScaling(preferences.uiScaling);
+                framerateLimitSlider.setScaling(preferences.uiScaling);
+                fullscreenToggleButton.setScaling(preferences.uiScaling);
+                vsyncToggleButton.setScaling(preferences.uiScaling);
+                uiScalingStepButton.setScaling(preferences.uiScaling);
+                ppbSlider.setScaling(preferences.uiScaling);
+                settingsDoneButton.setScaling(preferences.uiScaling);
+
+                optionText.setPosition(sf::Vector2f(screenRect.width / 2.f - optionText.getGlobalBounds().width / 2.f, screenRect.height * 0.075f));
+                masterVolumeSlider.setPosition(sf::Vector2f(screenRect.width / 2.f - masterVolumeSlider.getGlobalBounds().width - 5.f * preferences.uiScaling, screenRect.height * 0.25f));
+                musicVolumeSlider.setPosition(sf::Vector2f(screenRect.width / 2.f + 5.f * preferences.uiScaling, screenRect.height * 0.25f));
+                antialiasingLevelSlider.setPosition(sf::Vector2f(screenRect.width / 2.f - antialiasingLevelSlider.getGlobalBounds().width - 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25)));
+                framerateLimitSlider.setPosition(sf::Vector2f(screenRect.width / 2.f + 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25)));
+                fullscreenToggleButton.setPosition(sf::Vector2f(screenRect.width / 2.f - fullscreenToggleButton.getGlobalBounds().width - 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 2.f));
+                vsyncToggleButton.setPosition(sf::Vector2f(screenRect.width / 2.f + 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 2.f));
+                uiScalingStepButton.setPosition(sf::Vector2f(screenRect.width / 2.f - uiScalingStepButton.getGlobalBounds().width - 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 3.f));
+                ppbSlider.setPosition(sf::Vector2f(screenRect.width / 2.f + 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 3.f));
+                settingsDoneButton.setPosition(sf::Vector2f(screenRect.width / 2.f - settingsDoneButton.getGlobalBounds().width / 2.f, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 4.5f));
+
+                masterVolumeSlider.setValue(preferences.masterVolume);
+                musicVolumeSlider.setValue(preferences.musicVolume);
+                antialiasingLevelSlider.setValue(preferences.antialiasingLevel);
+                framerateLimitSlider.setValue(preferences.framerateLimit / 10);
+                ppbSlider.setValue(static_cast<int>(std::round(log2(preferences.gamePixelPerBlock))));
+                window.setMouseCursor(arrowCursor);
+                break;
+            case MENU_CRAFTINGTABLE:
+                craftingTableInventorySprite.setPosition(sf::Vector2f(screenRect.width / 2.f, screenRect.height / 2.f));
+                mainInventory.setPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), craftingTableInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(preferences.uiScaling)));
+                hotbarInventory.setMargin(1);
+                hotbarInventory.setPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), craftingTableInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(preferences.uiScaling)));
+                crafting3x3_table.setInputPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 29.f * static_cast<float>(preferences.uiScaling), craftingTableInventorySprite.getGlobalBounds().top + 16.f * static_cast<float>(preferences.uiScaling)));
+                crafting3x3_table.setOutputPosition(sf::Vector2f(craftingTableInventorySprite.getGlobalBounds().left + 123.f * static_cast<float>(preferences.uiScaling), craftingTableInventorySprite.getGlobalBounds().top + 34.f * static_cast<float>(preferences.uiScaling)));
+                menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
+                window.setMouseCursor(arrowCursor);
+                break;
+            case MENU_CHEST:
+                chestInventorySprite.setPosition(sf::Vector2f(screenRect.width / 2.f, screenRect.height / 2.f));
+                mainInventory.setPosition(sf::Vector2f(chestInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), chestInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(preferences.uiScaling)));
+                hotbarInventory.setMargin(1);
+                hotbarInventory.setPosition(sf::Vector2f(chestInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), chestInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(preferences.uiScaling)));
+                chestInventory.setPosition(sf::Vector2f(chestInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), chestInventorySprite.getGlobalBounds().top + 17.f * static_cast<float>(preferences.uiScaling)));
+                menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
+                window.setMouseCursor(arrowCursor);
+                break;
+            case MENU_FURNACE:
+                furnaceInventorySprite.setPosition(sf::Vector2f(screenRect.width / 2.f, screenRect.height / 2.f));
+                mainInventory.setPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 83.f * static_cast<float>(preferences.uiScaling)));
+                hotbarInventory.setMargin(1);
+                hotbarInventory.setPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 7.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 141.f * static_cast<float>(preferences.uiScaling)));
+                furnaceInterface.setInputPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 55.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 16.f * static_cast<float>(preferences.uiScaling)));
+                furnaceInterface.setFuelPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 55.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 52.f * static_cast<float>(preferences.uiScaling)));
+                furnaceInterface.setOutputPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 115.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 34.f * static_cast<float>(preferences.uiScaling)));
+                furnaceInterface.setProgressBarPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 79.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 34.f * static_cast<float>(preferences.uiScaling)));
+                furnaceInterface.setFuelBarPosition(sf::Vector2f(furnaceInventorySprite.getGlobalBounds().left + 56.f * static_cast<float>(preferences.uiScaling), furnaceInventorySprite.getGlobalBounds().top + 36.f * static_cast<float>(preferences.uiScaling)));
+                menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
+                window.setMouseCursor(arrowCursor);
+                break;
+            default:
+                break;
         }
 
         selectedHotbarSlotSprite.setPosition(sf::Vector2f(hotbarInventory.getSlotGlobalBounds(selectedHotbarSlot).left - static_cast<float>(preferences.uiScaling) * 2.f, hotbarInventory.getSlotGlobalBounds(selectedHotbarSlot).top - static_cast<float>(preferences.uiScaling) * 2.f));
@@ -1199,8 +1479,22 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
                 break;
             case MENU_PAUSE:
                 window.draw(menuBlackOutBackground);
+                window.draw(backToGameButton);
+                window.draw(optionsButton);
+                window.draw(saveAndQuitButton);
                 break;
             case MENU_SETTINGS:
+                window.draw(menuBlackOutBackground);
+                window.draw(optionText);
+                window.draw(masterVolumeSlider);
+                window.draw(musicVolumeSlider);
+                window.draw(antialiasingLevelSlider);
+                window.draw(framerateLimitSlider);
+                window.draw(fullscreenToggleButton);
+                window.draw(vsyncToggleButton);
+                window.draw(uiScalingStepButton);
+                window.draw(ppbSlider);
+                window.draw(settingsDoneButton);
                 break;
             case MENU_CRAFTINGTABLE:
                 heldInventory.setPosition(sf::Vector2f(mousePosition));
@@ -1253,7 +1547,6 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
         isFirstLoop = false;
     }
 }
-*/
 
 int main() {
     srand(time(NULL));
@@ -1399,25 +1692,17 @@ int main() {
 
     float scrollWhellPosition = 0.f;
     bool leftClickHeld = false;
-    bool rightClickHeld = false;
 
     int openMenuType = MENU_MAIN;
 
-    bool isFirstLoop = true;
-
     while (window.isOpen()) {
-        bool resized = isFirstLoop;
-        bool scalingChanged = isFirstLoop;
-        bool menuChanged = isFirstLoop;
         bool volumeChanged = false;
         bool windowSettingsChanged = false;
+        bool windowNeedRecreate = false;
 
         bool leftClick = false;
-        bool rightClick = false;
 
         bool quit = false;
-
-        bool windowNeedRecreate = false;
 
         sf::String textInputed;
 
@@ -1443,10 +1728,6 @@ int main() {
                             leftClick = true;
                             leftClickHeld = true;
                             break;
-                        case sf::Mouse::Right:
-                            rightClick = true;
-                            rightClickHeld = true;
-                            break;
                         default:
                             break;
                     }
@@ -1456,9 +1737,6 @@ int main() {
                         case sf::Mouse::Left:
                             leftClickHeld = false;
                             break;
-                        case sf::Mouse::Right:
-                            rightClickHeld = false;
-                            break;
                         default:
                             break;
                     }
@@ -1467,7 +1745,6 @@ int main() {
                     scrollWhellPosition += event.mouseWheelScroll.delta;
                     break;
                 case sf::Event::Resized:
-                    resized = true;
                     preferences.screenSize = sf::Vector2i(event.size.width, event.size.height);
                     screenRect = sf::FloatRect(0.f, 0.f, preferences.screenSize.x, preferences.screenSize.y);
                     window.setView(sf::View(screenRect));
@@ -1483,7 +1760,6 @@ int main() {
                     singleplayerButton.setState(BTN_STATE_HOVERED);
                     if (leftClick) {
                         soundEffect.play("click");
-                        menuChanged = true;
                         worldNameTextBox.setFocused(true);
                         openMenuType = MENU_SELECTWORLD;
                     }
@@ -1494,7 +1770,6 @@ int main() {
                     leaderBoardButton.setState(BTN_STATE_HOVERED);
                     if (leftClick) {
                         soundEffect.play("click");
-                        menuChanged = true;
                         openMenuType = MENU_LEADERBOARD;
                     }
                 } else {
@@ -1504,7 +1779,6 @@ int main() {
                     optionsButton.setState(BTN_STATE_HOVERED);
                     if (leftClick) {
                         soundEffect.play("click");
-                        menuChanged = true;
                         openMenuType = MENU_SETTINGS;
                     }
                 } else {
@@ -1641,7 +1915,6 @@ int main() {
                     uiScalingStepButton.setState(BTN_STATE_HOVERED);
                     if (leftClick) {
                         soundEffect.play("click");
-                        scalingChanged = true;
                         preferences.uiScaling++;
                         preferences.uiScaling %= 5;
                         preferences.uiScaling = std::clamp(preferences.uiScaling, 1, 4);
@@ -1654,7 +1927,6 @@ int main() {
                     settingsDoneButton.setState(BTN_STATE_HOVERED);
                     if (leftClick) {
                         soundEffect.play("click");
-                        menuChanged = true;
                         openMenuType = MENU_MAIN;
                     }
                 } else {
@@ -1676,7 +1948,15 @@ int main() {
                     selectWorldDoneButton.setState(BTN_STATE_HOVERED);
                     if (leftClick) {
                         soundEffect.play("click");
-                        // call game
+                        musicPlayer.stop();
+                        openMenuType = MENU_MAIN;
+                        windowSettingsChanged =  true;
+                        volumeChanged = true;
+                        game(worldNameTextBox.getDisplayString().toAnsiString(), window, screenRect, soundEffect, preferences);
+                        musicPlayer.start();
+                        if (!window.isOpen()) {
+                            quit = true;
+                        }
                     }
                 } else {
                     selectWorldDoneButton.setState(BTN_STATE_NORMAL);
@@ -1704,6 +1984,8 @@ int main() {
                 window.setView(sf::View(screenRect));
             }
             window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
+            window.setFramerateLimit(preferences.framerateLimit);
+            window.setVerticalSyncEnabled(preferences.vsyncEnabled);
         }
 
         if (volumeChanged) {
@@ -1711,72 +1993,70 @@ int main() {
             musicPlayer.setVolume(static_cast<float>(preferences.musicVolume) / 100.f);
         }
 
-        if (resized || scalingChanged || menuChanged) {
-            switch (openMenuType) {
-                case MENU_MAIN:
-                    titleSprite.setScale(sf::Vector2f(static_cast<float>(preferences.uiScaling) / 7.5f, static_cast<float>(preferences.uiScaling) / 7.5f));
-                    singleplayerButton.setScaling(preferences.uiScaling);
-                    leaderBoardButton.setScaling(preferences.uiScaling);
-                    optionsButton.setScaling(preferences.uiScaling);
-                    quitGameButton.setScaling(preferences.uiScaling);
-                    versionText.setCharacterSize(12 * preferences.uiScaling);
-                    versionText.setOutlineThickness(0.5f * preferences.uiScaling);
-                    copyleftText.setCharacterSize(12 * preferences.uiScaling);
-                    copyleftText.setOutlineThickness(0.5f * preferences.uiScaling);
-                    menuBackground.setScale(screenRect.height / static_cast<float>(menuBackgroundTexture.getSize().y));
+        switch (openMenuType) {
+            case MENU_MAIN:
+                titleSprite.setScale(sf::Vector2f(static_cast<float>(preferences.uiScaling) / 7.5f, static_cast<float>(preferences.uiScaling) / 7.5f));
+                singleplayerButton.setScaling(preferences.uiScaling);
+                leaderBoardButton.setScaling(preferences.uiScaling);
+                optionsButton.setScaling(preferences.uiScaling);
+                quitGameButton.setScaling(preferences.uiScaling);
+                versionText.setCharacterSize(12 * preferences.uiScaling);
+                versionText.setOutlineThickness(0.5f * preferences.uiScaling);
+                copyleftText.setCharacterSize(12 * preferences.uiScaling);
+                copyleftText.setOutlineThickness(0.5f * preferences.uiScaling);
+                menuBackground.setScale(screenRect.height / static_cast<float>(menuBackgroundTexture.getSize().y));
 
-                    titleSprite.setPosition(sf::Vector2f(screenRect.width / 2.f - titleSprite.getGlobalBounds().width / 2.f, screenRect.height * 0.10f));
-                    singleplayerButton.setPosition(sf::Vector2f(screenRect.width / 2.f - singleplayerButton.getGlobalBounds().width / 2.f, screenRect.height * 0.4f));
-                    leaderBoardButton.setPosition(sf::Vector2f(screenRect.width / 2.f - leaderBoardButton.getGlobalBounds().width / 2.f, screenRect.height * 0.4f + static_cast<float>(preferences.uiScaling * 25)));
-                    optionsButton.setPosition(sf::Vector2f(screenRect.width / 2.f - optionsButton.getGlobalBounds().width / 2.f, screenRect.height * 0.4f + static_cast<float>(preferences.uiScaling * 25) * 2.f));
-                    quitGameButton.setPosition(sf::Vector2f(screenRect.width / 2.f - quitGameButton.getGlobalBounds().width / 2.f, screenRect.height * 0.4f + static_cast<float>(preferences.uiScaling * 25) * 3.5f));
-                    versionText.setPosition(sf::Vector2f(5.f, screenRect.height - 16.f * preferences.uiScaling));
-                    copyleftText.setOrigin(sf::Vector2f(copyleftText.getGlobalBounds().width, 0.f));
-                    copyleftText.setPosition(sf::Vector2f(screenRect.width - 5.f, screenRect.height - 16.f * preferences.uiScaling));
-                    break;
-                case MENU_SETTINGS:
-                    optionText.setCharacterSize(12 * preferences.uiScaling);
-                    optionText.setOutlineThickness(0.5f * preferences.uiScaling);
-                    masterVolumeSlider.setScaling(preferences.uiScaling);
-                    musicVolumeSlider.setScaling(preferences.uiScaling);
-                    antialiasingLevelSlider.setScaling(preferences.uiScaling);
-                    framerateLimitSlider.setScaling(preferences.uiScaling);
-                    fullscreenToggleButton.setScaling(preferences.uiScaling);
-                    vsyncToggleButton.setScaling(preferences.uiScaling);
-                    uiScalingStepButton.setScaling(preferences.uiScaling);
-                    ppbSlider.setScaling(preferences.uiScaling);
-                    settingsDoneButton.setScaling(preferences.uiScaling);
+                titleSprite.setPosition(sf::Vector2f(screenRect.width / 2.f - titleSprite.getGlobalBounds().width / 2.f, screenRect.height * 0.10f));
+                singleplayerButton.setPosition(sf::Vector2f(screenRect.width / 2.f - singleplayerButton.getGlobalBounds().width / 2.f, screenRect.height * 0.4f));
+                leaderBoardButton.setPosition(sf::Vector2f(screenRect.width / 2.f - leaderBoardButton.getGlobalBounds().width / 2.f, screenRect.height * 0.4f + static_cast<float>(preferences.uiScaling * 25)));
+                optionsButton.setPosition(sf::Vector2f(screenRect.width / 2.f - optionsButton.getGlobalBounds().width / 2.f, screenRect.height * 0.4f + static_cast<float>(preferences.uiScaling * 25) * 2.f));
+                quitGameButton.setPosition(sf::Vector2f(screenRect.width / 2.f - quitGameButton.getGlobalBounds().width / 2.f, screenRect.height * 0.4f + static_cast<float>(preferences.uiScaling * 25) * 3.5f));
+                versionText.setPosition(sf::Vector2f(5.f, screenRect.height - 16.f * preferences.uiScaling));
+                copyleftText.setOrigin(sf::Vector2f(copyleftText.getGlobalBounds().width, 0.f));
+                copyleftText.setPosition(sf::Vector2f(screenRect.width - 5.f, screenRect.height - 16.f * preferences.uiScaling));
+                break;
+            case MENU_SETTINGS:
+                optionText.setCharacterSize(12 * preferences.uiScaling);
+                optionText.setOutlineThickness(0.5f * preferences.uiScaling);
+                masterVolumeSlider.setScaling(preferences.uiScaling);
+                musicVolumeSlider.setScaling(preferences.uiScaling);
+                antialiasingLevelSlider.setScaling(preferences.uiScaling);
+                framerateLimitSlider.setScaling(preferences.uiScaling);
+                fullscreenToggleButton.setScaling(preferences.uiScaling);
+                vsyncToggleButton.setScaling(preferences.uiScaling);
+                uiScalingStepButton.setScaling(preferences.uiScaling);
+                ppbSlider.setScaling(preferences.uiScaling);
+                settingsDoneButton.setScaling(preferences.uiScaling);
 
-                    optionText.setPosition(sf::Vector2f(screenRect.width / 2.f - optionText.getGlobalBounds().width / 2.f, screenRect.height * 0.075f));
-                    masterVolumeSlider.setPosition(sf::Vector2f(screenRect.width / 2.f - masterVolumeSlider.getGlobalBounds().width - 5.f * preferences.uiScaling, screenRect.height * 0.25f));
-                    musicVolumeSlider.setPosition(sf::Vector2f(screenRect.width / 2.f + 5.f * preferences.uiScaling, screenRect.height * 0.25f));
-                    antialiasingLevelSlider.setPosition(sf::Vector2f(screenRect.width / 2.f - masterVolumeSlider.getGlobalBounds().width - 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25)));
-                    framerateLimitSlider.setPosition(sf::Vector2f(screenRect.width / 2.f + 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25)));
-                    fullscreenToggleButton.setPosition(sf::Vector2f(screenRect.width / 2.f - masterVolumeSlider.getGlobalBounds().width - 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 2.f));
-                    vsyncToggleButton.setPosition(sf::Vector2f(screenRect.width / 2.f + 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 2.f));
-                    uiScalingStepButton.setPosition(sf::Vector2f(screenRect.width / 2.f - masterVolumeSlider.getGlobalBounds().width - 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 3.f));
-                    ppbSlider.setPosition(sf::Vector2f(screenRect.width / 2.f + 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 3.f));
-                    settingsDoneButton.setPosition(sf::Vector2f(screenRect.width / 2.f - settingsDoneButton.getGlobalBounds().width / 2.f, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 4.5f));
+                optionText.setPosition(sf::Vector2f(screenRect.width / 2.f - optionText.getGlobalBounds().width / 2.f, screenRect.height * 0.075f));
+                masterVolumeSlider.setPosition(sf::Vector2f(screenRect.width / 2.f - masterVolumeSlider.getGlobalBounds().width - 5.f * preferences.uiScaling, screenRect.height * 0.25f));
+                musicVolumeSlider.setPosition(sf::Vector2f(screenRect.width / 2.f + 5.f * preferences.uiScaling, screenRect.height * 0.25f));
+                antialiasingLevelSlider.setPosition(sf::Vector2f(screenRect.width / 2.f - antialiasingLevelSlider.getGlobalBounds().width - 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25)));
+                framerateLimitSlider.setPosition(sf::Vector2f(screenRect.width / 2.f + 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25)));
+                fullscreenToggleButton.setPosition(sf::Vector2f(screenRect.width / 2.f - fullscreenToggleButton.getGlobalBounds().width - 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 2.f));
+                vsyncToggleButton.setPosition(sf::Vector2f(screenRect.width / 2.f + 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 2.f));
+                uiScalingStepButton.setPosition(sf::Vector2f(screenRect.width / 2.f - uiScalingStepButton.getGlobalBounds().width - 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 3.f));
+                ppbSlider.setPosition(sf::Vector2f(screenRect.width / 2.f + 5.f * preferences.uiScaling, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 3.f));
+                settingsDoneButton.setPosition(sf::Vector2f(screenRect.width / 2.f - settingsDoneButton.getGlobalBounds().width / 2.f, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 4.5f));
 
-                    masterVolumeSlider.setValue(preferences.masterVolume);
-                    musicVolumeSlider.setValue(preferences.musicVolume);
-                    antialiasingLevelSlider.setValue(preferences.antialiasingLevel);
-                    framerateLimitSlider.setValue(preferences.framerateLimit / 10);
-                    ppbSlider.setValue(static_cast<int>(std::round(log2(preferences.gamePixelPerBlock))));
-                    break;
-                case MENU_SELECTWORLD:
-                    selectWorldText.setCharacterSize(12 * preferences.uiScaling);
-                    selectWorldText.setOutlineThickness(0.5f * preferences.uiScaling);
-                    worldNameTextBox.setScaling(preferences.uiScaling);
-                    selectWorldDoneButton.setScaling(preferences.uiScaling);
+                masterVolumeSlider.setValue(preferences.masterVolume);
+                musicVolumeSlider.setValue(preferences.musicVolume);
+                antialiasingLevelSlider.setValue(preferences.antialiasingLevel);
+                framerateLimitSlider.setValue(preferences.framerateLimit / 10);
+                ppbSlider.setValue(static_cast<int>(std::round(log2(preferences.gamePixelPerBlock))));
+                break;
+            case MENU_SELECTWORLD:
+                selectWorldText.setCharacterSize(12 * preferences.uiScaling);
+                selectWorldText.setOutlineThickness(0.5f * preferences.uiScaling);
+                worldNameTextBox.setScaling(preferences.uiScaling);
+                selectWorldDoneButton.setScaling(preferences.uiScaling);
 
-                    selectWorldText.setPosition(sf::Vector2f(screenRect.width / 2.f - selectWorldText.getGlobalBounds().width / 2.f, screenRect.height * 0.075f));
-                    worldNameTextBox.setPosition(sf::Vector2f(screenRect.width / 2.f - worldNameTextBox.getGlobalBounds().width / 2.f, screenRect.height * 0.35f));
-                    selectWorldDoneButton.setPosition(sf::Vector2f(screenRect.width / 2.f - settingsDoneButton.getGlobalBounds().width / 2.f, screenRect.height * 0.35f + static_cast<float>(preferences.uiScaling * 25) * 1.5f));
-                    break;
-                default:
-                    break;
-            }
+                selectWorldText.setPosition(sf::Vector2f(screenRect.width / 2.f - selectWorldText.getGlobalBounds().width / 2.f, screenRect.height * 0.075f));
+                worldNameTextBox.setPosition(sf::Vector2f(screenRect.width / 2.f - worldNameTextBox.getGlobalBounds().width / 2.f, screenRect.height * 0.35f));
+                selectWorldDoneButton.setPosition(sf::Vector2f(screenRect.width / 2.f - selectWorldDoneButton.getGlobalBounds().width / 2.f, screenRect.height * 0.35f + static_cast<float>(preferences.uiScaling * 25) * 1.5f));
+                break;
+            default:
+                break;
         }
 
         if (quit) {
@@ -1823,8 +2103,6 @@ int main() {
         }
 
         window.display();
-
-        isFirstLoop = false;
     }
 
     return 0;

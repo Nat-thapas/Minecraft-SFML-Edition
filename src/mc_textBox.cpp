@@ -38,9 +38,6 @@ void TextBox::setPosition(sf::Vector2f position) {
 }
 
 void TextBox::setScaling(int scaling) {
-    if (this->scaling == scaling) {
-        return;
-    }
     this->scaling = scaling;
     this->background.setSize(sf::Vector2f(this->size.x * static_cast<float>(this->scaling) - static_cast<float>(this->scaling) * 2.f, this->size.y * static_cast<float>(this->scaling) - static_cast<float>(this->scaling) * 2.f));
     this->background.setOutlineThickness(this->scaling);
