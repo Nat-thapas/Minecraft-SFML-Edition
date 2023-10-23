@@ -180,6 +180,15 @@ void Player::update(sf::Time frameTime) {
     for (int i = 0; i < stepCount; i++) {
         this->physicsUpdate(stepDetaTime);
     }
+    if (this->velocity.x > 0.f) {
+        float spriteScaleX =  static_cast<float>(this->pixelPerBlock) / 2.f / static_cast<float>(this->texture.getSize().x);
+        float spriteScaleY =  static_cast<float>(this->pixelPerBlock) * 1.8f / static_cast<float>(this->texture.getSize().y);
+        this->sprite.setScale(sf::Vector2f(spriteScaleX, spriteScaleY));
+    } else if (this->velocity.x < 0.f) {
+        float spriteScaleX =  static_cast<float>(this->pixelPerBlock) / 2.f / static_cast<float>(this->texture.getSize().x);
+        float spriteScaleY =  static_cast<float>(this->pixelPerBlock) * 1.8f / static_cast<float>(this->texture.getSize().y);
+        this->sprite.setScale(sf::Vector2f(-spriteScaleX, spriteScaleY));
+    }
 }
 
 PlayerLocationData Player::getDataFromFile(std::string filePath) {

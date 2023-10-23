@@ -51,7 +51,7 @@ void TextBox::setDisplayString(sf::String string) {
     sf::String processedString = "";
     size_t stringSize = string.getSize();
     for (size_t i = 0; i + 1 < stringSize; i++) {
-        if (string[i + 1] != '\b') {
+        if (string[i] != '\b' && string[i + 1] != '\b') {
             processedString += string[i];
         }
     }

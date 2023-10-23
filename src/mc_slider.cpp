@@ -83,9 +83,9 @@ void Slider::setValue(int val) {
 }
 
 void Slider::setValueByMousePos(sf::Vector2i mousePos) {
-    float slidingSize = this->slidingTexture.getSize().x / 2.f;
-    float relatetiveMousePos = static_cast<float>(mousePos.x) - this->backgroundSprite.getPosition().x - slidingSize;
-    float normalizedPosition = relatetiveMousePos / (this->backgroundSprite.getGlobalBounds().width - 2.f * slidingSize);
+    float slidingHalfSize = this->slidingTexture.getSize().x * static_cast<float>(this->scaling) / 4.f;
+    float relatetiveMousePos = static_cast<float>(mousePos.x) - this->backgroundSprite.getPosition().x - slidingHalfSize;
+    float normalizedPosition = relatetiveMousePos / (this->backgroundSprite.getGlobalBounds().width - 2.f * slidingHalfSize);
     normalizedPosition = std::clamp(normalizedPosition, 0.f, 1.f);
     this->currentVal = static_cast<int>(std::round(normalizedPosition * this->maxVal));
     this->updatePosition();

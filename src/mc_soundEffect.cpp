@@ -40,6 +40,9 @@ void SoundEffect::play(std::string soundName, float volume, sf::Vector2f positio
         #endif
         return;
     }
+    if (soundName == "click" && zDistance == 10.f) {
+        zDistance = 0.f;
+    }
     int variations = this->soundsVariantCount[soundName];
     this->soundPlayers[this->playerIdx].stop();
     if (variations == 1) {

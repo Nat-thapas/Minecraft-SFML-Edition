@@ -16,6 +16,7 @@
 #include "mc_furnaceInterface.hpp"
 #include "mc_gameDebugInfo.hpp"
 #include "mc_inventory.hpp"
+#include "mc_leaderboard.hpp"
 #include "mc_locationDelta.hpp"
 #include "mc_menuBackground.hpp"
 #include "mc_musicPlayer.hpp"
@@ -37,6 +38,7 @@
 #define MENU_CRAFTINGTABLE 4
 #define MENU_CHEST 5
 #define MENU_FURNACE 6
+#define MENU_ENTERNAME 7
 
  using json = nlohmann::json;
 
@@ -89,6 +91,13 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
         seed = ((rand() & 0b11111111) << 24) + ((rand() & 0b11111111) << 16) + ((rand() & 0b11111111) << 8) + (rand() & 0b11111111);
     }
 
+    int playtime = 0;
+    if (std::filesystem::exists(std::format("saves/{}/playtime.dat", worldName))) {
+        std::ifstream playtimeFile(std::format("saves/{}/playtime.dat", worldName), std::ios::binary);
+        playtimeFile.read(reinterpret_cast<char*>(&playtime), sizeof(int));
+        playtimeFile.close();
+    }
+
     mc::Chunks chunks(playerLocationData.chunkID, seed, preferences.gamePixelPerBlock, worldName, sf::Vector2i(static_cast<int>(round(screenRect.width)), static_cast<int>(round(screenRect.height))), "resources/textures/atlases/", "resources/textures/atlases/", "resources/shaders/chunk.frag", "resources/shaders/breakOverlay.frag", smeltingRecipesData, "resources/textures/overlays/breakProgress.png", soundEffect);
 
     if (recalculateSpawnY) {
@@ -107,6 +116,9 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
 
     sf::Font robotoMonoRegular;
     robotoMonoRegular.loadFromFile("resources/fonts/RobotoMono-Regular.ttf");
+
+    sf::Font notoSansThaiLoopedMedium;
+    notoSansThaiLoopedMedium.loadFromFile("resources/fonts/NotoSansThaiLooped-Medium.ttf");
 
     mc::PerfDebugInfo perfDebugInfo(sf::Vector2f(5.f, 0.f), robotoRegular, 24, sf::Color::White, sf::Color::Black, 1.f);
     mc::GameDebugInfo gameDebugInfo(sf::Vector2f(screenRect.width - 5.f, 0.f), robotoRegular, 24, sf::Color::White, sf::Color::Black, 1.f);
@@ -129,6 +141,8 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
 
     int playerMoveInput = 0;
     bool playerIntendJump = false;
+
+    bool diamondAcquired = std::filesystem::exists(std::format("saves/{}/diamondAcquired", worldName));
 
     sf::Texture invTextureAtlas;
     invTextureAtlas.loadFromFile("resources/textures/atlases/itemsAtlas.png");
@@ -219,6 +233,14 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
     sf::Texture slidingTexture;
     slidingTexture.loadFromFile("resources/textures/gui/sliderSliding.png");
 
+    sf::Text gameMenuText;
+    gameMenuText.setFont(robotoRegular);
+    gameMenuText.setLetterSpacing(1.25f);
+    gameMenuText.setCharacterSize(12 * preferences.uiScaling);
+    gameMenuText.setFillColor(sf::Color::White);
+    gameMenuText.setOutlineColor(sf::Color::Black);
+    gameMenuText.setOutlineThickness(0.5f * preferences.uiScaling);
+    gameMenuText.setString("Game Menu");
     mc::Button backToGameButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Back to Game");
     mc::Button optionsButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Options...");
     mc::Button saveAndQuitButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Save and Quit to Title");
@@ -240,6 +262,17 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
     mc::Button uiScalingStepButton(mediumButtonTexture, robotoRegular, preferences.uiScaling, std::format("GUI Scale: {}", preferences.uiScaling));
     mc::Slider ppbSlider(mediumSliderTexture, slidingTexture, robotoRegular, preferences.uiScaling, std::format("Pixel Per Block: {}", preferences.gamePixelPerBlock), 8);
     mc::Button settingsDoneButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Done");
+
+    sf::Text enterNameText;
+    enterNameText.setFont(robotoRegular);
+    enterNameText.setLetterSpacing(1.25f);
+    enterNameText.setCharacterSize(12 * preferences.uiScaling);
+    enterNameText.setFillColor(sf::Color::White);
+    enterNameText.setOutlineColor(sf::Color::Black);
+    enterNameText.setOutlineThickness(0.5f * preferences.uiScaling);
+    enterNameText.setString("Please Enter Your Name");
+    mc::TextBox playerNameTextBox(notoSansThaiLoopedMedium, sf::Vector2f(200.f, 20.f), preferences.uiScaling);
+    mc::Button enterNameDoneButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Done");
 
     float scrollWheelFraction = 0.f;
     int selectedHotbarSlot = 0;
@@ -288,6 +321,8 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
 
         bool renderSlotHoverHighlighter = false;
 
+        sf::String textInputed = "";
+
         sf::Event event;
         while (window.pollEvent(event)) {
             switch (event.type) {
@@ -300,6 +335,10 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
                     std::ofstream seedFile(std::format("saves/{}/seed.dat", worldName), std::ios::binary);
                     seedFile.write(reinterpret_cast<char*>(&seed), sizeof(int));
                     seedFile.close();
+                    playtime += tickCount;
+                    std::ofstream playtimeFile(std::format("saves/{}/playtime.dat", worldName), std::ios::binary);
+                    playtimeFile.write(reinterpret_cast<char*>(&playtime), sizeof(int));
+                    playtimeFile.close();
                     hotbarInventory.saveToFile(std::format("saves/{}/inventories/player/hotbar.dat.gz", worldName));
                     mainInventory.saveToFile(std::format("saves/{}/inventories/player/main.dat.gz", worldName));
                     mc::Player::saveDataToFile(std::format("saves/{}/player.dat.gz", worldName), mc::PlayerLocationData(chunks.getPlayerChunkID(), chunks.getPlayerPos()));
@@ -385,18 +424,22 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
                             selectedHotbarSlot = 8;
                             break;
                         case sf::Keyboard::I:
+                            if (openMenuType == MENU_ENTERNAME) break;
                             ppbChanged = true;
                             preferences.gamePixelPerBlock *= 2;
                             break;
                         case sf::Keyboard::O:
+                            if (openMenuType == MENU_ENTERNAME) break;
                             ppbChanged = true;
                             preferences.gamePixelPerBlock /= 2;
                             break;
                         case sf::Keyboard::K:
+                            if (openMenuType == MENU_ENTERNAME) break;
                             scalingChanged = true;
                             preferences.uiScaling += 1;
                             break;
                         case sf::Keyboard::L:
+                            if (openMenuType == MENU_ENTERNAME) break;
                             scalingChanged = true;
                             preferences.uiScaling -= 1;
                             break;
@@ -440,6 +483,9 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
                         default:
                             break;
                     }
+                    break;
+                case sf::Event::TextEntered:
+                    textInputed += event.text.unicode;
                     break;
                 case sf::Event::MouseMoved:
                     mousePosition = sf::Vector2i(event.mouseMove.x, event.mouseMove.y);
@@ -1210,6 +1256,10 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
                         std::ofstream seedFile(std::format("saves/{}/seed.dat", worldName), std::ios::binary);
                         seedFile.write(reinterpret_cast<char*>(&seed), sizeof(int));
                         seedFile.close();
+                        playtime += tickCount;
+                        std::ofstream playtimeFile(std::format("saves/{}/playtime.dat", worldName), std::ios::binary);
+                        playtimeFile.write(reinterpret_cast<char*>(&playtime), sizeof(int));
+                        playtimeFile.close();
                         hotbarInventory.saveToFile(std::format("saves/{}/inventories/player/hotbar.dat.gz", worldName));
                         mainInventory.saveToFile(std::format("saves/{}/inventories/player/main.dat.gz", worldName));
                         mc::Player::saveDataToFile(std::format("saves/{}/player.dat.gz", worldName), mc::PlayerLocationData(chunks.getPlayerChunkID(), chunks.getPlayerPos()));
@@ -1217,6 +1267,41 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
                     }
                 } else {
                     saveAndQuitButton.setState(BTN_STATE_NORMAL);
+                }
+                break;
+            case MENU_ENTERNAME:
+                if (leftClick) {
+                    if (playerNameTextBox.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                        playerNameTextBox.setFocused(true);
+                    } else {
+                        playerNameTextBox.setFocused(false);
+                    }
+                }
+                if (playerNameTextBox.getFocused()) {
+                    playerNameTextBox.setDisplayString(playerNameTextBox.getDisplayString() + textInputed);
+                }
+                if (enterNameDoneButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    enterNameDoneButton.setState(BTN_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        std::ifstream leaderboardFile("leaderboard.json");
+                        json leaderboardData = json::parse(leaderboardFile);
+                        leaderboardFile.close();
+                        playtime += tickCount;
+                        tickCount = 0;
+                        sf::String playerName = playerNameTextBox.getDisplayString();
+                        std::vector<uint32_t> playerNameUtf32;
+                        for (sf::Uint32 c : playerName.toUtf32()) {
+                            playerNameUtf32.push_back(c);
+                        }
+                        leaderboardData.push_back(json({playtime, json(playerNameUtf32)}));
+                        std::ofstream leaderBoardFile("leaderboard.json");
+                        leaderBoardFile << std::setw(4) << leaderboardData << std::endl;
+                        leaderBoardFile.close();
+                        openMenuType = MENU_NONE;
+                    }
+                } else {
+                    enterNameDoneButton.setState(BTN_STATE_NORMAL);
                 }
                 break;
             default:
@@ -1299,6 +1384,7 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
             window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
             window.setFramerateLimit(preferences.framerateLimit);
             window.setVerticalSyncEnabled(preferences.vsyncEnabled);
+            window.setKeyRepeatEnabled(false);
         }
 
         if (volumeChanged) {
@@ -1314,6 +1400,13 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
             if (leftClickHeld && openMenuType == MENU_NONE) {
                 std::vector<mc::ItemStack> droppedItemStacks = chunks.breakBlock(hotbarInventory.getItemStack(selectedHotbarSlot).id, tickCount);
                 for (mc::ItemStack& droppedItemStack : droppedItemStacks) {
+                    if (droppedItemStack.id == 53 && !diamondAcquired) {
+                        std::ofstream flagFile(std::format("saves/{}/diamondAcquired", worldName), std::ios::binary);
+                        flagFile.close();
+                        diamondAcquired = true;
+                        openMenuType = MENU_ENTERNAME;
+                        playerNameTextBox.setFocused(true);
+                    }
                     if (droppedItemStack.id != 0) {
                         droppedItemStack = hotbarInventory.addItemStack(droppedItemStack);
                         if (droppedItemStack.amount > 0) droppedItemStack = mainInventory.addItemStack(droppedItemStack);
@@ -1382,10 +1475,13 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
                 break;
             case MENU_PAUSE:
                 menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
+                gameMenuText.setCharacterSize(12 * preferences.uiScaling);
+                gameMenuText.setOutlineThickness(0.5f * preferences.uiScaling);
                 backToGameButton.setScaling(preferences.uiScaling);
                 optionsButton.setScaling(preferences.uiScaling);
                 saveAndQuitButton.setScaling(preferences.uiScaling);
 
+                gameMenuText.setPosition(sf::Vector2f(screenRect.width / 2.f - gameMenuText.getGlobalBounds().width / 2.f, screenRect.height * 0.075f));
                 backToGameButton.setPosition(sf::Vector2f(screenRect.width / 2.f - backToGameButton.getGlobalBounds().width / 2.f, screenRect.height * 0.4f));
                 optionsButton.setPosition(sf::Vector2f(screenRect.width / 2.f - optionsButton.getGlobalBounds().width / 2.f, screenRect.height * 0.4f + static_cast<float>(preferences.uiScaling * 25)));
                 saveAndQuitButton.setPosition(sf::Vector2f(screenRect.width / 2.f - saveAndQuitButton.getGlobalBounds().width / 2.f, screenRect.height * 0.4f + static_cast<float>(preferences.uiScaling * 25) * 2.f));
@@ -1455,6 +1551,17 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
                 menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
                 window.setMouseCursor(arrowCursor);
                 break;
+            case MENU_ENTERNAME:
+                menuBlackOutBackground.setSize(sf::Vector2f(screenRect.width, screenRect.height));
+                enterNameText.setCharacterSize(12 * preferences.uiScaling);
+                enterNameText.setOutlineThickness(0.5f * preferences.uiScaling);
+                playerNameTextBox.setScaling(preferences.uiScaling);
+                enterNameDoneButton.setScaling(preferences.uiScaling);
+
+                enterNameText.setPosition(sf::Vector2f(screenRect.width / 2.f - enterNameText.getGlobalBounds().width / 2.f, screenRect.height * 0.075f));
+                playerNameTextBox.setPosition(sf::Vector2f(screenRect.width / 2.f - playerNameTextBox.getGlobalBounds().width / 2.f, screenRect.height * 0.35f));
+                enterNameDoneButton.setPosition(sf::Vector2f(screenRect.width / 2.f - enterNameDoneButton.getGlobalBounds().width / 2.f, screenRect.height * 0.35f + static_cast<float>(preferences.uiScaling * 25) * 1.5f));
+                break;
             default:
                 break;
         }
@@ -1479,6 +1586,7 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
                 break;
             case MENU_PAUSE:
                 window.draw(menuBlackOutBackground);
+                window.draw(gameMenuText);
                 window.draw(backToGameButton);
                 window.draw(optionsButton);
                 window.draw(saveAndQuitButton);
@@ -1525,6 +1633,12 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
                 window.draw(furnaceInterface);
                 if (renderSlotHoverHighlighter) window.draw(inventorySlotHoverHighlighter);
                 window.draw(heldInventory);
+                break;
+            case MENU_ENTERNAME:
+                window.draw(menuBlackOutBackground);
+                window.draw(enterNameText);
+                window.draw(playerNameTextBox);
+                window.draw(enterNameDoneButton);
                 break;
             default:
                 break;
@@ -1587,6 +1701,12 @@ int main() {
     icon.loadFromFile("resources/icon.png");
     window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 
+    if (!std::filesystem::exists("leaderboard.json")) {
+        std::ofstream leaderboardJsonFile("leaderboard.json");
+        leaderboardJsonFile << "[]";
+        leaderboardJsonFile.close();
+    }
+
     sf::Listener::setPosition(sf::Vector3f(0.f, 0.f, 0.f));
     sf::Listener::setDirection(sf::Vector3f(0.f, 0.f, -1.f));
     sf::Listener::setUpVector(sf::Vector3f(0.f, 1.f, 0.f));
@@ -1635,7 +1755,7 @@ int main() {
     versionText.setFillColor(sf::Color::White);
     versionText.setOutlineColor(sf::Color::Black);
     versionText.setOutlineThickness(0.5f * preferences.uiScaling);
-    versionText.setString("Minecraft SFML Edition 1.0.0rc1");
+    versionText.setString("Minecraft SFML Edition 1.0.0");
 
     sf::Text copyleftText;
     copyleftText.setFont(robotoRegular);
@@ -1646,6 +1766,17 @@ int main() {
     copyleftText.setOutlineThickness(0.5f * preferences.uiScaling);
     copyleftText.setString("Copyleft 66010261 Natthapas Saengnikornkiat");
 
+    sf::Text technobladeNeverDiesText;
+    technobladeNeverDiesText.setFont(robotoRegular);
+    technobladeNeverDiesText.setLetterSpacing(1.25f);
+    technobladeNeverDiesText.setCharacterSize(11 * preferences.uiScaling);
+    technobladeNeverDiesText.setFillColor(sf::Color(252, 252, 0));
+    technobladeNeverDiesText.setOutlineColor(sf::Color(62, 62, 0));
+    technobladeNeverDiesText.setOutlineThickness(0.5f * preferences.uiScaling);
+    technobladeNeverDiesText.setString("Technoblade never dies!");
+    technobladeNeverDiesText.setOrigin(sf::Vector2f(technobladeNeverDiesText.getGlobalBounds().width / 2.f, technobladeNeverDiesText.getGlobalBounds().height / 2.f));
+    technobladeNeverDiesText.setRotation(-20.f);
+
     sf::Texture titleTexture;
     titleTexture.loadFromFile("resources/textures/gui/title.png");
     titleTexture.setSmooth(true);
@@ -1655,6 +1786,11 @@ int main() {
     menuBackgroundTexture.loadFromFile("resources/textures/gui/menuBackground.png");
     menuBackgroundTexture.setSmooth(true);
     mc::MenuBackground menuBackground(menuBackgroundTexture);
+
+    sf::Texture dirtBackgroundTexture;
+    dirtBackgroundTexture.loadFromFile("resources/textures/gui/dirtBackground.png");
+    dirtBackgroundTexture.setRepeated(true);
+    sf::Sprite dirtBackground(dirtBackgroundTexture);
 
     sf::Text optionText;
     optionText.setFont(robotoRegular);
@@ -1685,6 +1821,34 @@ int main() {
     mc::TextBox worldNameTextBox(notoSansThaiLoopedMedium, sf::Vector2f(200.f, 20.f), preferences.uiScaling);
     mc::Button selectWorldDoneButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Done");
 
+    sf::Text leaderboardText;
+    leaderboardText.setFont(robotoRegular);
+    leaderboardText.setLetterSpacing(1.25f);
+    leaderboardText.setCharacterSize(12 * preferences.uiScaling);
+    leaderboardText.setFillColor(sf::Color::White);
+    leaderboardText.setOutlineColor(sf::Color::Black);
+    leaderboardText.setOutlineThickness(0.5f * preferences.uiScaling);
+    leaderboardText.setString("Leaderboard");
+    std::vector<sf::Text> leaderboardPlayersName;
+    std::vector<sf::Text> leaderboardPlayersTime;
+    leaderboardPlayersName.resize(8);
+    leaderboardPlayersTime.resize(8);
+    for (size_t i = 0; i < leaderboardPlayersName.size(); i++) {
+        leaderboardPlayersName[i].setFont(notoSansThaiLoopedMedium);
+        leaderboardPlayersName[i].setLetterSpacing(1.25f);
+        leaderboardPlayersName[i].setCharacterSize(12 * preferences.uiScaling);
+        leaderboardPlayersName[i].setFillColor(sf::Color::White);
+        leaderboardPlayersName[i].setOutlineColor(sf::Color::Black);
+        leaderboardPlayersName[i].setOutlineThickness(0.5f * preferences.uiScaling);
+        leaderboardPlayersTime[i].setFont(notoSansThaiLoopedMedium);
+        leaderboardPlayersTime[i].setLetterSpacing(1.25f);
+        leaderboardPlayersTime[i].setCharacterSize(12 * preferences.uiScaling);
+        leaderboardPlayersTime[i].setFillColor(sf::Color::White);
+        leaderboardPlayersTime[i].setOutlineColor(sf::Color::Black);
+        leaderboardPlayersTime[i].setOutlineThickness(0.5f * preferences.uiScaling);
+    }
+    mc::Button leaderBoardDoneButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Done");
+
     sf::Clock elapsedClock;
     elapsedClock.restart();
 
@@ -1704,7 +1868,7 @@ int main() {
 
         bool quit = false;
 
-        sf::String textInputed;
+        sf::String textInputed = "";
 
         sf::Time elapsedTime = elapsedClock.getElapsedTime();
 
@@ -1715,6 +1879,17 @@ int main() {
                     mc::Preferences::saveToFile("settings.dat.gz", preferences);
                     window.close();
                     return 0;
+                    break;
+                case sf::Event::KeyPressed:
+                    switch (event.key.code) {
+                        case sf::Keyboard::Escape:
+                            if (openMenuType == MENU_SELECTWORLD || openMenuType == MENU_LEADERBOARD || openMenuType == MENU_SETTINGS) {
+                                openMenuType = MENU_MAIN;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
                     break;
                 case sf::Event::TextEntered:
                     textInputed += event.text.unicode;
@@ -1770,6 +1945,31 @@ int main() {
                     leaderBoardButton.setState(BTN_STATE_HOVERED);
                     if (leftClick) {
                         soundEffect.play("click");
+                        std::ifstream leaderboardFile("leaderboard.json");
+                        json leaderboardData = json::parse(leaderboardFile);
+                        leaderboardFile.close();
+                        std::vector<mc::PlayerAndTime> parsedLeaderboardData;
+                        parsedLeaderboardData.resize(leaderboardData.size());
+                        for (size_t i = 0; i < leaderboardData.size(); i++) {
+                            parsedLeaderboardData[i].playtime = leaderboardData[i][0];
+                            std::vector<uint32_t> playerNameUtf32Raw;
+                            playerNameUtf32Raw.resize(leaderboardData[i][1].size());
+                            for (size_t j = 0; j < leaderboardData[i][1].size(); j++) {
+                                playerNameUtf32Raw[j] = leaderboardData[i][1][j];
+                            }
+                            sf::String playerName = sf::String::fromUtf32(playerNameUtf32Raw.cbegin(), playerNameUtf32Raw.cend());
+                            parsedLeaderboardData[i].playerName = playerName;
+                        }
+                        std::sort(parsedLeaderboardData.begin(), parsedLeaderboardData.end());
+                        for (size_t i = 0; i < leaderboardPlayersName.size(); i++) {
+                            if (i < leaderboardData.size()) {
+                                leaderboardPlayersName[i].setString(sf::String(std::format("{}. ", i + 1) + parsedLeaderboardData[i].playerName));
+                                leaderboardPlayersTime[i].setString(std::format("{}m {:02d}s", parsedLeaderboardData[i].playtime / 1200, (parsedLeaderboardData[i].playtime % 1200) / 20));
+                            } else {
+                                leaderboardPlayersName[i].setString("");
+                                leaderboardPlayersTime[i].setString("");
+                            }
+                        }
                         openMenuType = MENU_LEADERBOARD;
                     }
                 } else {
@@ -1948,18 +2148,32 @@ int main() {
                     selectWorldDoneButton.setState(BTN_STATE_HOVERED);
                     if (leftClick) {
                         soundEffect.play("click");
-                        musicPlayer.stop();
-                        openMenuType = MENU_MAIN;
-                        windowSettingsChanged =  true;
-                        volumeChanged = true;
-                        game(worldNameTextBox.getDisplayString().toAnsiString(), window, screenRect, soundEffect, preferences);
-                        musicPlayer.start();
-                        if (!window.isOpen()) {
-                            quit = true;
+                        if (worldNameTextBox.getDisplayString().toAnsiString().size() > 0) {
+                            musicPlayer.stop();
+                            openMenuType = MENU_MAIN;
+                            windowSettingsChanged =  true;
+                            volumeChanged = true;
+                            game(worldNameTextBox.getDisplayString().toAnsiString(), window, screenRect, soundEffect, preferences);
+                            screenRect = sf::FloatRect(0, 0, window.getSize().x, window.getSize().y);
+                            musicPlayer.start();
+                            if (!window.isOpen()) {
+                                quit = true;
+                            }
                         }
                     }
                 } else {
                     selectWorldDoneButton.setState(BTN_STATE_NORMAL);
+                }
+                break;
+            case MENU_LEADERBOARD:
+                if (leaderBoardDoneButton.getGlobalBounds().contains(sf::Vector2f(mousePosition))) {
+                    leaderBoardDoneButton.setState(BTN_STATE_HOVERED);
+                    if (leftClick) {
+                        soundEffect.play("click");
+                        openMenuType = MENU_MAIN;
+                    }
+                } else {
+                    leaderBoardDoneButton.setState(BTN_STATE_NORMAL);
                 }
                 break;
             default:
@@ -1986,12 +2200,16 @@ int main() {
             window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
             window.setFramerateLimit(preferences.framerateLimit);
             window.setVerticalSyncEnabled(preferences.vsyncEnabled);
+            window.setKeyRepeatEnabled(false);
         }
 
         if (volumeChanged) {
             sf::Listener::setGlobalVolume(static_cast<float>(preferences.masterVolume));
             musicPlayer.setVolume(static_cast<float>(preferences.musicVolume) / 100.f);
         }
+
+        dirtBackground.setTextureRect(sf::IntRect(0, 0, static_cast<int>(std::ceil(screenRect.width / (preferences.uiScaling * 2))), static_cast<int>(std::ceil(screenRect.height / (preferences.uiScaling * 2)))));
+        dirtBackground.setScale(sf::Vector2f(preferences.uiScaling * 2, preferences.uiScaling * 2));
 
         switch (openMenuType) {
             case MENU_MAIN:
@@ -2014,6 +2232,11 @@ int main() {
                 versionText.setPosition(sf::Vector2f(5.f, screenRect.height - 16.f * preferences.uiScaling));
                 copyleftText.setOrigin(sf::Vector2f(copyleftText.getGlobalBounds().width, 0.f));
                 copyleftText.setPosition(sf::Vector2f(screenRect.width - 5.f, screenRect.height - 16.f * preferences.uiScaling));
+
+                technobladeNeverDiesText.setCharacterSize(11 * preferences.uiScaling);
+                technobladeNeverDiesText.setOutlineThickness(0.5f * preferences.uiScaling);
+                technobladeNeverDiesText.setOrigin(sf::Vector2f(technobladeNeverDiesText.getLocalBounds().width / 2.f, technobladeNeverDiesText.getLocalBounds().height / 2.f));
+                technobladeNeverDiesText.setPosition(sf::Vector2f(titleSprite.getGlobalBounds().left + titleSprite.getGlobalBounds().width * 0.95f, titleSprite.getGlobalBounds().top + titleSprite.getGlobalBounds().height * 0.65f));
                 break;
             case MENU_SETTINGS:
                 optionText.setCharacterSize(12 * preferences.uiScaling);
@@ -2055,6 +2278,23 @@ int main() {
                 worldNameTextBox.setPosition(sf::Vector2f(screenRect.width / 2.f - worldNameTextBox.getGlobalBounds().width / 2.f, screenRect.height * 0.35f));
                 selectWorldDoneButton.setPosition(sf::Vector2f(screenRect.width / 2.f - selectWorldDoneButton.getGlobalBounds().width / 2.f, screenRect.height * 0.35f + static_cast<float>(preferences.uiScaling * 25) * 1.5f));
                 break;
+            case MENU_LEADERBOARD:
+                leaderboardText.setCharacterSize(12 * preferences.uiScaling);
+                leaderboardText.setOutlineThickness(0.5f * preferences.uiScaling);
+                for (size_t i = 0; i < leaderboardPlayersName.size(); i++) {
+                    leaderboardPlayersName[i].setCharacterSize(12 * preferences.uiScaling);
+                    leaderboardPlayersName[i].setOutlineThickness(0.5f * preferences.uiScaling);
+                    leaderboardPlayersTime[i].setCharacterSize(12 * preferences.uiScaling);
+                    leaderboardPlayersTime[i].setOutlineThickness(0.5f * preferences.uiScaling);
+                }
+                leaderBoardDoneButton.setScaling(preferences.uiScaling);
+
+                leaderboardText.setPosition(sf::Vector2f(screenRect.width / 2.f - leaderboardText.getGlobalBounds().width / 2.f, screenRect.height * 0.075f));
+                for (size_t i = 0; i < leaderboardPlayersName.size(); i++) {
+                    leaderboardPlayersName[i].setPosition(sf::Vector2f(screenRect.width / 2.f - preferences.uiScaling * 200.f, screenRect.height * 0.2f + static_cast<float>(preferences.uiScaling * 25) * i));
+                    leaderboardPlayersTime[i].setPosition(sf::Vector2f(screenRect.width / 2.f + preferences.uiScaling * (200.f - 15.f * preferences.uiScaling), screenRect.height * 0.2f + static_cast<float>(preferences.uiScaling * 25) * i));
+                }
+                leaderBoardDoneButton.setPosition(sf::Vector2f(screenRect.width / 2.f - leaderBoardDoneButton.getGlobalBounds().width / 2.f, screenRect.height * 0.25f + static_cast<float>(preferences.uiScaling * 25) * 8.f));
             default:
                 break;
         }
@@ -2072,8 +2312,10 @@ int main() {
         switch (openMenuType) {
             case MENU_MAIN:
                 menuBackground.setPosition(sf::Vector2f(-mod(elapsedTime.asSeconds() * 20.f * (screenRect.height / static_cast<float>(menuBackgroundTexture.getSize().y)), static_cast<float>(menuBackgroundTexture.getSize().x) * screenRect.height / static_cast<float>(menuBackgroundTexture.getSize().y)), 0.f));
+                technobladeNeverDiesText.setScale(sf::Vector2f(1.075f - 0.075f * sin(mod(elapsedTime.asSeconds() * 3.14159265358979f * 2.f, 3.14159265358979f)), 1.075f - 0.075f * sin(mod(elapsedTime.asSeconds() * 3.14159265358979f * 2.f, 3.14159265358979f))));
                 window.draw(menuBackground);
                 window.draw(titleSprite);
+                window.draw(technobladeNeverDiesText);
                 window.draw(singleplayerButton);
                 window.draw(leaderBoardButton);
                 window.draw(optionsButton);
@@ -2082,13 +2324,22 @@ int main() {
                 window.draw(copyleftText);
                 break;
             case MENU_SELECTWORLD:
+                window.draw(dirtBackground);
                 window.draw(selectWorldText);
                 window.draw(worldNameTextBox);
                 window.draw(selectWorldDoneButton);
                 break;
             case MENU_LEADERBOARD:
+                window.draw(dirtBackground);
+                window.draw(leaderboardText);
+                for (size_t i = 0; i < leaderboardPlayersName.size(); i++) {
+                    window.draw(leaderboardPlayersName[i]);
+                    window.draw(leaderboardPlayersTime[i]);
+                }
+                window.draw(leaderBoardDoneButton);
                 break;
             case MENU_SETTINGS:
+                window.draw(dirtBackground);
                 window.draw(optionText);
                 window.draw(masterVolumeSlider);
                 window.draw(musicVolumeSlider);
