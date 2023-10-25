@@ -1756,7 +1756,7 @@ int main() {
     versionText.setFillColor(sf::Color::White);
     versionText.setOutlineColor(sf::Color::Black);
     versionText.setOutlineThickness(0.5f * preferences.uiScaling);
-    versionText.setString("Minecraft SFML Edition 1.0.0");
+    versionText.setString("Minecraft SFML Edition 1.0.1");
 
     sf::Text copyleftText;
     copyleftText.setFont(robotoRegular);
