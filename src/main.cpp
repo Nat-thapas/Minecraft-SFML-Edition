@@ -117,8 +117,8 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
     sf::Font robotoMonoRegular;
     robotoMonoRegular.loadFromFile("resources/fonts/RobotoMono-Regular.ttf");
 
-    sf::Font notoSansThaiLoopedMedium;
-    notoSansThaiLoopedMedium.loadFromFile("resources/fonts/NotoSansThaiLooped-Medium.ttf");
+    sf::Font sarabunRegular;
+    sarabunRegular.loadFromFile("resources/fonts/Sarabun-Regular.ttf");
 
     mc::PerfDebugInfo perfDebugInfo(sf::Vector2f(5.f, 0.f), robotoRegular, 24, sf::Color::White, sf::Color::Black, 1.f);
     mc::GameDebugInfo gameDebugInfo(sf::Vector2f(screenRect.width - 5.f, 0.f), robotoRegular, 24, sf::Color::White, sf::Color::Black, 1.f);
@@ -271,7 +271,7 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
     enterNameText.setOutlineColor(sf::Color::Black);
     enterNameText.setOutlineThickness(0.5f * preferences.uiScaling);
     enterNameText.setString("Please Enter Your Name");
-    mc::TextBox playerNameTextBox(notoSansThaiLoopedMedium, sf::Vector2f(200.f, 20.f), preferences.uiScaling);
+    mc::TextBox playerNameTextBox(sarabunRegular, sf::Vector2f(200.f, 20.f), preferences.uiScaling);
     mc::Button enterNameDoneButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Done");
 
     float scrollWheelFraction = 0.f;
@@ -1561,6 +1561,7 @@ void game(std::string worldName, sf::RenderWindow& window, sf::FloatRect screenR
                 enterNameText.setPosition(sf::Vector2f(screenRect.width / 2.f - enterNameText.getGlobalBounds().width / 2.f, screenRect.height * 0.075f));
                 playerNameTextBox.setPosition(sf::Vector2f(screenRect.width / 2.f - playerNameTextBox.getGlobalBounds().width / 2.f, screenRect.height * 0.35f));
                 enterNameDoneButton.setPosition(sf::Vector2f(screenRect.width / 2.f - enterNameDoneButton.getGlobalBounds().width / 2.f, screenRect.height * 0.35f + static_cast<float>(preferences.uiScaling * 25) * 1.5f));
+                window.setMouseCursor(arrowCursor);
                 break;
             default:
                 break;
@@ -1724,8 +1725,8 @@ int main() {
     sf::Font robotoMonoRegular;
     robotoMonoRegular.loadFromFile("resources/fonts/RobotoMono-Regular.ttf");
 
-    sf::Font notoSansThaiLoopedMedium;
-    notoSansThaiLoopedMedium.loadFromFile("resources/fonts/NotoSansThaiLooped-Medium.ttf");
+    sf::Font sarabunRegular;
+    sarabunRegular.loadFromFile("resources/fonts/Sarabun-Regular.ttf");
 
     sf::Texture shortButtonTexture;
     shortButtonTexture.loadFromFile("resources/textures/gui/buttonShort.png");
@@ -1818,7 +1819,7 @@ int main() {
     selectWorldText.setOutlineColor(sf::Color::Black);
     selectWorldText.setOutlineThickness(0.5f * preferences.uiScaling);
     selectWorldText.setString("Select World");
-    mc::TextBox worldNameTextBox(notoSansThaiLoopedMedium, sf::Vector2f(200.f, 20.f), preferences.uiScaling);
+    mc::TextBox worldNameTextBox(sarabunRegular, sf::Vector2f(200.f, 20.f), preferences.uiScaling);
     mc::Button selectWorldDoneButton(longButtonTexture, robotoRegular, preferences.uiScaling, "Done");
 
     sf::Text leaderboardText;
@@ -1834,13 +1835,13 @@ int main() {
     leaderboardPlayersName.resize(8);
     leaderboardPlayersTime.resize(8);
     for (size_t i = 0; i < leaderboardPlayersName.size(); i++) {
-        leaderboardPlayersName[i].setFont(notoSansThaiLoopedMedium);
+        leaderboardPlayersName[i].setFont(sarabunRegular);
         leaderboardPlayersName[i].setLetterSpacing(1.25f);
         leaderboardPlayersName[i].setCharacterSize(12 * preferences.uiScaling);
         leaderboardPlayersName[i].setFillColor(sf::Color::White);
         leaderboardPlayersName[i].setOutlineColor(sf::Color::Black);
         leaderboardPlayersName[i].setOutlineThickness(0.5f * preferences.uiScaling);
-        leaderboardPlayersTime[i].setFont(notoSansThaiLoopedMedium);
+        leaderboardPlayersTime[i].setFont(sarabunRegular);
         leaderboardPlayersTime[i].setLetterSpacing(1.25f);
         leaderboardPlayersTime[i].setCharacterSize(12 * preferences.uiScaling);
         leaderboardPlayersTime[i].setFillColor(sf::Color::White);
