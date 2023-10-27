@@ -11,7 +11,7 @@ PreferencesData Preferences::getDefault() {
     preferencesData.screenSize = sf::Vector2i(854, 480);
     preferencesData.framerateLimit = 120;
     preferencesData.vsyncEnabled = false;
-    preferencesData.antialiasingLevel = 8;
+    preferencesData.antialiasingLevel = 0;
     preferencesData.uiScaling = 2;
     preferencesData.gamePixelPerBlock = 32;
     preferencesData.masterVolume = 100;
