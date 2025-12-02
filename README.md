@@ -8,7 +8,7 @@ Demo video: [https://www.youtube.com/watch?v=JNE2iTA-bdY](https://www.youtube.co
 
 - Nearly infinite world (68 billion blocks wide)
 - 4 billion different worlds (they look basically the same though)
-- High performance atlas-based tilemap rendering
+- High performance chunk-based tilemap rendering
 - Real-time smooth dynamic lighting
 - 3D positional audio
 - Progress is saved to file and you can seamlessly resume playing
